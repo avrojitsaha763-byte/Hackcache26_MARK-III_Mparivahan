@@ -109,19 +109,27 @@ def check_eligibility(req: EligibilityRequest):
     min_age = 18
     guidance = ""
 
-    if vehicle_class in ["MCWOG", "MOTORCYCLE WITHOUT GEAR"]:
+    if vehicle_class in ["MCWOG_50", "GEARLESS-50CC", "MOPED"]:
         min_age = 16
         eligible = age >= 16
-        guidance = "Eligible for 50cc / gearless two-wheeler with parental/guardian consent if age is between 16 and 18."
-    elif vehicle_class in ["MCWG", "MOTORCYCLE WITH GEAR"]:
+        guidance = "Eligible for 50cc / gearless two-wheeler with parental/guardian consent (Form 2 Part II) if age is between 16 and 18."
+    elif vehicle_class in ["MCWG_LMV", "COMBO", "BOTH", "BIKE_CAR", "COMBO-BIKE-CAR"]:
         min_age = 18
         eligible = age >= 18
-        guidance = "Eligible for geared two-wheelers."
-    elif vehicle_class in ["LMV", "LIGHT MOTOR VEHICLE", "CAR"]:
+        guidance = "Eligible for dual combined licence for both Geared Motorcycle (MCWG) and Private Car (LMV). Statutory fee: ₹350."
+    elif vehicle_class in ["LMV", "LIGHT MOTOR VEHICLE", "CAR", "LMV-CAR"]:
         min_age = 18
         eligible = age >= 18
-        guidance = "Eligible for non-transport cars and light passenger vehicles."
-    elif vehicle_class in ["TRANS", "TRANSPORT", "COMMERCIAL"]:
+        guidance = "Eligible for non-transport cars, hatchbacks, sedans, and light passenger vehicles under Section 4 of MV Act."
+    elif vehicle_class in ["MCWG", "MOTORCYCLE WITH GEAR", "MOTORCYCLE-GEAR"]:
+        min_age = 18
+        eligible = age >= 18
+        guidance = "Eligible for standard geared motorcycles and motorbikes."
+    elif vehicle_class in ["MCWOG", "GEARLESS-SCOOTER"]:
+        min_age = 18
+        eligible = age >= 18
+        guidance = "Eligible for automatic scooters exceeding 50cc engine capacity (e.g. Activa, Jupiter, EV scooters)."
+    elif vehicle_class in ["TRANS", "TRANSPORT", "COMMERCIAL", "COMMERCIAL-TRANSPORT"]:
         min_age = 20
         eligible = age >= 20
         guidance = "Requires minimum 1 year of holding a valid LMV licence before applying for commercial/transport badge."

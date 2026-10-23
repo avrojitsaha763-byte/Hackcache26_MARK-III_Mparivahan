@@ -33,35 +33,35 @@ export const mockQuestions = [
   },
   {
     id: 3,
-    category: "Road Signs",
+    category: "Car Rules (LMV)",
     question: {
-      en: "What does a circular sign with a horn crossed by a red diagonal line mean?",
-      hi: "एक लाल तिरछी रेखा से कटे हुए हॉर्न वाले गोलाकार संकेत का क्या अर्थ है?"
+      en: "Under Section 194B of the Motor Vehicles Act, wearing a seatbelt in a motor car is mandatory for:",
+      hi: "मोटर वाहन अधिनियम की धारा 194B के तहत कार में सीटबेल्ट पहनना किसके लिए अनिवार्य है?"
     },
     options: [
-      { en: "Compulsory sound horn", hi: "हॉर्न बजाना अनिवार्य है" },
-      { en: "Horn prohibited (Silence Zone)", hi: "हॉर्न बजाना वर्जित है (साइलेंस जोन)" },
-      { en: "Accident prone area", hi: "दुर्घटना संभावित क्षेत्र" },
-      { en: "Toll plaza ahead", hi: "आगे टोल प्लाजा है" }
+      { en: "Driver only", hi: "केवल चालक के लिए" },
+      { en: "Driver and all passengers occupying front and rear seats", hi: "चालक और आगे तथा पीछे की सभी सीटों पर बैठे यात्रियों के लिए" },
+      { en: "Only on expressways above 80 km/h", hi: "केवल 80 किमी/घंटा से अधिक गति वाले एक्सप्रेसवे पर" },
+      { en: "Seatbelt is optional inside city limits", hi: "शहर के भीतर सीटबेल्ट वैकल्पिक है" }
     ],
     correctIndex: 1,
-    explanation: "Horn prohibited signs are placed near hospitals, educational institutions, and courts."
+    explanation: "Section 194B mandates 3-point seatbelts for all occupants (driver and passengers), punishable with a ₹1,000 fine."
   },
   {
     id: 4,
-    category: "Road Signs",
+    category: "Car Rules (LMV)",
     question: {
-      en: "What does a triangular warning sign with a pedestrian figure indicate?",
-      hi: "पैदल यात्री आकृति वाला त्रिकोणीय चेतावनी संकेत क्या दर्शाता है?"
+      en: "On narrow hill roads or gradients, which vehicle legally has the right of way?",
+      hi: "पहाड़ी सड़कों या संकरी ढलान पर किस वाहन को पहले निकलने का कानूनी अधिकार (Right of Way) है?"
     },
     options: [
-      { en: "Pedestrians prohibited", hi: "पैदल चलना मना है" },
-      { en: "Pedestrian Crossing Ahead (Zebra Crossing)", hi: "आगे पैदल यात्री पार पथ है" },
-      { en: "Footpath ends", hi: "फुटपाथ समाप्त" },
-      { en: "Jogging track ahead", hi: "आगे जॉगिंग ट्रैक है" }
+      { en: "The heavier truck or bus", hi: "भारी ट्रक या बस को" },
+      { en: "The vehicle moving uphill (ascending the slope)", hi: "चढ़ाई पर ऊपर की ओर जा रहे वाहन को" },
+      { en: "The vehicle coming downhill (descending the slope)", hi: "ढलान से नीचे उतर रहे वाहन को" },
+      { en: "Whichever vehicle reaches first", hi: "जो वाहन पहले पहुंचे" }
     ],
     correctIndex: 1,
-    explanation: "Warns drivers to slow down and prepare to yield to pedestrians crossing the road."
+    explanation: "Vehicles traveling uphill have priority because stopping and restarting on an incline is difficult and hazardous."
   },
   {
     id: 5,
@@ -81,19 +81,19 @@ export const mockQuestions = [
   },
   {
     id: 6,
-    category: "Traffic Rules",
+    category: "Car Rules (LMV)",
     question: {
-      en: "When an emergency ambulance approaches with flashing lights and siren, you must:",
-      hi: "जब कोई आपातकालीन एम्बुलेंस सायरन बजाते हुए पीछे से आए, तो आपको क्या करना चाहिए?"
+      en: "During the Automated Driving Test Track (ADTT) gradient test for cars, maximum allowable rollback is:",
+      hi: "कारों के लिए स्वचालित ड्राइविंग टेस्ट (ADTT) ढलान टेस्ट के दौरान अधिकतम कितने पीछे लुढ़कने (Rollback) की अनुमति है?"
     },
     options: [
-      { en: "Maintain current lane and speed", hi: "अपनी गति और लेन बनाए रखें" },
-      { en: "Speed up to clear the road", hi: "आगे निकलकर रास्ता खाली करें" },
-      { en: "Move to the left side and come to a stop to give clear passage", hi: "तुरंत बाईं ओर मुड़कर रास्ता दें और रुकें" },
-      { en: "Honk repeatedly", hi: "लगातार हॉर्न बजाएं" }
+      { en: "15 cm (6 inches)", hi: "15 सेंटीमीटर (6 इंच)" },
+      { en: "1 meter", hi: "1 मीटर" },
+      { en: "3 feet", hi: "3 फीट" },
+      { en: "Unlimited rollback is allowed", hi: "कितना भी पीछे जा सकता है" }
     ],
-    correctIndex: 2,
-    explanation: "Under Section 194E of the MV Act, failure to give free passage to emergency vehicles attracts heavy penalties."
+    correctIndex: 0,
+    explanation: "On ADTT gradient tracks, rolling back more than 15 cm triggers sensor fault and results in test failure."
   },
   {
     id: 7,
@@ -105,11 +105,11 @@ export const mockQuestions = [
     options: [
       { en: "30 days", hi: "30 दिन" },
       { en: "3 months", hi: "3 महीने" },
-      { en: "6 months", hi: "6 महीने" },
+      { en: "6 months (180 days)", hi: "6 महीने (180 दिन)" },
       { en: "1 year", hi: "1 वर्ष" }
     ],
     correctIndex: 2,
-    explanation: "A Learner's Licence issued in India is valid for exactly 6 months throughout the country."
+    explanation: "A Learner's Licence issued in India is valid for exactly 6 months (180 days) throughout the country."
   },
   {
     id: 8,
@@ -120,7 +120,7 @@ export const mockQuestions = [
     },
     options: [
       { en: "Immediately next day", hi: "अगले ही दिन" },
-      { en: "Minimum 30 days", hi: "कम से कम 30 दिन" },
+      { en: "Minimum 30 days (CMVR Rule 15)", hi: "कम से कम 30 दिन (CMVR नियम 15)" },
       { en: "60 days", hi: "60 दिन" },
       { en: "6 months", hi: "6 महीने" }
     ],
@@ -145,46 +145,46 @@ export const mockQuestions = [
   },
   {
     id: 10,
-    category: "Safety",
+    category: "Two-Wheeler Safety",
     question: {
       en: "Who is legally required to wear a protective helmet on a two-wheeler in India?",
       hi: "भारत में दोपहिया वाहन पर किसे सुरक्षा हेलमेट पहनना कानूनी रूप से अनिवार्य है?"
     },
     options: [
       { en: "Only the rider", hi: "केवल चालक" },
-      { en: "Both the rider and the pillion passenger", hi: "चालक और पीछे बैठा यात्री दोनों" },
+      { en: "Both the rider and the pillion passenger (Section 129)", hi: "चालक और पीछे बैठा यात्री दोनों (धारा 129)" },
       { en: "Only on national highways", hi: "केवल राष्ट्रीय राजमार्ग पर" },
       { en: "Helmets are optional", hi: "हेलमेट वैकल्पिक है" }
     ],
     correctIndex: 1,
-    explanation: "Under Section 129 of the MV Act, both rider and pillion passenger must wear certified protective headgear."
+    explanation: "Under Section 129 of the MV Act, both rider and pillion passenger must wear certified ISI protective headgear."
   },
   {
     id: 11,
-    category: "Traffic Rules",
+    category: "Car Driving Rules",
     question: {
-      en: "A flashing red traffic signal light at an intersection signifies:",
-      hi: "चौराहे पर चमकती लाल बत्ती (Flashing Red) का क्या अर्थ है?"
+      en: "When driving at night and approaching an oncoming vehicle from the opposite direction, you must:",
+      hi: "रात में गाड़ी चलाते समय सामने से आ रहे वाहन को देखकर आपको क्या करना चाहिए?"
     },
     options: [
-      { en: "Traffic light is defective; proceed without looking", hi: "सिग्नल खराब है, बिना देखे आगे बढ़ें" },
-      { en: "Stop completely, check for traffic, and proceed only when safe", hi: "पूरी तरह रुकें, दोनों तरफ देखें और सुरक्षित होने पर ही आगे बढ़ें" },
-      { en: "Slow down to 20 km/h", hi: "गति 20 किमी/घंटा करें" },
-      { en: "Road closed ahead", hi: "आगे रास्ता बंद है" }
+      { en: "Flash high beams continuously", hi: "लगातार हाई बीम चमकाएं" },
+      { en: "Switch from high beam to low beam (dipper) to avoid blinding the oncoming driver", hi: "हाई बीम से लो बीम (डिपर) पर स्विच करें ताकि सामने वाले की आंखें न चौंधियाएं" },
+      { en: "Switch off all lights completely", hi: "सभी लाइटें पूरी तरह बंद कर दें" },
+      { en: "Honk horn repeatedly", hi: "लगातार हॉर्न बजाएं" }
     ],
     correctIndex: 1,
-    explanation: "A flashing red light functions as a STOP sign: stop completely and proceed only when clear."
+    explanation: "Switching to low beam prevents dazzling the opposing driver, avoiding head-on collisions."
   },
   {
     id: 12,
-    category: "Safety",
+    category: "Safety & Penalties",
     question: {
-      en: "What is the permissible blood alcohol content (BAC) limit for driving in India?",
-      hi: "भारत में वाहन चलाने के लिए अनुमेय रक्त अल्कोहल सामग्री (BAC) सीमा क्या है?"
+      en: "What is the permissible blood alcohol content (BAC) limit for private vehicle drivers in India?",
+      hi: "भारत में निजी वाहन चालकों के लिए अनुमेय रक्त अल्कोहल सामग्री (BAC) सीमा क्या है?"
     },
     options: [
       { en: "50 mg / 100 ml", hi: "50 मिग्रा / 100 मिली" },
-      { en: "30 mg of alcohol per 100 ml of blood", hi: "100 मिली रक्त में अधिकतम 30 मिग्रा अल्कोहल" },
+      { en: "30 mg of alcohol per 100 ml of blood (Section 185)", hi: "100 मिली रक्त में अधिकतम 30 मिग्रा अल्कोहल (धारा 185)" },
       { en: "100 mg / 100 ml", hi: "100 मिग्रा / 100 मिली" },
       { en: "Alcohol is permitted at any level", hi: "अल्कोहल की कोई सीमा नहीं है" }
     ],
@@ -193,19 +193,19 @@ export const mockQuestions = [
   },
   {
     id: 13,
-    category: "Road Signs",
+    category: "Car Rules (LMV)",
     question: {
-      en: "A circular sign with a blue background and a red cross (X) indicates:",
-      hi: "नीले रंग की पृष्ठभूमि पर लाल क्रॉस (X) वाला गोलाकार संकेत क्या दर्शाता है?"
+      en: "When is the use of hazard warning flashers (all 4 indicators blinking) legally permitted?",
+      hi: "कार की हजार्ड लाइट (चारों इंडिकेटर) का उपयोग कानूनी रूप से कब अनुमेय है?"
     },
     options: [
-      { en: "No Entry", hi: "प्रवेश निषेध" },
-      { en: "No Stopping or Standing", hi: "रुकना या खड़ा होना सख्त मना है" },
-      { en: "First Aid Station", hi: "प्राथमिक चिकित्सा केंद्र" },
-      { en: "Intersection Ahead", hi: "आगे चौराहा है" }
+      { en: "When vehicle is broken down or stopped creating a stationary hazard", hi: "जब वाहन खराब हो गया हो अथवा रुका हुआ खतरा पैदा कर रहा हो" },
+      { en: "While driving through rain or fog", hi: "बारिश या कोहरे में गाड़ी चलाते समय" },
+      { en: "To drive at high speed to overtake traffic", hi: "ट्रैफिक को ओवरटेक करने के लिए तेज गति से चलते समय" },
+      { en: "Inside road tunnels while driving", hi: "सुरंग के भीतर गाड़ी चलाते समय" }
     ],
-    correctIndex: 1,
-    explanation: "Red X on blue background signifies No Stopping or Standing under any circumstance."
+    correctIndex: 0,
+    explanation: "Hazard lights must ONLY be used when stationary due to breakdown or sudden collision hazard, not while driving in rain."
   },
   {
     id: 14,

@@ -17,9 +17,9 @@
   },
   "vehicle_classes": [
     {
-      "code": "MCWOG",
-      "name": "Motorcycle Without Gear",
-      "category": "Two-Wheeler (Moped / Gearless Electric)",
+      "code": "MCWOG_50",
+      "name": "Motorcycle Without Gear (<= 50cc)",
+      "category": "Two-Wheeler (Moped / Light Electric)",
       "min_age": 16,
       "requires_parental_consent": true,
       "parental_consent_form": "Form 2 Part II (Consent by Parent / Legal Guardian)",
@@ -29,26 +29,48 @@
       "description": "Two-wheelers up to 50cc engine capacity, mopeds, and lightweight gearless electric scooters."
     },
     {
-      "code": "MCWG",
-      "name": "Motorcycle With Gear",
-      "category": "Two-Wheeler (All cc)",
+      "code": "MCWOG",
+      "name": "Motorcycle Without Gear (> 50cc)",
+      "category": "Two-Wheeler (Gearless Scooters & High-Speed EV)",
       "min_age": 18,
       "requires_parental_consent": false,
       "fee": 150,
       "test_fee": 50,
       "total_fee": 200,
-      "description": "Standard geared motorcycles, motorbikes, and scooters with engine capacity exceeding 50cc."
+      "description": "Automatic/gearless scooters (e.g. Activa, Jupiter, Access, Ola, Ather) exceeding 50cc engine capacity."
+    },
+    {
+      "code": "MCWG",
+      "name": "Motorcycle With Gear",
+      "category": "Two-Wheeler (Geared Motorbikes)",
+      "min_age": 18,
+      "requires_parental_consent": false,
+      "fee": 150,
+      "test_fee": 50,
+      "total_fee": 200,
+      "description": "Standard geared motorcycles, motorbikes, and geared two-wheelers of all engine displacements."
     },
     {
       "code": "LMV",
-      "name": "Light Motor Vehicle",
-      "category": "Four-Wheeler (Non-Transport)",
+      "name": "Light Motor Vehicle (Non-Transport)",
+      "category": "Four-Wheeler (Private Motor Cars & SUVs)",
       "min_age": 18,
       "requires_parental_consent": false,
       "fee": 150,
       "test_fee": 50,
       "total_fee": 200,
-      "description": "Personal passenger cars, hatchbacks, sedans, SUVs, and private light utility motor vehicles."
+      "description": "Personal passenger cars, hatchbacks, sedans, SUVs, MPVs, and private light utility motor vehicles (GVW <= 7500 kg)."
+    },
+    {
+      "code": "MCWG_LMV",
+      "name": "Motorcycle with Gear + Light Motor Vehicle",
+      "category": "Dual Class Combo (Bike & Private Car)",
+      "min_age": 18,
+      "requires_parental_consent": false,
+      "fee": 300,
+      "test_fee": 50,
+      "total_fee": 350,
+      "description": "Combined dual-licence application for driving both geared two-wheelers and private four-wheeler passenger cars."
     },
     {
       "code": "TRANS",
@@ -57,11 +79,11 @@
       "min_age": 20,
       "requires_parental_consent": false,
       "requires_prior_lmv_years": 1,
-      "medical_form": "Form 1A Mandatory",
+      "medical_form": "Form 1A Mandatory (Signed by Registered Medical Practitioner)",
       "fee": 200,
       "test_fee": 100,
       "total_fee": 300,
-      "description": "Taxis, delivery vans, auto-rickshaws, and commercial transport vehicles carrying passengers or goods."
+      "description": "Taxis, commercial passenger cabs, delivery vans, auto-rickshaws, and transport vehicles carrying goods or passengers."
     }
   ],
   "digilocker_and_ekyc": {
