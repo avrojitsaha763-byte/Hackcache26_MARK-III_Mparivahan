@@ -6,6 +6,7 @@ import MockTest from './pages/MockTest'
 import Learn from './pages/Learn'
 import Track from './pages/Track'
 import PermanentDL from './pages/PermanentDL'
+import AdminPortal from './pages/AdminPortal'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/learn" element={<Learn />} />
         <Route path="/track" element={<Track />} />
         <Route path="/permanent-dl" element={<PermanentDL />} />
+        <Route path="/admin" element={<AdminPortal />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ChevronRight, FileText, CheckCircle, Car, Award } from 'lucide-react'
+import { ChevronRight, FileText, CheckCircle, Car, Award, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStickyState } from '@/hooks/useStickyState'
 
@@ -75,6 +75,13 @@ export default function Home() {
           icon={<Award className="text-purple-600 dark:text-purple-400 w-5 h-5" />} 
           title={isHindi ? 'स्थायी लाइसेंस की तैयारी' : 'Ready for Permanent Licence?'} 
           subtitle={isHindi ? '30 दिन का नियम एवं ड्राइविंग टेस्ट चेकलिस्ट' : '30-day rule & ADTT track test guide'}
+          variants={itemVariants}
+        />
+        <JourneyCard 
+          to="/admin" 
+          icon={<ShieldCheck className="text-emerald-600 dark:text-emerald-400 w-5 h-5" />} 
+          title={isHindi ? 'आरटीओ अधिकारी पोर्टल' : 'RTO Official Scrutiny Desk'} 
+          subtitle={isHindi ? 'दस्तावेज़ सत्यापन एवं लाइसेंस स्वीकृति' : 'Document verification, scrutiny & approvals'}
           variants={itemVariants}
         />
       </motion.div>

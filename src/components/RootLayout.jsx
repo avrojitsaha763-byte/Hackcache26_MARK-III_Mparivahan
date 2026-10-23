@@ -1,5 +1,6 @@
 import SmoothScroll from '@/components/SmoothScroll'
 import SettingsModal from '@/components/SettingsModal'
+import ChatbotModal from '@/components/ChatbotModal'
 import '@/globals.css'
 
 export default function RootLayout({ children }) {
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
         */}
         <main className="w-full max-w-[360px] bg-slate-50 dark:bg-slate-900 shadow-2xl min-h-screen relative overflow-x-hidden border-x border-slate-300 dark:border-slate-800 transition-colors">
           {children}
+          <ChatbotModal />
           <SettingsModal />
         </main>
       </SmoothScroll>
