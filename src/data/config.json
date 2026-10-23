@@ -224,5 +224,107 @@
         { "title": "Form 3 Digital LL Generated", "date": "2026-10-05", "completed": true }
       ]
     }
+  ],
+  "state_rto_policies": [
+    {
+      "state_code": "KA",
+      "state_name": "Karnataka",
+      "portal": "Sarathi (NIC)",
+      "online_ll_test": true,
+      "rule_11_3_deadline_days": 7,
+      "rule_11_3_description": "Rule 11(3) CMVR strictly enforced: Online LL test must be completed within 7 days of application or auto-cancelled.",
+      "fee_schedule": { "ll": 200, "dl": 500 },
+      "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Photo", "Form 1-A (if > 40 yrs)"]
+    },
+    {
+      "state_code": "MH",
+      "state_name": "Maharashtra",
+      "portal": "Sarathi (NIC)",
+      "online_ll_test": true,
+      "rule_11_3_deadline_days": 7,
+      "fee_schedule": { "ll": 175, "dl": 400 },
+      "required_docs": ["Aadhaar or Govt ID", "Age & Address Proof", "Photo", "Medical Form 1"]
+    },
+    {
+      "state_code": "TN",
+      "state_name": "Tamil Nadu",
+      "portal": "Sarathi / e-Sarathi TN",
+      "online_ll_test": true,
+      "test_languages": ["Tamil", "English"],
+      "rule_11_3_deadline_days": 7,
+      "fee_schedule": { "ll": 200, "dl": 500 },
+      "required_docs": ["Tamil/English Application", "Aadhaar e-KYC", "Age Proof", "Address Proof"]
+    },
+    {
+      "state_code": "DL",
+      "state_name": "Delhi",
+      "portal": "Sarathi (Faceless Transport Services)",
+      "online_ll_test": true,
+      "rule_11_3_deadline_days": 7,
+      "fee_schedule": { "ll": 200, "dl": 500 },
+      "required_docs": ["Aadhaar Face Auth / OTP", "DigiLocker Marksheet", "Self-declaration Form 1"]
+    },
+    {
+      "state_code": "WB",
+      "state_name": "West Bengal",
+      "portal": "Sarathi (NIC)",
+      "online_ll_test": true,
+      "rule_11_3_deadline_days": 7,
+      "fee_schedule": { "ll": 200, "dl": 500 },
+      "required_docs": ["Aadhaar e-KYC", "Voter ID / Passport", "10th Marksheet", "Form 1"]
+    },
+    {
+      "state_code": "UP",
+      "state_name": "Uttar Pradesh",
+      "portal": "Sarathi (NIC)",
+      "online_ll_test": true,
+      "rule_11_3_deadline_days": 7,
+      "fee_schedule": { "ll": 200, "dl": 500 },
+      "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Passport Photo"]
+    }
+  ],
+  "adtt_tracks": [
+    {
+      "id": "KA-ADTT-01",
+      "state": "Karnataka",
+      "name": "Bengaluru Central RTO Track (Koramangala)",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["Underbody RFID", "Overhead Optical Sensors", "Gradient Incline Lasers"]
+    },
+    {
+      "id": "MH-ADTT-01",
+      "state": "Maharashtra",
+      "name": "Mumbai Andheri RTO Ground",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["Pressure Pads", "Kerb Bump Sensors", "High-Speed CCTV"]
+    },
+    {
+      "id": "DL-ADTT-01",
+      "state": "Delhi",
+      "name": "Delhi Sarita Vihar ADTT Track",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["Laser Kerb Proximity", "Biometric Terminal", "Auto Rollback Detection"]
+    },
+    {
+      "id": "TN-ADTT-01",
+      "state": "Tamil Nadu",
+      "name": "Chennai Central RTO Track",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["Optical Beam Sensors", "Emergency Stop Line Triggers"]
+    },
+    {
+      "id": "WB-ADTT-01",
+      "state": "West Bengal",
+      "name": "Kolkata Beltala ADTT Ground",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["RFID Track Entry", "Laser Rollback Monitor", "Overhead Cameras"]
+    },
+    {
+      "id": "UP-ADTT-01",
+      "state": "Uttar Pradesh",
+      "name": "Lucknow Transport Nagar Track",
+      "slots": ["09:30 AM - 11:30 AM", "12:00 PM - 02:00 PM", "02:30 PM - 04:30 PM"],
+      "sensor_types": ["Digital Scoring Server", "Incline Start Sensors", "Reverse S/H Lasers"]
+    }
   ]
 }
