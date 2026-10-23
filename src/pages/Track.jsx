@@ -112,6 +112,30 @@ export default function Track() {
               </div>
             </div>
           ))}
+
+          {/* Transparent Next Action & Rule 11(3) Guidance */}
+          <div className="mt-8 p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl space-y-2 text-xs">
+            <div className="font-semibold text-blue-800 dark:text-blue-300">
+              📌 {lang === 'hi' ? 'अगला कदम (Next Steps):' : 'Next Recommended Step:'}
+            </div>
+            <p className="text-[11px] text-blue-700 dark:text-blue-200">
+              {lang === 'hi'
+                ? 'नियम 11(3) CMVR के तहत 7 दिनों के भीतर ऑनलाइन STALL टेस्ट पूरा करें। टेस्ट पास करने के 30 दिन बाद स्थायी DL टेस्ट स्लॉट बुक किया जा सकता है।'
+                : 'Take your STALL online test within 7 days (Rule 11(3) CMVR). Once passed, you can book your practical DL driving test 30 days after LL issue.'}
+            </p>
+            <div className="flex gap-2 pt-1">
+              <Link href="/mock-test" className="flex-1">
+                <Button className="w-full h-8 text-[11px] rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
+                  {lang === 'hi' ? 'मॉक टेस्ट दें' : 'Practice Mock Test'}
+                </Button>
+              </Link>
+              <Link href="/permanent-dl" className="flex-1">
+                <Button variant="outline" className="w-full h-8 text-[11px] rounded-lg">
+                  {lang === 'hi' ? 'स्लॉट बुक करें' : 'Book DL Slot'}
+                </Button>
+              </Link>
+            </div>
+          </div>
         </motion.div>
       )}
     </div>

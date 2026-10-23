@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ArrowRight } from 'lucide-react'
+import { ChevronLeft, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
@@ -13,6 +13,8 @@ export default function Apply() {
   const [phone, setPhone] = useStickyState('', 'user-phone')
   const [name, setName] = useStickyState('', 'user-name')
   const [vehicle, setVehicle] = useStickyState('combo-bike-car', 'user-vehicle')
+  const [stateRto, setStateRto] = useStickyState('KA-01', 'user-rto')
+  const [aadhaarConsent, setAadhaarConsent] = useState(true)
   const [generatedAppNo, setGeneratedAppNo] = useState(() => 'APP' + Math.floor(100000 + Math.random() * 900000))
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -72,6 +74,18 @@ export default function Apply() {
     }
   }
 
+  const getRtoLabel = (code) => {
+    const map = {
+      'KA-01': 'Karnataka (Bengaluru Central - Sarathi)',
+      'MH-01': 'Maharashtra (Mumbai South - Tardeo)',
+      'DL-01': 'Delhi (Mall Road - North Delhi)',
+      'TN-01': 'Tamil Nadu (Chennai Central)',
+      'WB-01': 'West Bengal (Kolkata - Beltala)',
+      'UP-32': 'Uttar Pradesh (Lucknow - Transport Nagar)'
+    }
+    return map[code] || code
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     const newAppNo = `APP${Math.floor(100000 + Math.random() * 900000)}`
@@ -114,20 +128,38 @@ export default function Apply() {
         </div>
 
         {step === 1 && (
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-50 dark:bg-green-950/60 border border-green-200 dark:border-green-800 rounded-full text-green-700 dark:text-green-300 text-[11px] font-semibold mb-2">
-                ✓ {isHindi ? 'आधार ई-केवाईसी समर्थित (डिजीलॉकर)' : 'Aadhaar e-KYC Enabled (DigiLocker)'}
+                <ShieldCheck className="w-3.5 h-3.5" /> {isHindi ? 'आधार ई-केवाईसी समर्थित (डिजीलॉकर)' : 'Aadhaar e-KYC Enabled (DigiLocker)'}
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 {isHindi ? 'व्यक्तिगत विवरण (फॉर्म 2)' : 'Personal Details (Form 2)'}
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {isHindi ? 'सारथी पोर्टल पर नया लर्नर्स लाइसेंस आवेदन:' : 'New Learner Licence Application on Sarathi Parivahan:'}
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {isHindi ? 'राज्य एवं आरटीओ अधिकार क्षेत्र' : 'State & RTO Jurisdiction (Sarathi)'}
+                </label>
+                <select
+                  value={stateRto}
+                  onChange={(e) => setStateRto(e.target.value)}
+                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs focus:border-blue-600 outline-none"
+                >
+                  <option value="KA-01">Karnataka — Bengaluru Central (Sarathi Online / 7-Day Rule)</option>
+                  <option value="MH-01">Maharashtra — Mumbai South (Tardeo)</option>
+                  <option value="DL-01">Delhi — Mall Road (North Delhi / Automated Track)</option>
+                  <option value="TN-01">Tamil Nadu — Chennai Central</option>
+                  <option value="WB-01">West Bengal — Kolkata (Beltala)</option>
+                  <option value="UP-32">Uttar Pradesh — Lucknow (Transport Nagar)</option>
+                </select>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {isHindi ? 'वाहन श्रेणी (Class of Vehicle)' : 'Vehicle Category (COV)'}
@@ -135,7 +167,7 @@ export default function Apply() {
                 <select
                   value={vehicle}
                   onChange={(e) => setVehicle(e.target.value)}
-                  className="w-full p-3.5 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"
+                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs focus:border-blue-600 outline-none"
                 >
                   <option value="combo-bike-car">🚗 + 🏍️ Bike + Car Combo (MCWG + LMV) — ₹350</option>
                   <option value="lmv-car">🚗 Light Motor Vehicle / Car (LMV) — ₹200</option>
@@ -155,32 +187,49 @@ export default function Apply() {
                   placeholder={isHindi ? 'पूरा नाम दर्ज करें' : 'e.g. Avrojit Saha'} 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3.5 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none transition-colors"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isHindi ? 'मोबाइल नंबर (ओटीपी हेतु)' : 'Mobile Number (For OTP & Tracking)'}
+                  {isHindi ? 'मोबाइल नंबर (ओटीपी एवं एसएमएस हेतु)' : 'Mobile Number (For OTP & Tracking)'}
                 </label>
                 <input 
                   type="tel" 
                   placeholder={isHindi ? '10 अंकों का मोबाइल नंबर' : 'e.g. 9876543210'} 
                   value={phone} 
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-3.5 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-base focus:border-blue-600 outline-none transition-colors"
+                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none transition-colors"
                 />
+              </div>
+
+              {/* DPDP Act 2023 & UIDAI Consent */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aadhaarConsent}
+                    onChange={(e) => setAadhaarConsent(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300"
+                  />
+                  <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-tight">
+                    {isHindi 
+                      ? 'मैं डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 के तहत आधार ई-केवाईसी एवं डिजीलॉकर सत्यापन हेतु सहमति देता/देती हूँ। कोई कच्चा आधार नंबर संग्रहीत नहीं होता है।'
+                      : 'I consent to Aadhaar e-KYC and DigiLocker verification under the DPDP Act 2023 and Aadhaar Act 2016. No raw UID is stored.'}
+                  </span>
+                </label>
               </div>
             </div>
 
-            <Button onClick={() => setStep(2)} disabled={!name || !phone} className="w-full h-12 text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white mt-4">
+            <Button onClick={() => setStep(2)} disabled={!name || !phone || !aadhaarConsent} className="w-full h-12 text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white mt-2">
               {isHindi ? 'आगे बढ़ें (शुल्क विवरण)' : 'Next (Statutory Fees)'} <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 {isHindi ? 'सरकारी शुल्क विवरण (CMVR नियम 32)' : 'Statutory Fee Schedule (CMVR Rule 32)'}
@@ -191,25 +240,33 @@ export default function Apply() {
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-              <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 pb-2 border-b border-slate-200 dark:border-slate-700">
-                {getVehicleLabel(vehicle)}
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200 dark:border-slate-700">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{getVehicleLabel(vehicle)}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-[10px]">{getRtoLabel(stateRto)}</span>
               </div>
 
               {feeData.breakdown.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-sm text-slate-600 dark:text-slate-300">
+                <div key={idx} className="flex justify-between text-xs text-slate-600 dark:text-slate-300">
                   <span>{item.label}</span>
                   <span className="font-medium">₹{item.amount}</span>
                 </div>
               ))}
 
-              <div className="flex justify-between font-bold text-lg pt-3 border-t border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+              <div className="flex justify-between font-bold text-base pt-2.5 border-t border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
                 <span>{isHindi ? 'कुल सरकारी शुल्क' : 'Total Statutory Fee'}</span>
                 <span className="text-blue-600 dark:text-blue-400">₹{feeData.total}</span>
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs text-amber-800 dark:text-amber-200">
-              💡 {isHindi ? 'यह एक प्रोटोटाइप सिमुलेशन है। कोई वास्तविक बैंक कटौती नहीं होगी।' : 'This is a hackathon simulation. No real bank deduction will occur.'}
+            {/* CMVR Rule 11(3) Statutory 7-Day Alert */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl text-xs flex gap-2">
+              <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
+                <strong>{isHindi ? 'नियम 11(3) CMVR (7-दिन का नियम):' : 'Rule 11(3) CMVR (7-Day LL Test Rule):'}</strong>{' '}
+                {isHindi 
+                  ? 'आवेदन जमा करने के 7 दिनों के भीतर ऑनलाइन परीक्षा देना अनिवार्य है, अन्यथा आवेदन स्वतः रद्द हो जाता है।' 
+                  : 'Applicants must take the online LL test within 7 days of application, failing which it is automatically cancelled.'}
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -224,40 +281,48 @@ export default function Apply() {
         )}
 
         {step === 3 && (
-          <div className="text-center space-y-4 mt-8">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto text-4xl font-bold">✓</div>
+          <div className="text-center space-y-4 mt-6">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">✓</div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               {isHindi ? 'आवेदन सफलतापूर्वक जमा हुआ' : 'Application Submitted Successfully'}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-xs">
               {isHindi 
                 ? 'आपका फॉर्म 2 आवेदन सारथी परिवहन प्रणाली में पंजीकृत कर लिया गया है।' 
                 : 'Your Form 2 application has been registered on the Sarathi Parivahan system.'}
             </p>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-left space-y-2">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-left space-y-1.5 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500 dark:text-slate-400">{isHindi ? 'आवेदन संख्या:' : 'Application Number:'}</span>
-                <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">{generatedAppNo}</span>
+                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'आवेदन संख्या:' : 'Application Number:'}</span>
+                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{generatedAppNo}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500 dark:text-slate-400">{isHindi ? 'वाहन श्रेणी:' : 'Vehicle Class:'}</span>
-                <span className="font-medium text-xs text-slate-800 dark:text-slate-200">{getVehicleLabel(vehicle)}</span>
+                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'आरटीओ केंद्र:' : 'RTO Office:'}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{getRtoLabel(stateRto)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500 dark:text-slate-400">{isHindi ? 'ई-केवाईसी स्थिति:' : 'e-KYC Status:'}</span>
-                <span className="text-green-600 dark:text-green-400 font-semibold text-xs">✓ Verified (DigiLocker)</span>
+                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'वाहन श्रेणी:' : 'Vehicle Class:'}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{getVehicleLabel(vehicle)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'ई-केवाईसी स्थिति:' : 'e-KYC Status:'}</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold">✓ Verified (DigiLocker)</span>
+              </div>
+              <div className="flex justify-between items-center pt-1 border-t border-slate-200 dark:border-slate-700">
+                <span className="text-amber-600 dark:text-amber-400 font-medium">{isHindi ? 'परीक्षा समय सीमा:' : 'Test Deadline:'}</span>
+                <span className="text-amber-600 dark:text-amber-400 font-semibold">Within 7 Days (Rule 11(3))</span>
               </div>
             </div>
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2.5 pt-1">
               <Link href="/mock-test">
-                <Button className="w-full h-12 text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="w-full h-11 text-sm rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
                   {isHindi ? 'लर्नर्स टेस्ट अभ्यास शुरू करें (STALL)' : 'Start RTO Exam Practice (STALL)'}
                 </Button>
               </Link>
               <Link href="/track">
-                <Button variant="outline" className="w-full h-12 text-base rounded-xl">
+                <Button variant="outline" className="w-full h-11 text-sm rounded-xl">
                   {isHindi ? 'आवेदन स्थिति ट्रैक करें' : 'Track Application Status'}
                 </Button>
               </Link>
