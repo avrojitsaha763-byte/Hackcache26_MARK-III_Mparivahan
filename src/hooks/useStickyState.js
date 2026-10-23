@@ -1,0 +1,30 @@
+import { useState, useEffect } from 'react';
+
+export function useStickyState(defaultValue, key) {
+  const [value, setValue] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stickyValue = window.localStorage.getItem(key);
+        return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
+      } catch (error) {
+        console.warn(`Error reading localStorage key "${key}":`, error);
+        return defaultValue;
+      }
+    }
+    return defaultValue;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.warn(`Error setting localStorage key "${key}":`, error);
+      }
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+export default useStickyState;
