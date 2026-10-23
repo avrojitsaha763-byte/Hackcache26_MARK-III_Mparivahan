@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import CanIApply from './pages/CanIApply'
+import Apply from './pages/Apply'
+import MockTest from './pages/MockTest'
 import Learn from './pages/Learn'
 import Track from './pages/Track'
 
@@ -10,6 +12,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/can-i-apply" element={<CanIApply />} />
+        <Route path="/apply" element={<Apply />} />
+        <Route path="/documents" element={<Apply />} />
+        <Route path="/mock-test" element={<MockTest />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/track" element={<Track />} />
         <Route path="*" element={<Home />} />
