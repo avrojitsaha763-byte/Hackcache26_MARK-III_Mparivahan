@@ -1,6 +1,7 @@
 import { ArrowLeft, Clock } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+
 
 export default function Track() {
   return (

@@ -1,7 +1,7 @@
-'use client'
 import { motion } from 'framer-motion'
 import { ChevronRight, FileText, CheckCircle, Car } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
+
 
 export default function Home() {
   const containerVariants = {

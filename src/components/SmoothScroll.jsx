@@ -1,28 +1,31 @@
 import { useEffect } from 'react'
-import Lenis from '@studio-freight/lenis'
+import Lenis from 'lenis'
 
 export default function SmoothScroll({ children }) {
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-    })
+    try {
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+      })
 
-    let rafId
-    function raf(time) {
-      lenis.raf(time)
+      let rafId
+      function raf(time) {
+        lenis.raf(time)
+        rafId = requestAnimationFrame(raf)
+      }
       rafId = requestAnimationFrame(raf)
-    }
-    rafId = requestAnimationFrame(raf)
 
-    return () => {
-      cancelAnimationFrame(rafId)
-      lenis.destroy()
+      return () => {
+        if (rafId) cancelAnimationFrame(rafId)
+        lenis.destroy()
+      }
+    } catch (err) {
+      console.warn('Smooth scroll initialization fallback:', err)
     }
   }, [])
 
   return <>{children}</>
 }
+
