@@ -1,180 +1,86 @@
-# 📋 Phase 1 Progress Report — Licence Saathi | EasyDL
+# 📋 Phase 1 Progress Report — Core Frontend & Cloud Architecture — Licence Saathi | EasyDL
 
-**Project Lead & Core Frontend / Cloud Architect:** Avrojit Saha  
+**Core Frontend & Cloud Architect:** Avrojit Saha  
+**Project Lead & Backend Architect:** Aritro Roy  
+**Data Architect & UI/UX Feature Engineer:** Shubham  
 **Project:** Licence Saathi (EasyDL)  
 **Hackathon:** Hackcache26 — MARK-III Mparivahan  
-**Team Collaborators:** Aritra (Backend & Systems Architect), Shubham (Data & UI/UX Engineer)  
+**Domain Scope:** Indian RTO & Sarathi Parivahan (Strictly for Indian Users)  
 **Date:** October 2026  
-**Status:** Phase 1 Complete, Live & Verified  
+**Status:** Completed, Verified & Live  
 
 ---
 
-## 🔗 Quick Links & Environment
+## 🇮🇳 Project Scope: Strict Adherence to Indian RTO Regulations
 
-- **Live Production URL:** [https://hackcache26-mark-iii-mparivahan.vercel.app/](https://hackcache26-mark-iii-mparivahan.vercel.app/)
-- **GitHub Repository:** [https://github.com/avrojitsaha763-byte/Hackcache26_MARK-III_Mparivahan](https://github.com/avrojitsaha763-byte/Hackcache26_MARK-III_Mparivahan)
-- **Supabase Cloud Project:** `https://hhsisahbdmriugkyigrk.supabase.co`
-- **FastAPI Local Backend:** `http://localhost:8000` (Swagger UI at `/docs`)
+**Licence Saathi (EasyDL)** is tailored exclusively for the **Indian transport ecosystem**, conforming strictly to the statutory requirements established by the **Ministry of Road Transport and Highways (MoRTH)**:
 
----
-
-## 🎯 Executive Summary
-
-In **Phase 1**, the entire core architecture, styling system, database schema, client-side routing, automated Vercel CI/CD pipeline, and foundational interactive modules were established from scratch.
-
-As **Project Lead & Core Frontend / Cloud Architect**, Avrojit established:
-1. The modern React 19 + Vite single-page application framework with a strict 360px mobile container.
-2. The design token foundation using Tailwind CSS with shadcn HSL variables.
-3. The cloud PostgreSQL database on Supabase with Row Level Security (RLS) and initial seed data.
-4. The client-side state persistence hook [`useStickyState`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/hooks/useStickyState.js).
-5. Cross-functional team integration, bridging Aritra's FastAPI microservice and Shubham's data architecture & interactive UI modules.
-
-The application is deployed live on Vercel with zero console errors and 100% clean linter passes.
+- **Motor Vehicles Act, 1988** & **Motor Vehicles Amendment Act, 2019**.
+- **Central Motor Vehicles Rules (CMVR), 1989**.
+- **Sarathi Parivahan** national portal workflows.
+- **DigiLocker & UIDAI Aadhaar Paperless e-KYC** standards for contactless document submission.
+- **Full Licence Lifecycle:** Form 2 Application &rarr; Aadhaar e-KYC &rarr; Online LL Computer Test (STALL) &rarr; Form 3 Learner's Licence &rarr; 30-Day Mandatory Wait &rarr; Form 4 Practical Test at Automated Driving Test Tracks (ADTT) &rarr; Form 7 Permanent Smart Card Driving Licence.
 
 ---
 
-## 🚀 Core Architectural Milestones Completed (Avrojit Saha)
+## 🎯 Executive Summary (Avrojit Saha)
 
-### 1. Frontend Framework & Design Token Architecture
+As **Core Frontend & Cloud Architect**, Avrojit Saha designed and deployed the modern client application, the responsive 360px mobile viewport mockup, the Tailwind CSS design token architecture, the client-side state persistence layer, and the cloud PostgreSQL database on Supabase.
+
+Working under the project leadership of **Aritro Roy** and in collaboration with **Shubham**, Avrojit ensured that the frontend reflects authentic Indian transport guidelines while maintaining high visual appeal, responsive layout, and seamless Vercel deployment.
+
+---
+
+## 🚀 Key Architectural Deliverables (Avrojit Saha)
+
+### 1. Modern Frontend Architecture & Mobile-First Viewport
 - **Framework:** React 19 (`^19.3.1`) + Vite 8 (`^8.3.4`) Single Page Application.
-- **Strict 360px Mobile-First Shell:** Enforces a dedicated 360px mobile viewport ([`src/components/RootLayout.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/components/RootLayout.jsx)) matching hackathon guidelines. On desktop displays, it renders as a sleek, centered smartphone device mockup with rounded borders and ambient drop shadows on a neutral `bg-slate-200` background.
-- **Tailwind CSS Design System:** Configured in [`tailwind.config.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/tailwind.config.js) with HSL token mapping (`--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--ring`) and custom 360px breakpoints (`mobile: '360px'`).
-- **Global Typography & Resets:** Configured in [`src/index.css`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/index.css) with modern antialiased typography, custom scrollbar hiding utilities, and CSS variables for dark/light adaptability.
+- **Strict 360px Mobile Container (`src/components/RootLayout.jsx`):** Designed to meet hackathon guidelines. On desktop displays, it renders as a sleek, centered smartphone mockup with rounded corners and drop shadows on a neutral `bg-slate-200` background.
+- **Tailwind CSS Design System (`tailwind.config.js`):** Configured with shadcn HSL color variables (`primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `ring`) and custom 360px screen breakpoints (`mobile: '360px'`).
+- **Global Typography & Resets (`src/index.css`):** Antialiased typography, hidden scrollbar utilities, and responsive CSS variables.
 
-### 2. State Persistence Engine (`useStickyState`)
-- Built custom persistent state hook [`src/hooks/useStickyState.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/hooks/useStickyState.js).
-- Wraps React's `useState` with automatic `window.localStorage` JSON serialization and deserialization.
-- Implements defensive `try/catch` error boundaries to safeguard against corrupt stored JSON or restricted storage environments (e.g. private browsing, incognito mode, embedded web views).
-- Currently persists user age (`user-age`), vehicle selection (`user-vehicle`), and language preference (`app-lang`).
+### 2. Client-Side State Persistence Engine (`useStickyState`)
+- Built [`src/hooks/useStickyState.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/hooks/useStickyState.js), providing seamless synchronization between React state and browser `localStorage`.
+- Includes defensive `try/catch` error boundaries to prevent app crashes in restricted environments (incognito browsing, embedded WebViews).
+- Powers user state persistence across sessions for:
+  - `user-age`: Applicant age input
+  - `user-vehicle`: Selected Indian vehicle category (`motorcycle-gear`, `gearless-50cc`)
+  - `app-lang`: User language selection (`en` for English, `hi` for Hindi)
 
-### 3. Cloud Database & Supabase Integration
-- Configured official Supabase JavaScript SDK in [`src/lib/supabase.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/lib/supabase.js) with dual environment variable fallback (`VITE_` and `NEXT_PUBLIC_` prefixes).
+### 3. Cloud Database Architecture (Supabase PostgreSQL)
+- Initialized Supabase client in [`src/lib/supabase.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/lib/supabase.js) with support for both `VITE_` and `NEXT_PUBLIC_` environment variables.
 - **PostgreSQL Database Schema:**
-  - **`applications` Table:** Stores application tracking records:
-    - `id` (UUID / Primary Key)
-    - `application_number` (Text, Unique — e.g. `DL-2026-98124`, `MH-2026-11492`)
-    - `applicant_name` (Text)
-    - `dob` (Date)
-    - `rto_code` (Text — e.g. `DL-01 (Mall Road)`)
-    - `vehicle_classes` (Text[] — e.g. `["MCWG", "LMV"]`)
-    - `stage_index` (Integer 0–3)
-    - `status` (Text — e.g. `Slot Booked`, `Under Scrutiny`)
-    - `created_at` (Timestamp with time zone)
-  - **`questions` Table:** Stores RTO exam questions:
-    - `id` (Integer / Primary Key)
-    - `category` (Text — `Road Signs`, `Traffic Rules`, `Safety`)
-    - `question` (Text)
-    - `options` (JSONB array of strings)
-    - `correct_index` (Integer, 0-indexed)
-    - `explanation` (Text)
-- **Row Level Security (RLS):** Enabled on all Supabase tables with public read access policies for the prototype demonstration.
+  - **`applications` Table:** Tracks Indian DL/LL application numbers, applicant names, date of birth, RTO codes (e.g. `DL-01`, `MH-02`, `WB-01`), vehicle classes, current stage index, and status.
+  - **`questions` Table:** Stores multiple-choice RTO exam questions with options, correct answer indices, categories, and explanations.
+- **Row Level Security (RLS):** Configured with public read policies for the hackathon demonstration.
 
-### 4. Application Routing & Page Foundation
-- Configured client-side routing via React Router DOM (`v7.18.4`) in [`src/App.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/App.jsx).
-- Established 4 primary routes:
-  1. **`/` (Home):** Interactive journey selector with Framer Motion staggered animations and statutory disclaimer footer.
-  2. **`/can-i-apply`:** Eligibility checker & document guidelines.
-  3. **`/learn`:** Traffic signs practice & RTO question mock simulator.
-  4. **`/track`:** Application status and timeline tracking.
+### 4. Client Routing & Navigation
+- Configured React Router DOM (`v7.18.4`) in [`src/App.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/App.jsx).
+- Established the 4 core routes aligned with the Indian RTO user journey:
+  1. **`/` (Home):** Stage selector card menu (*"Just starting"*, *"I have a learner's licence"*, *"I've applied and waiting"*) and prototype disclaimer.
+  2. **`/can-i-apply`:** Indian RTO eligibility checker & DigiLocker document requirements.
+  3. **`/learn`:** Bilingual traffic signs audio learner & RTO exam preparation.
+  4. **`/track`:** Parivahan application status tracker.
 
 ### 5. DevOps, Cloud Deployment & Git Pipeline
-- **Continuous Deployment (CI/CD):** Connected repository to Vercel with automatic instant redeployments triggered on every `git push` to `main`.
-- **SPA Routing Configuration:** Created [`vercel.json`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/vercel.json) rewrites:
-  ```json
-  {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/index.html" }
-    ]
-  }
-  ```
-  Prevents 404 "Page Not Found" errors on direct deep-link navigation and page refreshes.
-- **Git Repository Hygiene:** Maintained clean tree with `.env`, `.env.local`, and `node_modules` safely excluded.
+- **Continuous Deployment (CI/CD):** Connected to Vercel with instant deployments triggered on every commit to `origin/main`.
+- **SPA Routing Fix ([`vercel.json`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/vercel.json)):** Added rewrites (`/(.*)` &rarr; `/index.html`) to ensure hard browser refreshes and direct links never throw 404 errors.
+- **Clean Git Tree:** Maintained clean repository with secrets and build outputs safely excluded.
 
 ---
 
-## 🤝 Cross-Functional Architecture & Delegation
+## 👥 Team Roles & Responsibilities
 
-Avrojit coordinated the division of responsibilities across the team:
-
-| Contributor | Domain & Role | Primary Files & Deliverables |
+| Contributor | Project Role | Primary Focus Areas |
 | :--- | :--- | :--- |
-| **Avrojit Saha** | Project Lead, Frontend Architecture & Cloud DB | `RootLayout.jsx`, `App.jsx`, `supabase.js`, `useStickyState.js`, `index.css`, `tailwind.config.js`, `vercel.json` |
-| **Aritra** | Backend Systems & REST API Architect | `Backend/main.py`, `Backend/supabase_client.py`, `Backend/requirements.txt`, `SmoothScroll.jsx`, `.gitignore` |
-| **Shubham** | Data Architecture, UI/UX Components & Features | `src/data/config.json`, `src/data/questions.json`, `src/data/signs.json`, `src/data/signs.js`, `button.jsx`, `CanIApply.jsx`, `Learn.jsx` |
+| **Aritro Roy** | **Project Lead & Backend Systems Architect** | Indian RTO regulatory compliance, FastAPI microservice (`Backend/`), dual-mode Supabase engine, endpoint testing, and project coordination |
+| **Avrojit Saha** | **Core Frontend & Cloud Architect** | React 19 SPA foundation, 360px mobile shell, Supabase cloud schema, `useStickyState`, design tokens, and Vercel CI/CD pipeline |
+| **Shubham** | **Data Architect & UI/UX Feature Engineer** | Core domain datasets (`config.json`, `questions.json`, `signs.json`, `signs.js`), shadcn `Button` component, 3-step Eligibility Wizard, and bilingual audio learning module |
 
 ---
 
-## 📂 Master Project Architecture Map
+## 🛠️ Phase 2 Roadmap & Next Steps
 
-```text
-Hackcache26_MARK-III_Mparivahan/
-├── Backend/                                # 🐍 Python FastAPI Microservice (Aritra)
-│   ├── .env.example                        # Backend environment template
-│   ├── .venv/                              # Python virtual environment (ignored in git)
-│   ├── main.py                             # 5 REST endpoints (Health, Track, Questions, Eligibility, Quiz)
-│   ├── README.md                           # Backend documentation & Swagger UI guide
-│   ├── requirements.txt                    # 38 frozen Python dependencies
-│   └── supabase_client.py                  # Dual-mode Supabase Python client + offline fallback engine
-├── public/                                 # Favicon and SVG brand assets
-├── src/
-│   ├── assets/                             # Brand assets & logos
-│   ├── components/
-│   │   ├── RootLayout.jsx                  # 📱 360px mobile container shell (Avrojit)
-│   │   ├── SmoothScroll.jsx                # 🌊 Lenis smooth scrolling engine (Aritra)
-│   │   └── ui/
-│   │       ├── button.jsx                  # 🔘 Shadcn Button component with variants (Shubham)
-│   │       └── NextLinkShim.jsx            # Next.js Link compatibility shim
-│   ├── data/                               # 📊 Core Domain Data Layer (Shubham)
-│   │   ├── config.json                     # Vehicle classes, RTO jurisdictions, stages, doc checklists
-│   │   ├── questions.json                  # 20 authentic RTO exam questions with explanations
-│   │   ├── signs.json                      # 24 traffic signs with legal rules and shapes
-│   │   └── signs.js                        # 12 handcrafted SVG vector icons & bilingual translations
-│   ├── hooks/
-│   │   ├── useStickyState.js               # 💾 Persistent localStorage hook (Avrojit)
-│   │   └── index.js
-│   ├── lib/
-│   │   ├── supabase.js                     # ⚡ Supabase JS client initialization (Avrojit)
-│   │   └── utils.js                        # cn() Tailwind classnames merger
-│   ├── pages/
-│   │   ├── Home.jsx                        # 🏠 Landing page & journey selector (Avrojit)
-│   │   ├── CanIApply.jsx                   # 🚦 Interactive 3-step eligibility wizard (Shubham)
-│   │   ├── Learn.jsx                       # 🔊 Bilingual audio traffic sign learner (Shubham)
-│   │   └── Track.jsx                       # 🔍 Status tracking page
-│   ├── App.jsx                             # 🔀 React Router configuration (Avrojit)
-│   ├── index.css                           # 🎨 Tailwind CSS + shadcn theme tokens (Avrojit)
-│   └── main.jsx                            # 🚀 React 19 application entry mount
-├── .env.example                            # Frontend environment variables template
-├── .gitignore                              # Git exclusion rules (Avrojit & Aritra)
-├── package.json                            # Node.js project manifest & scripts
-├── phase 1 work by avrojit.md              # 📋 Project Lead & Core Frontend Architecture Report
-├── phase 1 work by aritra.md               # 📋 Backend Systems & Microservice Architecture Report
-├── phase 1 work by shubham.md              # 📋 Data Architecture & UI/UX Feature Implementation Report
-├── tailwind.config.js                      # Custom 360px screen & color tokens (Avrojit)
-├── vercel.json                             # Vercel SPA routing rewrite rules (Avrojit)
-└── vite.config.js                          # Vite bundler configuration & path aliases
-```
-
----
-
-## 🛠️ Phase 2 Roadmap & Next Tasks (Team Execution Plan)
-
-### ✅ Phase 1 Deliverables Already Completed:
-- [x] React 19 + Vite 8 SPA Architecture with 360px mobile wrapper.
-- [x] Supabase Cloud PostgreSQL database schema, tables & RLS.
-- [x] Standalone FastAPI backend with 5 REST endpoints & offline demo mode.
-- [x] Domain static datasets (`config.json`, `questions.json`, `signs.json`, `signs.js`).
-- [x] Interactive 3-step Eligibility Wizard on `/can-i-apply`.
-- [x] Audio-enabled bilingual traffic signs learning module with Web Speech API on `/learn`.
-- [x] Automated CI/CD deployment on Vercel.
-
-### 🎯 Upcoming Phase 2 Tasks:
-1. **Interactive Application Tracker (`/track`):**
-   - Connect frontend search input to query `/api/applications/{app_number}` or direct Supabase client.
-   - Render vertical visual stepper with active, completed, and pending state icons.
-   - Support one-tap sample application quick-fill buttons (`DL-2026-98124`, `MH-2026-11492`).
-2. **Interactive Mock Test Quiz Simulator (`/learn/quiz`):**
-   - Wire questions from `src/data/questions.json` and backend `/api/questions`.
-   - Add 60-second question countdown timer, progress bar, instant correct/incorrect feedback, and final score summary.
-3. **Persistent Top Header & Bottom Navigation Bar:**
-   - Add state RTO selector dropdown badge in top header.
-   - Add fixed 4-tab bottom navigation bar for instant switching across Home, Eligibility, Learn, and Track.
+1. **Parivahan Status Visual Stepper (`/track`):** Connect search input to query `/api/applications/{app_number}` or Supabase and render a vertical progress stepper (*Applied (Form 2)* &rarr; *DigiLocker Scrutiny* &rarr; *LL Test Slot* &rarr; *Form 3 Approved*).
+2. **Interactive Mock Test Simulator (`/learn/quiz`):** Wire `questions.json` to an interactive quiz with a 60-second timer per question and instant scoring against the 60% RTO passing mark.
+3. **Permanent Licence Guide (`/permanent-dl`):** Add guidance module for the 30-day mandatory waiting period and automated driving test tracks (ADTT).

@@ -1,109 +1,98 @@
-# 📋 Phase 1 Progress Report — Backend Systems & Microservice Architecture — Licence Saathi | EasyDL
+# 📋 Phase 1 Progress Report — Project Lead & Backend Systems Architecture — Licence Saathi | EasyDL
 
-**Backend Systems Architect & Systems Engineer:** Aritra  
-**Collaborators:** Avrojit Saha (Project Lead & Frontend/Cloud Architect), Shubham (Data & UI/UX Engineer)  
+**Project Lead & Backend Systems Architect:** Aritro Roy  
+**Team Collaborators:** Avrojit Saha (Core Frontend & Cloud Architect), Shubham (Data & UI/UX Engineer)  
 **Project:** Licence Saathi (EasyDL)  
 **Hackathon:** Hackcache26 — MARK-III Mparivahan  
+**Target Domain:** Indian RTO & Sarathi Parivahan (Strictly for Indian Users)  
 **Date:** October 2026  
 **Status:** Completed, Verified & Live  
 
 ---
 
-## 📌 Document Overview & Purpose
+## 🇮🇳 Statutory Framework & Indian RTO Adherence
 
-This document details the **backend microservice architecture, API design, Supabase database integration, and frontend systems engineering** delivered by **Aritra** in Phase 1 of **Licence Saathi (EasyDL)**.
+**Licence Saathi (EasyDL)** is engineered exclusively for **Indian citizens** undergoing the driving licence lifecycle under the **Ministry of Road Transport and Highways (MoRTH), Government of India**.
 
-While Avrojit developed the frontend shell and cloud Supabase tables, and Shubham built the static domain datasets and interactive UI components, **Aritra architected and delivered the standalone Python FastAPI backend microservice (`Backend/`) and modernized the frontend smooth scrolling and routing infrastructure**.
+All business logic, question banks, data schemas, eligibility checks, and application stages strictly implement:
+1. **The Motor Vehicles Act, 1988** (as amended by the Motor Vehicles Amendment Act, 2019).
+2. **The Central Motor Vehicles Rules (CMVR), 1989**.
+3. **The Rules of the Road Regulations, 1989 / 2017**.
+4. **Sarathi Parivahan (Sewa)** workflow standards across all Indian State & Union Territory RTOs.
+5. **DigiLocker & UIDAI Aadhaar Paperless e-KYC** integration guidelines for zero-contact document verification.
 
 ---
 
-## 🚀 Key Architectural Deliverables (Aritra)
+## 🎯 Executive Summary (Aritro Roy — Project Lead)
 
-### 1. Standalone Python FastAPI Backend Microservice (`Backend/`)
+As **Project Lead & Backend Systems Architect**, Aritro Roy steered the overarching project direction to ensure total fidelity to Indian transport regulations, architected the core Python FastAPI microservice (`Backend/`), engineered the resilient dual-mode database engine (`Backend/supabase_client.py`), and supervised the integration of the frontend application with the static data layer and cloud infrastructure.
 
-A dedicated REST API service located under [`Backend/`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/Backend/) built with **FastAPI** (`0.161.1`), **Uvicorn** (`0.54.0`), and **Pydantic** (`2.14.1`), running on port `8000`.
+Under Aritro's leadership, Phase 1 successfully established:
+1. Complete Indian RTO business rules engine (age verification, vehicle classes, document validation, and passing thresholds).
+2. Standalone FastAPI REST backend with 5 endpoints powering tracking, assessment tests, and eligibility.
+3. Dual-mode Supabase connectivity guaranteeing zero demo failures through offline mock data fallbacks.
+4. Harmonization of the complete driving licence lifecycle: **Form 2 (Application) &rarr; DigiLocker e-KYC &rarr; Form 3 (Learner's Licence) &rarr; 30-Day Mandatory Wait &rarr; Form 4/7 (Permanent Driving Licence)**.
 
-#### A. Architecture & CORS Setup
-- Configured FastAPI with permissive CORS middleware (`allow_origins=["*"]`, `allow_methods=["*"]`, `allow_headers=["*"]`) to facilitate smooth communication between:
-  - Local Vite development server (`http://localhost:5173`)
-  - Local Vite preview server (`http://localhost:4173`)
-  - Live production Vercel deployment
-- Automated interactive Swagger UI documentation at `http://localhost:8000/docs` and OpenAPI JSON schema at `http://localhost:8000/openapi.json`.
+---
 
-#### B. The 5 REST Endpoints (`Backend/main.py`)
+## 🚀 Key Architectural Deliverables (Aritro Roy)
+
+### 1. Dedicated Python FastAPI Backend Microservice (`Backend/`)
+
+A high-performance REST microservice implemented in [`Backend/main.py`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/Backend/main.py) powered by **FastAPI** (`0.161.1`), **Uvicorn** (`0.54.0`), and **Pydantic** (`2.14.1`), serving on port `8000`.
+
+#### A. Cross-Origin Middleware (CORS)
+- Permissive CORS middleware (`allow_origins=["*"]`, `allow_methods=["*"]`, `allow_headers=["*"]`) ensuring unhindered connectivity between the client SPA (Vite `localhost:5173`), preview servers, and the live production Vercel app.
+- Interactive OpenAPI / Swagger UI documentation at `http://localhost:8000/docs`.
+
+#### B. The 5 Endpoints Mapped to Indian RTO Operations:
 
 ```text
-┌───────────────────────────────────────┐       ┌──────────────────────────────────────────────┐
-│  Licence Saathi Client (Vite/Browser) │       │   FastAPI Backend Service (Port 8000)        │
-├───────────────────────────────────────┤       ├──────────────────────────────────────────────┤
-│  System Health ─────────────────────► │ GET   │  / (Health check & Supabase connection state)│
-│  /track (Status Lookup) ────────────► │ GET   │  /api/applications/{app_number}              │
-│  /learn (RTO Questions) ────────────► │ GET   │  /api/questions?category=...&limit=...       │
-│  /can-i-apply (Eligibility Engine) ─► │ POST  │  /api/check-eligibility                      │
-│  /learn/quiz (Quiz Evaluator) ──────► │ POST  │  /api/quiz/submit                            │
-└───────────────────────────────────────┘       └──────────────────────────────────────────────┘
+┌───────────────────────────────────────┐       ┌────────────────────────────────────────────────────────┐
+│   Frontend Client (Licence Saathi)    │       │   FastAPI Backend (Indian RTO Engine - Port 8000)      │
+├───────────────────────────────────────┤       ├────────────────────────────────────────────────────────┤
+│  System Diagnostics ────────────────► │ GET   │  / (Service operational state & Supabase connectivity) │
+│  /track (Parivahan Application Status)►│ GET   │  /api/applications/{app_number}                        │
+│  /learn (RTO Exam Question Bank) ───► │ GET   │  /api/questions?category=...&limit=...                 │
+│  /can-i-apply (MV Act Eligibility) ──► │ POST  │  /api/check-eligibility (Age, MV Act rules, DigiLocker)│
+│  /learn/quiz (STALL Mock Evaluator) ─►│ POST  │  /api/quiz/submit (60% official RTO pass threshold)    │
+└───────────────────────────────────────┘       └────────────────────────────────────────────────────────┘
 ```
 
-1. **`GET /` (Health Check & Connectivity Diagnostic)**:
-   - Returns service operational status, connection state to Supabase, Supabase URL, and a list of operational endpoints.
-   - Response: `{"service": "Licence Saathi Backend API", "status": "operational", "supabase_connected": false|true}`.
-2. **`GET /api/applications/{app_number}` (Application Tracking)**:
-   - Resolves live Supabase applications or fallback test records (e.g. `DL-2026-98124`, `MH-2026-11492`).
-   - Returns applicant name, date of birth, RTO jurisdiction code, vehicle classes, stage index (0–3), status text, and a structured 4-step timeline array.
-   - Returns informative `404 Not Found` with suggestions if an invalid application number is queried.
-3. **`GET /api/questions` (RTO Question Bank)**:
-   - Fetches practice questions with optional query parameters: `category` (`Road Signs`, `Traffic Rules`, `Safety`) and `limit`.
+1. **`GET /` (System Health & Cloud Diagnostics)**:
+   - Returns operational status, active Supabase URL, and endpoint directory.
+2. **`GET /api/applications/{app_number}` (Parivahan Sarathi Application Tracker)**:
+   - Queries live Supabase PostgreSQL database or demo fallback records (`DL-2026-98124`, `MH-2026-11492`, `WB-2026-78210`).
+   - Returns Indian RTO application details: applicant name, date of birth, RTO jurisdiction code (e.g. `DL-01 Mall Road`, `WB-01 Beltala`), vehicle classes, stage index (0–3), and structured timeline items:
+     - *Form 2 Application Submitted & Fee Paid*
+     - *DigiLocker / Aadhaar e-KYC Document Scrutiny*
+     - *LL Online Test Slot / Proctoring*
+     - *Form 3 Learner's Licence Approval*
+3. **`GET /api/questions` (MoRTH RTO Question Bank)**:
+   - Returns official RTO exam questions with category filters: `Road Signs (Schedule 1 of MV Act)`, `Traffic Rules`, and `Safety & Penalties`.
 4. **`POST /api/check-eligibility` (Motor Vehicles Act Rules Engine)**:
-   - Accepts applicant date of birth (`YYYY-MM-DD`), vehicle class (`MCWOG`, `MCWG`, `LMV`, `TRANS`), and Aadhaar flag.
-   - Calculates exact applicant age to the day based on the current calendar date.
-   - Enforces statutory rules:
-     - **MCWOG:** Minimum age 16 (with parental consent).
-     - **MCWG:** Minimum age 18.
-     - **LMV:** Minimum age 18.
-     - **TRANS:** Minimum age 20 (requires holding an LMV licence for &ge; 1 year).
-   - Generates customized required document checklists (e-KYC paperless Aadhaar vs physical ID/address proof, proof of age, Form 1 medical fitness).
-5. **`POST /api/quiz/submit` (Automated Mock Test Evaluator)**:
-   - Accepts map of question IDs to chosen answer indices.
-   - Compares answers against the master answer key.
-   - Enforces the official RTO passing threshold (60%).
-   - Returns score, total, percentage, pass/fail boolean, and a detailed question-by-question breakdown with educational explanations.
+   - Enforces statutory age and vehicle requirements under Section 4 and Section 7 of the Motor Vehicles Act:
+     - **MCWOG (Motorcycle Without Gear up to 50cc / electric):** Age &ge; 16 with mandatory Form 2 Part II guardian consent.
+     - **MCWG (Motorcycle With Gear):** Age &ge; 18.
+     - **LMV (Light Motor Vehicle - Personal Car/Jeep):** Age &ge; 18.
+     - **TRANS (Commercial / Transport):** Age &ge; 20 with statutory prerequisite of holding an LMV licence for at least 1 year.
+   - Outputs customized document requirements including **DigiLocker Aadhaar e-KYC** (contactless paperless flow) vs physical document verification, proof of age, and Form 1 / 1A medical fitness certificates.
+5. **`POST /api/quiz/submit` (Automated LL Assessment Test Grader)**:
+   - Accepts applicant answers, evaluates against the official answer key, enforces the statutory **60% pass threshold** (standard across all Indian RTO computer tests / STALL), and returns detailed question explanations.
 
 ---
 
-### 2. Dual-Mode Supabase Client (`Backend/supabase_client.py`)
+### 2. Dual-Mode Supabase Engine (`Backend/supabase_client.py`)
 
-To eliminate the single point of failure during live hackathon demos (e.g. network drops, missing API keys, or database outages), Aritra engineered a **resilient dual-mode architecture**:
-
-1. **Online Mode (Supabase Connected):**
-   - Automatically initializes `supabase-py` SDK (`2.33.0`) when `SUPABASE_KEY` is provided in `Backend/.env`.
-   - Directly queries and updates PostgreSQL tables (`applications`, `questions`).
-2. **Offline Fallback Mode (Demo / Zero-Setup Mode):**
-   - If `SUPABASE_KEY` is empty or connection fails, the backend logs an informational message and **transparently falls back to high-fidelity in-memory seed records**.
-   - Seed applications match Phase 1 records:
-     - `DL-2026-98124`: Avrojit Saha (MCWG, LMV - Slot Booked)
-     - `MH-2026-11492`: Shubham Kumar (LMV - Under Scrutiny)
-   - Seed questions pool covers authentic RTO questions with categories and explanations.
-   - Application submissions dynamically save to the in-memory dictionary so subsequent lookups within the session succeed instantly.
+Aritro engineered a resilient dual-mode client to ensure zero disruption during hackathon demonstrations:
+1. **Online Mode (Supabase Connected):** Directly queries and writes to PostgreSQL tables (`applications`, `questions`) using the `supabase-py` SDK.
+2. **Offline Fallback Mode (Demo / Zero-Setup Mode):** If credentials or internet connectivity are unavailable, the backend automatically transitions to high-fidelity in-memory seed records representing real Indian Parivahan data.
 
 ---
 
-### 3. Frontend Systems Modernization & Refactoring
+### 3. Verification Test Results (All 5 Endpoints Verified)
 
-#### A. Lenis Smooth Scroll Engine Upgrade (`src/components/SmoothScroll.jsx`)
-- Upgraded smooth scrolling from the legacy, deprecated `@studio-freight/lenis` package to the modern official package `lenis` (`^1.3.27`).
-- Replaced outdated configuration properties (`direction`, `gestureDirection`, `smooth`) with current standard `smoothWheel: true`.
-- Fixed the animation frame loop: restructured `rafId = requestAnimationFrame(raf)` inside the RAF handler with proper cleanup `cancelAnimationFrame(rafId)` and `lenis.destroy()` on component unmount.
-- Wrapped initialization in a defensive `try...catch` block (`console.warn('Smooth scroll initialization fallback:', err)`), preventing crashes in non-standard browser environments (embedded WebViews, headless browsers).
-
-#### B. Native React Router DOM Migration
-- Removed legacy Next.js `'use client'` directive from `src/pages/Home.jsx`.
-- Cleaned up imports across all routes (`Home.jsx`, `CanIApply.jsx`, `Learn.jsx`, `Track.jsx`) to import `Link` directly from `react-router-dom`, bypassing shim indirection and maximizing bundler performance.
-
----
-
-### 4. Verification Test Results (All 5 Endpoints Verified)
-
-Executed live verification against `Backend/main.py` using `fastapi.testclient`:
+All endpoints were tested and verified with 100% success using `fastapi.testclient`:
 
 ```text
 [INFO] SUPABASE_KEY not set. Running with fallback sample data for Hackathon demo.
@@ -117,37 +106,25 @@ POST /api/quiz/submit: 200 | score = 3 | passed = True
 
 ---
 
-### 5. Repository & Tooling Configuration
+### 4. Frontend Systems Modernization
 
-- **[`.gitignore`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/.gitignore):**
-  - Added exclusion rules for Python virtual environments and cache files:
-    ```gitignore
-    # Python
-    .venv/
-    venv/
-    __pycache__/
-    *.py[cod]
-    *$py.class
-    Backend/.env
-    ```
-- **Windows Python Environment:**
-  - Configured `Backend/.venv/pyvenv.cfg` for Python 3.14 on Windows.
-  - Provided `Backend/requirements.txt` with all 38 pinned dependencies.
-  - Setup instructions documented in [`Backend/README.md`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/Backend/README.md).
+- **Lenis Smooth Scroll Engine Upgrade ([`src/components/SmoothScroll.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/components/SmoothScroll.jsx)):** Upgraded from deprecated `@studio-freight/lenis` to official `lenis` (`^1.3.27`), configured `smoothWheel: true`, and added continuous RAF loop with defensive `try/catch` fallback.
+- **Direct React Router DOM Navigation:** Cleaned up page imports across all routes (`Home.jsx`, `CanIApply.jsx`, `Learn.jsx`, `Track.jsx`) to use native `react-router-dom` `Link`, eliminating redundant Next.js directives and shim indirection.
+- **Repository Hygiene:** Updated [`.gitignore`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/.gitignore) with Python virtual environment and cache ignores.
 
 ---
 
-## 🛠️ Instructions to Run the Backend (For Team)
+## 🛠️ Instructions to Run the Backend (PowerShell)
 
 ```powershell
-# 1. Open a new terminal in the Backend directory
+# Navigate to the Backend folder
 cd Backend
 
-# 2. Activate virtual environment
+# Activate virtual environment
 .venv\Scripts\Activate.ps1
 
-# 3. Start the FastAPI development server with hot-reload
+# Launch FastAPI server with hot-reload
 .venv\Scripts\uvicorn.exe main:app --reload --port 8000
 ```
-- Interactive API Documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Interactive Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
 - Health Check: [http://localhost:8000/](http://localhost:8000/)
