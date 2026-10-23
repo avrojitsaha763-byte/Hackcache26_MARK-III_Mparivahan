@@ -41,10 +41,26 @@ export default function Track() {
           })))
         } else if (cleanNo.startsWith('APP')) {
           setTimeline([
-            { step: "Application Submitted & Fee Paid (₹200)", status: "done", date: new Date().toISOString() },
-            { step: "DigiLocker Document Scrutiny", status: "pending", date: null },
-            { step: "LL Online Test Slot Booking", status: "pending", date: null },
-            { step: "Learner's Licence Approval (Form 3)", status: "pending", date: null }
+            { 
+              step: lang === 'hi' ? "आवेदन जमा एवं शुल्क भुगतान पूर्ण (₹200)" : "Application Submitted & Fee Paid (₹200)", 
+              status: "done", 
+              date: new Date().toISOString() 
+            },
+            { 
+              step: lang === 'hi' ? "डिजीलॉकर ई-केवाईसी एवं दस्तावेज संवीक्षा" : "DigiLocker e-KYC & Document Scrutiny", 
+              status: "pending", 
+              date: null 
+            },
+            { 
+              step: lang === 'hi' ? "एलएल ऑनलाइन टेस्ट स्लॉट बुकिंग" : "LL Online Test Slot Booking", 
+              status: "pending", 
+              date: null 
+            },
+            { 
+              step: lang === 'hi' ? "लर्नर्स लाइसेंस अनुमोदन (फॉर्म 3)" : "Learner's Licence Approval (Form 3)", 
+              status: "pending", 
+              date: null 
+            }
           ])
         } else {
           alert(lang === 'hi' ? "आवेदन नहीं मिला। डेमो नंबर आज़माएँ: DL-2026-98124 या MH-2026-11492" : "Application not found. Try demo numbers: DL-2026-98124 or MH-2026-11492")
@@ -57,9 +73,9 @@ export default function Track() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 pt-12 pb-24 bg-white dark:bg-slate-900">
+    <div className="min-h-screen flex flex-col p-6 pt-12 pb-24 bg-white dark:bg-slate-900 transition-colors">
       <Link href="/" className="mb-6 inline-flex items-center text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-        <ChevronLeft className="w-4 h-4 mr-1" /> Back
+        <ChevronLeft className="w-4 h-4 mr-1" /> {lang === 'hi' ? 'वापस' : 'Back'}
       </Link>
       
       <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">
