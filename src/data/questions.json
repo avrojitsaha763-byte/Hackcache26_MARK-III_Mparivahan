@@ -1,0 +1,299 @@
+{
+  "total_questions": 20,
+  "categories": [
+    "Road Signs",
+    "Traffic Rules",
+    "Safety"
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "category": "Road Signs",
+      "question": "What does a triangular traffic sign with a red border signify?",
+      "options": [
+        "Mandatory / Regulatory Sign",
+        "Cautionary / Warning Sign",
+        "Informative / Facility Sign",
+        "Speed Limit Enforcement Sign"
+      ],
+      "correct_index": 1,
+      "explanation": "Triangular signs with red borders are cautionary signs warning the driver of potential road hazards or changes ahead.",
+      "sign_id": "sign-right-hairpin-bend",
+      "difficulty": "easy"
+    },
+    {
+      "id": 2,
+      "category": "Road Signs",
+      "question": "What does an octagonal red sign with white lettering indicate?",
+      "options": [
+        "Yield to traffic",
+        "No Parking",
+        "Stop",
+        "Dead End Ahead"
+      ],
+      "correct_index": 2,
+      "explanation": "An octagonal sign is uniquely reserved worldwide for the 'STOP' sign so drivers can recognize it even when covered in dust or snow.",
+      "sign_id": "sign-stop",
+      "difficulty": "easy"
+    },
+    {
+      "id": 3,
+      "category": "Road Signs",
+      "question": "What does an inverted (upside down) triangular sign mean?",
+      "options": [
+        "Give Way / Yield to traffic",
+        "Compulsory Turn Right",
+        "Pedestrian Crossing",
+        "Overtaking Permitted"
+      ],
+      "correct_index": 0,
+      "explanation": "An inverted triangle is the 'Give Way' sign, mandating that you yield right of way to vehicles on the major road.",
+      "sign_id": "sign-give-way",
+      "difficulty": "medium"
+    },
+    {
+      "id": 4,
+      "category": "Road Signs",
+      "question": "A circular sign with a blue background and a diagonal red line across an electric horn means:",
+      "options": [
+        "Compulsory sound horn",
+        "Horn prohibited (Silence Zone)",
+        "No entry for noisy vehicles",
+        "Railway crossing ahead"
+      ],
+      "correct_index": 1,
+      "explanation": "A horn symbol crossed with a red slash indicates a Silence Zone near hospitals, educational institutions, and courts where honking is illegal.",
+      "sign_id": "sign-horn-prohibited",
+      "difficulty": "easy"
+    },
+    {
+      "id": 5,
+      "category": "Road Signs",
+      "question": "What is the key difference between 'No Parking' and 'No Stopping' signs?",
+      "options": [
+        "There is no difference; both mean the same",
+        "In 'No Parking', you can briefly halt to drop or pick up passengers; in 'No Stopping', you cannot halt at all",
+        "'No Parking' applies to two-wheelers only",
+        "'No Stopping' applies only during night hours"
+      ],
+      "correct_index": 1,
+      "explanation": "'No Parking' (single red diagonal slash) allows momentary passenger boarding/alighting. 'No Stopping' (red 'X' cross) strictly prohibits even momentary halting.",
+      "sign_id": "sign-no-stopping",
+      "difficulty": "medium"
+    },
+    {
+      "id": 6,
+      "category": "Road Signs",
+      "question": "A circular sign with a red border containing the numeral '50' indicates:",
+      "options": [
+        "Minimum speed is 50 km/h",
+        "Maximum speed limit is 50 km/h",
+        "Highway number 50 ahead",
+        "Next petrol station is 50 km away"
+      ],
+      "correct_index": 1,
+      "explanation": "Numbers enclosed within a red circular ring denote maximum statutory speed limits for that road sector.",
+      "sign_id": "sign-speed-limit-50",
+      "difficulty": "easy"
+    },
+    {
+      "id": 7,
+      "category": "Traffic Rules",
+      "question": "When approaching an un-controlled pedestrian crossing where people are waiting to cross, you must:",
+      "options": [
+        "Sound horn repeatedly and speed up",
+        "Slow down and proceed with caution without stopping",
+        "Stop before the zebra crossing line and wait until pedestrians have safely crossed",
+        "Flash your headlights to tell them to back away"
+      ],
+      "correct_index": 2,
+      "explanation": "Pedestrians have absolute legal right of way at all pedestrian zebra crossings.",
+      "sign_id": "sign-pedestrian-crossing",
+      "difficulty": "easy"
+    },
+    {
+      "id": 8,
+      "category": "Traffic Rules",
+      "question": "From which side are you legally required to overtake a vehicle in India?",
+      "options": [
+        "From the left side only",
+        "From the right side of the vehicle being overtaken",
+        "From whichever side has more clearance",
+        "Overtaking is completely banned on all Indian roads"
+      ],
+      "correct_index": 1,
+      "explanation": "Under the Rules of the Road Regulations, drivers must overtake leading vehicles from their right side.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 9,
+      "category": "Traffic Rules",
+      "question": "When an emergency ambulance or fire brigade vehicle approaches from behind with sirens active, you must:",
+      "options": [
+        "Maintain your current speed and lane",
+        "Accelerate quickly to stay ahead of the emergency vehicle",
+        "Immediately draw to the left side of the road and come to a stop to give free passage",
+        "Brake abruptly in the middle of your lane"
+      ],
+      "correct_index": 2,
+      "explanation": "Section 194E of the Motor Vehicles Act makes obstructing emergency vehicles a severe offence punishable by up to ₹10,000 fine and/or 6 months imprisonment.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 10,
+      "category": "Traffic Rules",
+      "question": "Who has the right of way at a traffic rotary or roundabout?",
+      "options": [
+        "Vehicles entering the roundabout from the left",
+        "Vehicles already circulating inside the roundabout on your right",
+        "The fastest moving vehicle",
+        "Heavy vehicles and buses always take precedence"
+      ],
+      "correct_index": 1,
+      "explanation": "Traffic already circulating inside the rotary has precedence over vehicles waiting to enter the roundabout.",
+      "sign_id": "sign-roundabout",
+      "difficulty": "medium"
+    },
+    {
+      "id": 11,
+      "category": "Traffic Rules",
+      "question": "Overtaking is strictly prohibited in which of the following circumstances?",
+      "options": [
+        "On straight multi-lane expressways",
+        "On narrow bridges, blind curves, steep hilltops, and near pedestrian crossings",
+        "During clear daytime weather",
+        "When the vehicle ahead is moving at 40 km/h"
+      ],
+      "correct_index": 1,
+      "explanation": "Overtaking on blind corners, narrow bridges, or pedestrian crossings is extremely dangerous due to zero sight distance.",
+      "sign_id": "sign-overtaking-prohibited",
+      "difficulty": "medium"
+    },
+    {
+      "id": 12,
+      "category": "Traffic Rules",
+      "question": "What is the maximum validity period of a Learner's Licence issued in India?",
+      "options": [
+        "30 days",
+        "3 months",
+        "6 months",
+        "1 year"
+      ],
+      "correct_index": 2,
+      "explanation": "Under the Motor Vehicles Act, a Learner's Licence is valid for exactly 6 months throughout the territory of India.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 13,
+      "category": "Traffic Rules",
+      "question": "After obtaining a Learner's Licence, after how many days can you apply for a permanent Driving Licence test?",
+      "options": [
+        "Immediately on the next day",
+        "After a mandatory waiting period of 30 days",
+        "After 90 days only",
+        "After 6 months"
+      ],
+      "correct_index": 1,
+      "explanation": "An applicant must hold a valid Learner's Licence for at least 30 days before appearing for the permanent Driving Licence driving skill test.",
+      "difficulty": "medium"
+    },
+    {
+      "id": 14,
+      "category": "Traffic Rules",
+      "question": "A flashing red traffic signal light at an intersection means:",
+      "options": [
+        "The traffic signal is permanently broken; ignore it",
+        "Come to a complete stop, look in both directions, and proceed only when the road is completely clear",
+        "Slow down to 20 km/h and proceed without stopping",
+        "Road is permanently closed ahead"
+      ],
+      "correct_index": 1,
+      "explanation": "A flashing red light equates to a 'STOP' sign: halt completely, yield to any cross traffic, and proceed only when clear.",
+      "difficulty": "hard"
+    },
+    {
+      "id": 15,
+      "category": "Traffic Rules",
+      "question": "What does a continuous solid single white or yellow line along the center of the road signify?",
+      "options": [
+        "You may overtake at any time",
+        "Crossing or straddling the line to overtake is strictly prohibited",
+        "The road is one-way only",
+        "Parking is permitted along the line"
+      ],
+      "correct_index": 1,
+      "explanation": "A solid unbroken center line acts as a legal barrier: you must not cross or straddle it to overtake or make U-turns.",
+      "difficulty": "medium"
+    },
+    {
+      "id": 16,
+      "category": "Safety",
+      "question": "What is the legal permissible Blood Alcohol Content (BAC) limit for driving a motor vehicle in India?",
+      "options": [
+        "30 mg of alcohol per 100 ml of blood",
+        "50 mg of alcohol per 100 ml of blood",
+        "100 mg of alcohol per 100 ml of blood",
+        "Zero alcohol tolerance for all commercial drivers, and max 30 mg/100ml for private drivers"
+      ],
+      "correct_index": 3,
+      "explanation": "Under Section 185 of the Motor Vehicles Act, blood alcohol exceeding 30 mg per 100 ml blood (or any alcohol for commercial drivers) is punishable by heavy fines and imprisonment.",
+      "difficulty": "hard"
+    },
+    {
+      "id": 17,
+      "category": "Safety",
+      "question": "What is the minimum age to obtain a Learner's Licence for a 50cc gearless motorcycle (MCWOG)?",
+      "options": [
+        "14 years",
+        "16 years (with written consent of parent or legal guardian)",
+        "18 years",
+        "21 years"
+      ],
+      "correct_index": 1,
+      "explanation": "Section 4 of the Motor Vehicles Act allows individuals aged 16 and above to drive a motorcycle without gear up to 50cc with parental/guardian written consent.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 18,
+      "category": "Safety",
+      "question": "What is the mandatory safe following distance rule recommended when driving behind another vehicle at highway speeds?",
+      "options": [
+        "1 vehicle length at all speeds",
+        "The 'Two-Second Rule' under dry conditions (increased to 4 seconds in wet or foggy conditions)",
+        "5 meters strictly",
+        "Keep as close as possible to reduce wind drag"
+      ],
+      "correct_index": 1,
+      "explanation": "The 'Two-Second Rule' guarantees adequate reaction and braking distance to prevent rear-end collisions.",
+      "difficulty": "medium"
+    },
+    {
+      "id": 19,
+      "category": "Safety",
+      "question": "When driving a two-wheeler, who is legally required to wear a certified ISI / BIS protective safety helmet?",
+      "options": [
+        "Only the rider / driver",
+        "Both the rider and the pillion passenger (except Sikhs wearing a turban)",
+        "Only when riding on national expressways",
+        "Helmets are optional inside municipal city limits"
+      ],
+      "correct_index": 1,
+      "explanation": "Section 129 of the MV Act mandates certified protective headgear for both rider and pillion passenger.",
+      "difficulty": "easy"
+    },
+    {
+      "id": 20,
+      "category": "Safety",
+      "question": "Using a handheld mobile phone while driving is permitted:",
+      "options": [
+        "Only when stopped at a red traffic light",
+        "Only when driving below 30 km/h in residential zones",
+        "Never; using a handheld mobile phone while driving is illegal and a leading cause of fatal distraction",
+        "Whenever receiving urgent family phone calls"
+      ],
+      "correct_index": 2,
+      "explanation": "Section 184(c) prohibits operating handheld mobile communication devices while driving, punishable with fines up to ₹5,000.",
+      "difficulty": "easy"
+    }
+  ]
+}
