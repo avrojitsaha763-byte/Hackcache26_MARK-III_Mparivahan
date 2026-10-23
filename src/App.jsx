@@ -5,6 +5,7 @@ import Apply from './pages/Apply'
 import MockTest from './pages/MockTest'
 import Learn from './pages/Learn'
 import Track from './pages/Track'
+import PermanentDL from './pages/PermanentDL'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/mock-test" element={<MockTest />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/track" element={<Track />} />
+        <Route path="/permanent-dl" element={<PermanentDL />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </BrowserRouter>

@@ -63,6 +63,26 @@ def get_application_status(app_number: str):
         "data": record
     }
 
+@app.get("/api/track")
+def track_application_query(app_no: str = Query(..., description="Application number")):
+    """Query application status via ?app_no=... parameter, returning formatted timeline."""
+    record = fetch_application_by_number(app_no)
+    if not record:
+        return {"success": False, "message": "Application not found"}
+    timeline = [
+        {
+            "step": t["title"],
+            "status": "done" if t.get("completed") else "pending",
+            "date": t.get("date") if t.get("date") not in ["Pending", "In Progress"] else None
+        }
+        for t in record.get("timeline", [])
+    ]
+    return {
+        "success": True,
+        "data": record,
+        "timeline": timeline
+    }
+
 @app.get("/api/questions")
 def get_practice_questions(category: Optional[str] = Query(None, description="Category filter (Road Signs, Traffic Rules, Safety)"), limit: int = 15):
     """Retrieve RTO driving licence exam questions."""
