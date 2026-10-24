@@ -662,7 +662,7 @@ async def digilocker_documents(req: DigiLockerDocRequest, request: Request):
 
         # Extract phone from token or request body
         clean_phone = "".join(filter(str.isdigit, req.phone or ""))[-10:]
-        if not clean_phone and "DL_LIVE_" in token:
+        if not clean_phone and ("DL_LIVE_" in token or "FB_LIVE_" in token):
             parts = token.split("_")
             if len(parts) > 2 and len(parts[2]) == 10:
                 clean_phone = parts[2]

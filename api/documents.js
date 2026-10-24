@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     }
 
     const token = authHeader.replace('Bearer ', '').trim();
-    if (!token.startsWith('DL_LIVE_') && token !== 'mock_oauth_token_8892') {
+    if (!token.startsWith('DL_LIVE_') && !token.startsWith('FB_LIVE_') && token !== 'mock_oauth_token_8892') {
       return res.status(401).json({ error: "Invalid or expired DigiLocker OAuth2 session token." });
     }
 

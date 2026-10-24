@@ -12,9 +12,16 @@ import {
   UserCheck, 
   ArrowRight,
   Lock,
-  ExternalLink
+  ExternalLink,
+  Flame
 } from 'lucide-react'
 import { api } from '@/lib/api'
+import { 
+  isFirebaseConfigured, 
+  sendFirebaseOtp, 
+  verifyFirebaseOtp, 
+  formatFirebaseError 
+} from '@/lib/firebase'
 
 export default function DigiLockerAuthModal({
   isOpen,
@@ -37,6 +44,8 @@ export default function DigiLockerAuthModal({
   const [fetchedDocs, setFetchedDocs] = useState(null)
   const [dispatchedOtp, setDispatchedOtp] = useState('')
   const [gatewayNotice, setGatewayNotice] = useState('')
+  const [confirmationResult, setConfirmationResult] = useState(null)
+  const [isFirebaseSession, setIsFirebaseSession] = useState(false)
 
   const [prevInitialPhone, setPrevInitialPhone] = useState(initialPhone)
   if (initialPhone !== prevInitialPhone) {
@@ -79,7 +88,7 @@ export default function DigiLockerAuthModal({
     window.location.href = ssoUrl
   }
 
-  // Handle Requesting Real-Time OTP
+  // Handle Requesting Real-Time OTP via Firebase (Primary) or Gateway (Fallback)
   const handleRequestOtp = async (e) => {
     if (e) e.preventDefault()
     if (!cleanPhone || cleanPhone.length < 10) {
@@ -91,10 +100,39 @@ export default function DigiLockerAuthModal({
     setDispatchedOtp('')
     setGatewayNotice('')
 
+    // 1. If Firebase is configured, dispatch real SMS via Firebase Phone Auth
+    if (isFirebaseConfigured()) {
+      try {
+        const confirmRes = await sendFirebaseOtp(cleanPhone, 'recaptcha-container')
+        setConfirmationResult(confirmRes)
+        setIsFirebaseSession(true)
+        setStep('otp_sent')
+        setTimer(60)
+        setLoading(false)
+        return
+      } catch (fbErr) {
+        console.warn('Firebase SMS dispatch attempt notice:', fbErr)
+        // If domain unauthorized or bad phone number, report to user
+        if (
+          fbErr.code === 'auth/unauthorized-domain' || 
+          fbErr.code === 'auth/invalid-phone-number' ||
+          fbErr.code === 'auth/quota-exceeded'
+        ) {
+          setLoading(false)
+          setError(formatFirebaseError(fbErr, isHindi))
+          return
+        }
+        // Otherwise continue to fallback serverless route
+      }
+    }
+
+    // 2. Gateway / Dynamic OTP Route
     const res = await api.requestDigilockerOtp(cleanPhone)
     setLoading(false)
 
     if (res && res.success) {
+      setConfirmationResult(null)
+      setIsFirebaseSession(false)
       setStep('otp_sent')
       setTimer(60)
       if (res.generatedOtp) {
@@ -116,13 +154,24 @@ export default function DigiLockerAuthModal({
 
     let token = null
     if (authMode === 'otp') {
-      const res = await api.verifyDigilockerOtp(otp, cleanPhone)
-      if (res && res.success && res.token) {
-        token = res.token
+      if (confirmationResult && isFirebaseSession) {
+        try {
+          const userCredential = await verifyFirebaseOtp(confirmationResult, otp)
+          token = `FB_LIVE_${cleanPhone}_${userCredential.user?.uid || 'VERIFIED'}`
+        } catch (fbErr) {
+          setLoading(false)
+          setError(formatFirebaseError(fbErr, isHindi))
+          return
+        }
       } else {
-        setLoading(false)
-        setError(res?.error || (isHindi ? 'अमान्य अथवा समाप्त ओटीपी। कृपया मोबाइल पर प्राप्त कोड दर्ज करें।' : 'Invalid or expired OTP. Please enter the exact code received on your mobile.'))
-        return
+        const res = await api.verifyDigilockerOtp(otp, cleanPhone)
+        if (res && res.success && res.token) {
+          token = res.token
+        } else {
+          setLoading(false)
+          setError(res?.error || (isHindi ? 'अमान्य अथवा समाप्त ओटीपी। कृपया मोबाइल पर प्राप्त कोड दर्ज करें।' : 'Invalid or expired OTP. Please enter the exact code received on your mobile.'))
+          return
+        }
       }
     } else {
       const res = await api.loginDigilockerPassword(username, password)
@@ -258,8 +307,34 @@ export default function DigiLockerAuthModal({
                 </button>
               </div>
 
+              {/* Telecom Provider Status Badge */}
+              <div className="flex items-center justify-between px-3.5 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs mb-3.5">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isFirebaseConfigured() ? 'bg-amber-500 animate-pulse' : 'bg-blue-500'}`} />
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                    {isFirebaseConfigured() ? (
+                      <>
+                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                        Google Firebase Phone Auth
+                      </>
+                    ) : (
+                      <>
+                        <Smartphone className="w-3.5 h-3.5 text-blue-500" />
+                        Fast2SMS & MeriPehchaan SSO
+                      </>
+                    )}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold">
+                  {isFirebaseConfigured() ? 'CELLULAR TELECOM' : 'DIRECT API'}
+                </span>
+              </div>
+
               {authMode === 'otp' ? (
                 <form onSubmit={handleRequestOtp} className="space-y-4">
+                  {/* Invisible / Visible reCAPTCHA Mount Point for Firebase */}
+                  <div id="recaptcha-container" className="flex justify-center my-1" />
+
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                       {isHindi ? 'आधार / डिजीलॉकर पंजीकृत मोबाइल नंबर:' : 'Registered Mobile Number:'}
@@ -371,13 +446,26 @@ export default function DigiLockerAuthModal({
               <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
-                    <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                    Real-time OTP Sent to Mobile
+                    {isFirebaseSession ? (
+                      <>
+                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                        Firebase Cellular SMS Dispatched
+                      </>
+                    ) : (
+                      <>
+                        <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                        Real-time OTP Sent to Mobile
+                      </>
+                    )}
                   </span>
                   <button
                     type="button"
-                    onClick={() => setStep('input')}
-                    className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                    onClick={() => {
+                      setStep('input')
+                      setOtp('')
+                      setError('')
+                    }}
+                    className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                   >
                     Change Number
                   </button>
@@ -386,11 +474,13 @@ export default function DigiLockerAuthModal({
                   Dispatched to: <strong className="font-mono text-slate-900 dark:text-white">+91 {cleanPhone}</strong>
                 </p>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Please check your incoming SMS inbox on your mobile phone and enter the 6-digit verification code below.
+                  {isFirebaseSession
+                    ? 'Google Firebase telephony has transmitted a real 6-digit OTP code directly to your SIM. Check your SMS inbox.'
+                    : 'Please check your incoming SMS inbox on your mobile phone and enter the 6-digit verification code below.'}
                 </p>
               </div>
 
-              {dispatchedOtp && (
+              {!isFirebaseSession && dispatchedOtp && (
                 <div className="p-3.5 bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
