@@ -38,10 +38,15 @@ export default async function handler(req, res) {
     const orderId = `ORD-PARIVAHAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`;
     const challanNo = `GRN-${rtoCode.split('-')[0]}-2026-${Math.floor(10000000 + Math.random() * 90000000)}`;
 
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_51GovTreasuryLL';
+    const razorpayOrderId = `order_${timestamp.toString().slice(-14)}`;
+
     return res.status(200).json({
       success: true,
       orderId,
       challanNo,
+      razorpayKeyId,
+      razorpayOrderId,
       amount,
       currency: 'INR',
       merchantName: 'Ministry of Road Transport and Highways (MoRTH)',

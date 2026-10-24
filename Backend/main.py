@@ -825,12 +825,17 @@ async def create_payment_order(request: Request):
         order_id = f"ORD-PARIVAHAN-{timestamp}-{random.randint(1000, 9999)}"
         challan_no = f"GRN-{rto_code.split('-')[0]}-2026-{random.randint(10000000, 99999999)}"
 
+        razorpay_key_id = "rzp_test_51GovTreasuryLL"
+        razorpay_order_id = f"order_{str(timestamp)[-14:]}"
+
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
                 "orderId": order_id,
                 "challanNo": challan_no,
+                "razorpayKeyId": razorpay_key_id,
+                "razorpayOrderId": razorpay_order_id,
                 "amount": amount,
                 "currency": "INR",
                 "merchantName": "Ministry of Road Transport and Highways (MoRTH)",
@@ -859,22 +864,27 @@ async def verify_payment_transaction(request: Request):
         amount = float(body.get("amount", 350))
         rto_code = body.get("rtoCode", "DL-01")
         app_no = body.get("appNo", "DL-2026-PENDING")
+        razorpay_payment_id = body.get("razorpayPaymentId")
+        razorpay_order_id = body.get("razorpayOrderId")
+        razorpay_signature = body.get("razorpaySignature")
         timestamp = int(time.time() * 1000)
 
-        txn_id = f"TXN-PARIVAHAN-{timestamp}-{random.randint(1000, 9999)}"
-        bank_ref = f"BRN-{payment_mode.upper()[:4]}-{random.randint(10000000, 99999999)}"
+        txn_id = razorpay_payment_id or f"TXN-PARIVAHAN-{timestamp}-{random.randint(1000, 9999)}"
+        bank_ref = f"RZP-{razorpay_payment_id}" if razorpay_payment_id else f"BRN-{payment_mode.upper()[:4]}-{random.randint(10000000, 99999999)}"
         challan_no = body.get("challanNo") or f"GRN-{rto_code.split('-')[0]}-2026-{random.randint(10000000, 99999999)}"
         cin = f"00024098{random.randint(100000000, 999999999)}"
 
         receipt = {
             "txnId": txn_id,
-            "orderId": body.get("orderId") or f"ORD-{timestamp}",
+            "orderId": razorpay_order_id or body.get("orderId") or f"ORD-{timestamp}",
             "challanNo": challan_no,
             "cin": cin,
             "bankRef": bank_ref,
             "paymentMode": payment_mode,
             "amount": amount,
             "currency": "INR",
+            "razorpayPaymentId": razorpay_payment_id,
+            "razorpaySignature": razorpay_signature,
             "paidAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "payerName": body.get("payerDetails", {}).get("name", "Citizen Applicant"),
             "payerPhone": body.get("payerDetails", {}).get("phone", "8910464763"),

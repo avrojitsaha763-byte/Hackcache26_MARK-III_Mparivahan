@@ -35,12 +35,17 @@ export default async function handler(req, res) {
       paymentMode, // 'credit_card' | 'debit_card' | 'upi' | 'netbanking'
       payerDetails = {},
       rtoCode = 'DL-01',
-      appNo
+      appNo,
+      razorpayPaymentId,
+      razorpayOrderId,
+      razorpaySignature
     } = body;
 
     const timestamp = Date.now();
-    const txnId = `TXN-PARIVAHAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const bankRef = `BRN-${paymentMode ? paymentMode.toUpperCase().slice(0, 4) : 'EPAY'}-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const txnId = razorpayPaymentId || `TXN-PARIVAHAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const bankRef = razorpayPaymentId 
+      ? `RZP-${razorpayPaymentId}` 
+      : `BRN-${paymentMode ? paymentMode.toUpperCase().slice(0, 4) : 'EPAY'}-${Math.floor(10000000 + Math.random() * 90000000)}`;
     const challanNo = body.challanNo || `GRN-${rtoCode.split('-')[0]}-2026-${Math.floor(10000000 + Math.random() * 90000000)}`;
     const cin = `00024098${Math.floor(100000000 + Math.random() * 900000000)}`;
     const npciUtr = paymentMode === 'upi' ? `UPI/UTR/${timestamp}/${Math.floor(10000000 + Math.random() * 90000000)}` : undefined;
@@ -51,11 +56,13 @@ export default async function handler(req, res) {
       message: 'Payment verified and credited to Government Treasury Account.',
       receipt: {
         txnId,
-        orderId: orderId || `ORD-${timestamp}`,
+        orderId: razorpayOrderId || orderId || `ORD-${timestamp}`,
         challanNo,
         cin,
         bankRef,
         npciUtr,
+        razorpayPaymentId: razorpayPaymentId || undefined,
+        razorpaySignature: razorpaySignature || undefined,
         paymentMode: paymentMode || 'upi',
         amount: Number(amount || 350),
         currency: 'INR',
