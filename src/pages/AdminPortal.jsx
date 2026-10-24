@@ -11,7 +11,8 @@ import {
   Search, 
   FileCheck, 
   X,
-  ChevronRight
+  ChevronRight,
+  Download
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import { useStickyState } from '@/hooks/useStickyState'
 import { getOfficerSession, logoutOfficer } from '@/lib/adminAuth'
 import { getApplications } from '@/lib/applicationsStore'
 import { api } from '@/lib/api'
+import { generateForm3Pdf } from '@/lib/generateForm3Pdf'
 
 const OFFICER_AUDIT_TIMESTAMP = "2026-10-24"
 
@@ -512,16 +514,23 @@ export default function AdminPortal() {
                   {isHindi ? 'दस्तावेज सुधार मांगें' : 'Request Correction (SMS Citizen)'}
                 </Button>
 
-                <Button
-                  onClick={() => handleApprove(selectedApp.appNo)}
-                  disabled={selectedApp.status.includes('Approved')}
-                  className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 flex-1 shadow-lg shadow-emerald-600/20 disabled:opacity-50"
-                >
-                  <UserCheck className="w-4 h-4" />
-                  {selectedApp.status.includes('Approved') 
-                    ? (isHindi ? 'स्वीकृत एवं फॉर्म 3 जारी' : 'Form 3 LL Already Issued') 
-                    : (isHindi ? 'स्वीकृत करें एवं डिजिटल LL जारी करें' : 'Approve & Issue Form 3 LL')}
-                </Button>
+                {selectedApp.status.includes('Approved') ? (
+                  <Button
+                    onClick={() => generateForm3Pdf(selectedApp)}
+                    className="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 flex-1 shadow-lg shadow-blue-600/20"
+                  >
+                    <Download className="w-4 h-4" />
+                    {isHindi ? 'डिजिटल फॉर्म 3 डाउनलोड करें' : 'Download Form 3 Softcopy'}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleApprove(selectedApp.appNo)}
+                    className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 flex-1 shadow-lg shadow-emerald-600/20"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    {isHindi ? 'स्वीकृत करें एवं डिजिटल LL जारी करें' : 'Approve & Issue Form 3 LL'}
+                  </Button>
+                )}
               </div>
             </motion.div>
           ) : (

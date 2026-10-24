@@ -5,16 +5,19 @@ import {
   ChevronLeft, 
   Search, 
   CheckCircle, 
+  CheckCircle2,
   Clock, 
   AlertTriangle, 
   Download, 
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
 import { api } from '@/lib/api'
+import { generateForm3Pdf } from '@/lib/generateForm3Pdf'
 import config from '@/data/config.json'
 
 export default function Track() {
@@ -24,6 +27,8 @@ export default function Track() {
   const [timeline, setTimeline] = useState(null)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState('')
 
   const isHindi = lang === 'hi'
 
@@ -79,6 +84,31 @@ export default function Track() {
   const handleQuickSelect = (no) => {
     setAppNo(no)
     handleTrackNumber(no)
+  }
+
+  const handleDownloadForm3 = async () => {
+    if (!currentApp) return
+    setDownloadingPdf(true)
+    setDownloadSuccess('')
+    setErrorMsg('')
+    try {
+      const result = await generateForm3Pdf(currentApp)
+      setDownloadSuccess(
+        isHindi 
+          ? `फॉर्म 3 डिजिटल शिक्षार्थी अनुज्ञप्ति (${result.filename}) सफलतापूर्वक डाउनलोड की गई।`
+          : `Form 3 Digital Learner's Licence (${result.filename}) downloaded successfully!`
+      )
+      setTimeout(() => setDownloadSuccess(''), 6000)
+    } catch (err) {
+      console.error('Error downloading Form 3 PDF:', err)
+      setErrorMsg(
+        isHindi 
+          ? 'फॉर्म 3 पीडीएफ डाउनलोड करने में त्रुटि हुई। कृपया पुनः प्रयास करें।' 
+          : 'Failed to generate official Form 3 PDF. Please try again.'
+      )
+    } finally {
+      setDownloadingPdf(false)
+    }
   }
 
   return (
@@ -226,20 +256,48 @@ export default function Track() {
             {currentApp.status.includes('Approved') && (
               <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div className="text-xs">
                     <strong className="text-emerald-900 dark:text-emerald-200 font-bold block">
                       Form 3 Learner's Licence Generated & Digitally Signed
                     </strong>
                     <span className="text-emerald-700 dark:text-emerald-300 font-mono text-[11px]">
-                      LL Number: {currentApp.llNumber}
+                      LL Number: {currentApp.llNumber || 'KA-01-LL-2026-0099418'}
                     </span>
                   </div>
                 </div>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs h-9">
-                  <Download className="w-3.5 h-3.5 mr-1.5" /> Download Digital Form 3
+                <Button 
+                  id="download-form3-btn"
+                  size="sm" 
+                  onClick={handleDownloadForm3}
+                  disabled={downloadingPdf}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs h-9 shadow-sm shrink-0 flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  {downloadingPdf ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{isHindi ? 'डाउनलोड हो रहा है...' : 'Generating PDF...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>{isHindi ? 'डिजिटल फॉर्म 3 डाउनलोड करें' : 'Download Digital Form 3'}</span>
+                    </>
+                  )}
                 </Button>
               </div>
+            )}
+
+            {/* Download Success Notice */}
+            {downloadSuccess && (
+              <motion.div 
+                initial={{ opacity: 0, y: -6 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 p-3 bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-400 dark:border-emerald-800 rounded-xl flex items-center gap-2 text-xs text-emerald-900 dark:text-emerald-200 shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="font-medium">{downloadSuccess}</span>
+              </motion.div>
             )}
 
             {/* Correction Remark Banner */}
