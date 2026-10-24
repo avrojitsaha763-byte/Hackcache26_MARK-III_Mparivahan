@@ -1,31 +1,46 @@
-'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Award, Clock, RotateCcw, Home, CheckCircle2, XCircle } from 'lucide-react'
+import { ChevronLeft, Clock, RotateCcw, Home, CheckCircle2, XCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { mockQuestions } from '@/data/questions'
+import { api } from '@/lib/api'
 import { useStickyState } from '@/hooks/useStickyState'
 
 export default function MockTest() {
   const [lang] = useStickyState('en', 'app-lang')
+  const [questions, setQuestions] = useState(mockQuestions)
   const [currentQ, setCurrentQ] = useState(0)
   const [score, setScore] = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
   const [isFinished, setIsFinished] = useState(false)
 
+  useEffect(() => {
+    let mounted = true
+    api.getQuestions().then((res) => {
+      if (mounted && Array.isArray(res) && res.length > 0) {
+        setQuestions(res)
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handleAnswer = useCallback((index) => {
-    if (mockQuestions[currentQ] && index === mockQuestions[currentQ].correctIndex) {
+    const q = questions[currentQ]
+    const correct = q?.correctIndex ?? q?.correct_index ?? 0
+    if (q && index === correct) {
       setScore((prev) => prev + 1)
     }
     
-    if (currentQ + 1 < mockQuestions.length) {
+    if (currentQ + 1 < questions.length) {
       setCurrentQ((prev) => prev + 1)
       setTimeLeft(30)
     } else {
       setIsFinished(true)
     }
-  }, [currentQ])
+  }, [currentQ, questions])
 
   useEffect(() => {
     if (isFinished) return
@@ -61,7 +76,7 @@ export default function MockTest() {
           </h1>
 
           <div className={`text-5xl sm:text-6xl font-extrabold my-4 ${passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-            {score} / {mockQuestions.length}
+            {score} / {questions.length}
           </div>
 
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium">
@@ -98,7 +113,7 @@ export default function MockTest() {
     )
   }
 
-  const question = mockQuestions[currentQ]
+  const question = questions[currentQ]
   const currentLang = isHindi ? 'hi' : 'en'
 
   return (
@@ -115,7 +130,7 @@ export default function MockTest() {
               SARATHI STALL SIMULATOR
             </div>
             <div className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-0.5">
-              {isHindi ? `प्रश्न संख्या: ${currentQ + 1} / ${mockQuestions.length}` : `Question ${currentQ + 1} of ${mockQuestions.length}`}
+              {isHindi ? `प्रश्न संख्या: ${currentQ + 1} / ${questions.length}` : `Question ${currentQ + 1} of ${questions.length}`}
             </div>
           </div>
 
@@ -131,7 +146,7 @@ export default function MockTest() {
         <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full mb-8 overflow-hidden">
           <div 
             className="h-full bg-blue-600 rounded-full transition-all duration-300"
-            style={{ width: `${((currentQ + 1) / mockQuestions.length) * 100}%` }}
+            style={{ width: `${((currentQ + 1) / questions.length) * 100}%` }}
           />
         </div>
 

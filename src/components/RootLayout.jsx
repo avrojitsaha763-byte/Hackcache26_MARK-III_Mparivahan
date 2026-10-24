@@ -15,7 +15,6 @@ import {
   Sun,
   Menu,
   X,
-  Lock,
   Compass,
   ArrowRight
 } from 'lucide-react'
@@ -31,13 +30,9 @@ export default function RootLayout({ children }) {
   const [lang, setLang] = useStickyState('en', 'app-lang')
   const [isDarkMode, setIsDarkMode] = useStickyState(false, 'app-theme')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [officerSession, setOfficerSession] = useState(null)
+  const officerSession = getOfficerSession()
 
   const isHindi = lang === 'hi'
-
-  useEffect(() => {
-    setOfficerSession(getOfficerSession())
-  }, [location])
 
   // Sync dark mode class with html
   useEffect(() => {

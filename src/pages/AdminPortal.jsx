@@ -1,4 +1,3 @@
-'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -10,37 +9,27 @@ import {
   FileText, 
   LogOut, 
   Search, 
-  Filter, 
-  Building2, 
-  BadgeCheck, 
   FileCheck, 
-  QrCode, 
-  Download, 
-  Printer, 
   X,
-  ExternalLink,
-  ChevronRight,
-  Clock,
-  Car,
-  User,
-  Phone,
-  MapPin,
-  Calendar
+  ChevronRight
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
 import { getOfficerSession, logoutOfficer } from '@/lib/adminAuth'
-import { getApplications, updateApplicationStatus } from '@/lib/applicationsStore'
+import { getApplications } from '@/lib/applicationsStore'
+import { api } from '@/lib/api'
+
+const OFFICER_AUDIT_TIMESTAMP = "2026-10-24"
 
 export default function AdminPortal() {
   const [lang] = useStickyState('en', 'app-lang')
   const isHindi = lang === 'hi'
   const navigate = useNavigate()
 
-  const [officer, setOfficer] = useState(() => getOfficerSession())
+  const [officer] = useState(() => getOfficerSession())
   const [applications, setApplications] = useState(() => getApplications())
-  const [selectedApp, setSelectedApp] = useState(null)
+  const [selectedApp, setSelectedApp] = useState(() => getApplications()[0] || null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [actionNotice, setActionNotice] = useState('')
@@ -53,12 +42,16 @@ export default function AdminPortal() {
   // Document preview modal state
   const [previewDoc, setPreviewDoc] = useState(null)
 
-  // Sync latest applications on mount
+  // Asynchronously synchronize with backend applications on mount
   useEffect(() => {
-    const apps = getApplications()
-    setApplications(apps)
-    if (apps.length > 0 && !selectedApp) {
-      setSelectedApp(apps[0])
+    let mounted = true
+    api.getAdminApplications().then((res) => {
+      if (mounted && Array.isArray(res) && res.length > 0) {
+        setApplications(res)
+      }
+    })
+    return () => {
+      mounted = false
     }
   }, [])
 
@@ -67,14 +60,15 @@ export default function AdminPortal() {
     navigate('/admin/login')
   }
 
-  const handleApprove = (appNo) => {
-    const updated = updateApplicationStatus(
+  const handleApprove = async (appNo) => {
+    const updated = await api.updateApplicationStatus(
       appNo, 
       "Approved & LL Issued (Form 3)", 
       "", 
       officer?.name || "RTO Scrutiny Officer"
     )
-    setApplications(getApplications())
+    const refreshed = await api.getAdminApplications()
+    setApplications(refreshed)
     if (selectedApp && selectedApp.appNo === appNo) {
       setSelectedApp(updated)
     }
@@ -92,15 +86,16 @@ export default function AdminPortal() {
     setShowCorrectionModal(true)
   }
 
-  const handleSubmitCorrection = () => {
+  const handleSubmitCorrection = async () => {
     if (!targetCorrectionApp) return
-    const updated = updateApplicationStatus(
+    const updated = await api.updateApplicationStatus(
       targetCorrectionApp.appNo,
       "Correction Required",
       correctionRemarks,
       officer?.name || "RTO Scrutiny Officer"
     )
-    setApplications(getApplications())
+    const refreshed = await api.getAdminApplications()
+    setApplications(refreshed)
     if (selectedApp && selectedApp.appNo === targetCorrectionApp.appNo) {
       setSelectedApp(updated)
     }
@@ -642,7 +637,7 @@ export default function AdminPortal() {
                       <ShieldCheck className="w-4 h-4" /> Cryptographically Valid Signature
                     </div>
                     <div className="font-mono">
-                      TIMESTAMP: {new Date().toLocaleDateString()}
+                      TIMESTAMP: {OFFICER_AUDIT_TIMESTAMP}
                     </div>
                   </div>
                 </div>

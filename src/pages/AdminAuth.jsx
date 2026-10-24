@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { 
   ShieldCheck, 
   Lock, 
-  Mail, 
   Building2, 
   UserCheck, 
   AlertCircle, 
@@ -18,8 +17,13 @@ import {
   EyeOff
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { loginOfficer, registerOfficer, DEFAULT_OFFICERS } from '@/lib/adminAuth'
+import { registerOfficer, DEFAULT_OFFICERS } from '@/lib/adminAuth'
+import { api } from '@/lib/api'
 import { useStickyState } from '@/hooks/useStickyState'
+
+function createBadgeId(code) {
+  return `MVI-${code || 'DL01'}-2026`
+}
 
 export default function AdminAuth() {
   const [lang] = useStickyState('en', 'app-lang')
@@ -46,31 +50,30 @@ export default function AdminAuth() {
   const [regRto, setRegRto] = useState('DL-01 (Mall Road / North Delhi)')
   const [regRtoCode, setRegRtoCode] = useState('DL-01')
   const [regPassword, setRegPassword] = useState('')
-  const [regBadge, setRegBadge] = useState('')
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e?.preventDefault()
     setErrorMsg('')
     setSuccessMsg('')
 
-    const res = loginOfficer(loginId, loginPassword)
+    const res = await api.loginOfficer(loginId, loginPassword)
     if (res.success) {
-      setSuccessMsg(`Welcome, ${res.officer.designation} ${res.officer.name}. Entering RTO Scrutiny Desk...`)
+      setSuccessMsg(`Welcome, ${res.officer.designation || 'Officer'} ${res.officer.name}. Entering RTO Scrutiny Desk...`)
       setTimeout(() => {
         navigate(redirectTarget)
       }, 700)
     } else {
-      setErrorMsg(res.message)
+      setErrorMsg(res.message || 'Invalid credentials')
     }
   }
 
-  const handleQuickDemo = (officer) => {
+  const handleQuickDemo = async (officer) => {
     setLoginId(officer.officerId)
     setLoginPassword(officer.password)
     setLoginRto(officer.rtoCode)
     setErrorMsg('')
 
-    const res = loginOfficer(officer.officerId, officer.password)
+    const res = await api.loginOfficer(officer.officerId, officer.password)
     if (res.success) {
       setSuccessMsg(`Demo Officer Authenticated: ${officer.name} (${officer.rto})`)
       setTimeout(() => {
@@ -89,6 +92,8 @@ export default function AdminAuth() {
       return
     }
 
+    const assignedBadge = createBadgeId(regRtoCode)
+
     const res = registerOfficer({
       name: regName,
       officerId: regId,
@@ -96,7 +101,7 @@ export default function AdminAuth() {
       designation: regDesignation,
       rto: regRto,
       rtoCode: regRtoCode,
-      badgeNumber: regBadge || `MVI-${Math.floor(1000 + Math.random() * 9000)}`,
+      badgeNumber: assignedBadge,
       password: regPassword
     })
 

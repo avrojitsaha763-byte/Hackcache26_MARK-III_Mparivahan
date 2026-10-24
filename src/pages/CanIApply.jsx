@@ -1,7 +1,6 @@
-'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, Car, Bike, Sparkles, FileText } from 'lucide-react'
+import { ChevronLeft, ArrowRight, ShieldCheck, FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'

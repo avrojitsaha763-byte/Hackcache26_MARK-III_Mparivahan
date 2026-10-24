@@ -7,9 +7,6 @@ import {
   CheckCircle, 
   Clock, 
   AlertTriangle, 
-  Award, 
-  Car, 
-  FileCheck, 
   Download, 
   Sparkles,
   ShieldCheck
@@ -17,7 +14,7 @@ import {
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
-import { getApplication } from '@/lib/applicationsStore'
+import { api } from '@/lib/api'
 import config from '@/data/config.json'
 
 export default function Track() {
@@ -30,18 +27,18 @@ export default function Track() {
 
   const isHindi = lang === 'hi'
 
-  const handleTrackNumber = (numberToSearch) => {
+  const handleTrackNumber = async (numberToSearch) => {
     const cleanNo = (numberToSearch || appNo).trim().toUpperCase()
     if (!cleanNo) return
 
     setLoading(true)
     setErrorMsg('')
 
-    // Look up in centralized applications store first
-    const app = getApplication(cleanNo)
-    if (app) {
-      setCurrentApp(app)
-      setTimeline(app.timeline)
+    // Try unified API client first
+    const apiResult = await api.trackApplication(cleanNo)
+    if (apiResult && apiResult.success && apiResult.data) {
+      setCurrentApp(apiResult.data)
+      setTimeline(apiResult.timeline)
       setLoading(false)
       return
     }

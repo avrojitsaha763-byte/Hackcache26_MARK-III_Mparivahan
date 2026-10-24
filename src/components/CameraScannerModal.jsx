@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { 
   Camera, 
   RotateCcw, 
@@ -8,11 +8,7 @@ import {
   X, 
   Sparkles, 
   AlertTriangle, 
-  ShieldCheck, 
-  Maximize2,
-  RefreshCw,
-  Zap,
-  Image as ImageIcon
+  RefreshCw
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RTO_DOC_STANDARDS, resizeAndCompressImage } from '@/lib/rtoDocStandards'
@@ -81,13 +77,21 @@ export default function CameraScannerModal({ isOpen, onClose, docType = 'age_pro
   }
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return
+
+    const timer = setTimeout(() => {
       startCamera(facingMode)
-    } else {
-      stopCamera()
+    }, 0)
+
+    return () => {
+      clearTimeout(timer)
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+        streamRef.current = null
+      }
+      setCameraActive(false)
     }
-    return () => stopCamera()
-  }, [isOpen])
+  }, [isOpen, facingMode])
 
   // Capture frame from video feed
   const captureFrame = async () => {

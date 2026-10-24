@@ -4,12 +4,8 @@ import {
   Upload, 
   Camera, 
   CheckCircle2, 
-  AlertTriangle, 
-  FileText, 
   Eye, 
   Trash2, 
-  Sparkles, 
-  ShieldCheck, 
   Info,
   Maximize2,
   X
@@ -38,6 +34,9 @@ export default function ManualDocumentUploader({ documents, onChange, isHindi = 
 
     try {
       const validation = validateRtoFile(file, docType)
+      if (!validation.valid && validation.error) {
+        setNoticeMsg(validation.error)
+      }
 
       // Read file and auto-resize / compress using Canvas to ensure it fits RTO dimensions and file size
       const processed = await resizeAndCompressImage(file, docType)

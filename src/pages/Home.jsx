@@ -7,12 +7,8 @@ import {
   Award, 
   ShieldCheck, 
   Clock, 
-  Sparkles, 
   ArrowRight, 
-  FileCheck, 
-  Building2,
   Lock,
-  Compass,
   AlertCircle
 } from 'lucide-react'
 import { Link } from 'react-router-dom'

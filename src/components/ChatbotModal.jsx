@@ -1,8 +1,8 @@
-'use client'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Send, Bot, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { api } from '@/lib/api'
 import { useStickyState } from '@/hooks/useStickyState'
 
 export default function ChatbotModal() {
@@ -48,7 +48,7 @@ export default function ChatbotModal() {
 
   const [inputText, setInputText] = useState('')
 
-  const handleSend = (textToSend) => {
+  const handleSend = async (textToSend) => {
     const query = textToSend || inputText
     if (!query.trim()) return
 
@@ -56,25 +56,30 @@ export default function ChatbotModal() {
     setMessages(newMsgs)
     setInputText('')
 
-    // Match keywords or fallback
-    setTimeout(() => {
-      let reply = isHindi 
-        ? 'सटीक आरटीओ नियमों के लिए सारथी पोर्टल (parivahan.gov.in) देखें अथवा त्वरित प्रश्नों में से चुनें।' 
-        : 'For official state notifications, check parivahan.gov.in or click one of the quick topics below.'
+    // 1. Try FastAPI backend Saathi AI endpoint first
+    const backendReply = await api.sendChatMessage(query, lang)
+    if (backendReply) {
+      setMessages(prev => [...prev, { sender: 'bot', text: backendReply }])
+      return
+    }
 
-      const lower = query.toLowerCase()
-      if (lower.includes('7') || lower.includes('day') || lower.includes('दिन') || lower.includes('cancel')) {
-        reply = quickPrompts[0].a
-      } else if (lower.includes('30') || lower.includes('wait') || lower.includes('permanent') || lower.includes('स्थायी')) {
-        reply = quickPrompts[1].a
-      } else if (lower.includes('fee') || lower.includes('cost') || lower.includes('फीस') || lower.includes('रुपये') || lower.includes('rupee')) {
-        reply = quickPrompts[2].a
-      } else if (lower.includes('adtt') || lower.includes('track') || lower.includes('parking') || lower.includes('test') || lower.includes('कार') || lower.includes('ढलान')) {
-        reply = quickPrompts[3].a
-      }
+    // 2. Keyword matching fallback
+    let reply = isHindi 
+      ? 'सटीक आरटीओ नियमों के लिए सारथी पोर्टल (parivahan.gov.in) देखें अथवा त्वरित प्रश्नों में से चुनें।' 
+      : 'For official state notifications, check parivahan.gov.in or click one of the quick topics below.'
 
-      setMessages(prev => [...prev, { sender: 'bot', text: reply }])
-    }, 400)
+    const lower = query.toLowerCase()
+    if (lower.includes('7') || lower.includes('day') || lower.includes('दिन') || lower.includes('cancel')) {
+      reply = quickPrompts[0].a
+    } else if (lower.includes('30') || lower.includes('wait') || lower.includes('permanent') || lower.includes('स्थायी')) {
+      reply = quickPrompts[1].a
+    } else if (lower.includes('fee') || lower.includes('cost') || lower.includes('फीस') || lower.includes('रुपये') || lower.includes('rupee')) {
+      reply = quickPrompts[2].a
+    } else if (lower.includes('adtt') || lower.includes('track') || lower.includes('parking') || lower.includes('test') || lower.includes('कार') || lower.includes('ढलान')) {
+      reply = quickPrompts[3].a
+    }
+
+    setMessages(prev => [...prev, { sender: 'bot', text: reply }])
   }
 
   return (

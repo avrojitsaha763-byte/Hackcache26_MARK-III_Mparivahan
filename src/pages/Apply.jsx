@@ -6,19 +6,18 @@ import {
   ArrowRight, 
   ShieldCheck, 
   AlertCircle, 
-  CheckCircle2, 
   FileText, 
   CreditCard, 
   Upload, 
-  Camera, 
   Sparkles,
-  Lock
+  CheckCircle2,
+  KeyRound,
+  Loader2
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
-import { supabase } from '@/lib/supabase'
-import { addApplication } from '@/lib/applicationsStore'
+import { api } from '@/lib/api'
 import ManualDocumentUploader from '@/components/ManualDocumentUploader'
 import { RTO_DOC_STANDARDS } from '@/lib/rtoDocStandards'
 
@@ -34,6 +33,11 @@ export default function Apply() {
   const [manualDocs, setManualDocs] = useState({})
   const [generatedAppNo, setGeneratedAppNo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [digilockerStep, setDigilockerStep] = useState('idle') // 'idle' | 'otp' | 'verified'
+  const [digilockerOtp, setDigilockerOtp] = useState('')
+  const [digilockerLoading, setDigilockerLoading] = useState(false)
+  const [digilockerData, setDigilockerData] = useState(null)
+  const [digilockerError, setDigilockerError] = useState('')
 
   const isHindi = lang === 'hi'
 
@@ -145,6 +149,44 @@ export default function Apply() {
     setManualDocs(sampleDocs)
   }
 
+  const handleRequestOtp = async () => {
+    if (!phone || phone.length < 10) {
+      setDigilockerError(isHindi ? 'कृपया मान्य 10 अंकों का फोन नंबर दर्ज करें।' : 'Please enter a valid 10-digit phone number.')
+      return
+    }
+    setDigilockerLoading(true)
+    setDigilockerError('')
+    const res = await api.requestDigilockerOtp(phone)
+    setDigilockerLoading(false)
+    if (res && res.success) {
+      setDigilockerStep('otp')
+    } else {
+      setDigilockerError(res?.error || 'Failed to send OTP')
+    }
+  }
+
+  const handleVerifyOtp = async () => {
+    setDigilockerLoading(true)
+    setDigilockerError('')
+    const verifyRes = await api.verifyDigilockerOtp(digilockerOtp)
+    if (!verifyRes || !verifyRes.token) {
+      setDigilockerLoading(false)
+      setDigilockerError(verifyRes?.error || 'Invalid OTP. Enter 123456 for demo.')
+      return
+    }
+    const docRes = await api.fetchDigilockerDocuments(vehicle, verifyRes.token)
+    setDigilockerLoading(false)
+    if (docRes && docRes.success) {
+      setDigilockerData(docRes)
+      setDigilockerStep('verified')
+      if (!name && docRes.data?.applicant_name) {
+        setName(docRes.data.applicant_name)
+      }
+    } else {
+      setDigilockerError(docRes?.error || 'Failed to fetch documents.')
+    }
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     const newAppNo = `${stateRto.split('-')[0]}-2026-${Math.floor(10000 + Math.random() * 90000)}`
@@ -166,42 +208,20 @@ export default function Apply() {
         }))
       : undefined
 
-    // Add application to centralized store so RTO Admin immediately sees it!
-    addApplication({
+    // Submit via unified API client (persists to FastAPI, Supabase & local store)
+    await api.submitApplication({
       appNo: newAppNo,
       name: name || "Citizen Applicant",
       phone: phone || "+91 98765 00000",
       rto: getRtoLabel(stateRto),
       rtoCode: stateRto,
       category: getVehicleLabel(vehicle),
+      vehicle_classes: [vehicle],
       feePaid: `₹${feeData.total} (CMVR Rule 32)`,
       dob: "2004-06-15",
       uploadMode: uploadMode,
       documents: formattedDocs
     })
-
-    // Fallback to Supabase if configured
-    try {
-      if (supabase && supabase.from) {
-        const { data: citizen, error: citizenError } = await supabase
-          .from('citizens')
-          .insert([{ phone_number: phone, full_name: name }])
-          .select()
-          .single()
-
-        if (!citizenError && citizen) {
-          await supabase
-            .from('applications')
-            .insert([{ 
-              citizen_id: citizen.id, 
-              vehicle_class: vehicle,
-              application_no: newAppNo
-            }])
-        }
-      }
-    } catch (err) {
-      console.warn('Supabase submission fallback:', err)
-    }
 
     setStep(3) // Success confirmation
     setIsSubmitting(false)
@@ -370,22 +390,129 @@ export default function Apply() {
                   </div>
                 </div>
 
-                {/* If DigiLocker Mode: Show DPDP Consent Checkbox */}
+                {/* If DigiLocker Mode: Show DPDP Consent & Interactive DigiLocker Verification */}
                 {uploadMode === 'digilocker' ? (
-                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={aadhaarConsent}
-                        onChange={(e) => setAadhaarConsent(e.target.checked)}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300"
-                      />
-                      <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {isHindi 
-                          ? 'मैं डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 के तहत आधार ई-केवाईसी एवं डिजीलॉकर सत्यापन हेतु सहमति देता/देती हूँ। कोई कच्चा आधार नंबर संग्रहीत नहीं होता है।'
-                          : 'I consent to Aadhaar e-KYC and DigiLocker verification under the DPDP Act 2023 and Aadhaar Act 2016. No raw UID is stored.'}
-                      </span>
-                    </label>
+                  <div className="space-y-3.5">
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={aadhaarConsent}
+                          onChange={(e) => setAadhaarConsent(e.target.checked)}
+                          className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300"
+                        />
+                        <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {isHindi 
+                            ? 'मैं डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 के तहत आधार ई-केवाईसी एवं डिजीलॉकर सत्यापन हेतु सहमति देता/देती हूँ। कोई कच्चा आधार नंबर संग्रहीत नहीं होता है।'
+                            : 'I consent to Aadhaar e-KYC and DigiLocker verification under the DPDP Act 2023 and Aadhaar Act 2016. No raw UID is stored.'}
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Interactive DigiLocker Auth & Document Retrieval Card */}
+                    <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/60">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                            {isHindi ? 'लाइव डिजीलॉकर / API Setu सत्यापन' : 'Live DigiLocker & API Setu Verification'}
+                          </span>
+                        </div>
+                        {digilockerStep === 'verified' && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
+                            <CheckCircle2 className="w-3 h-3" /> {isHindi ? 'सत्यापित' : 'KYC VERIFIED'}
+                          </span>
+                        )}
+                      </div>
+
+                      {digilockerStep === 'idle' && (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {isHindi 
+                              ? 'अपने पंजीकृत मोबाइल पर ओटीपी प्राप्त कर API Setu से 10वीं की अंकतालिका एवं पहचान पत्र स्वतः प्राप्त करें।' 
+                              : 'Authenticate via mobile OTP to automatically pull verified Class X Marksheet and Identity records.'}
+                          </p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={digilockerLoading || !phone}
+                            onClick={handleRequestOtp}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3.5 shrink-0"
+                          >
+                            {digilockerLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                            ) : (
+                              <KeyRound className="w-3.5 h-3.5 mr-1" />
+                            )}
+                            {isHindi ? 'ओटीपी प्राप्त करें' : 'Verify with OTP'}
+                          </Button>
+                        </div>
+                      )}
+
+                      {digilockerStep === 'otp' && (
+                        <div className="space-y-2.5">
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                            {isHindi ? 'दर्ज करें 6-अंकों का ओटीपी (डेमो कोड: 123456):' : 'Enter 6-digit verification OTP (Demo code: 123456):'}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="text"
+                              value={digilockerOtp}
+                              maxLength={6}
+                              onChange={(e) => setDigilockerOtp(e.target.value)}
+                              placeholder="123456"
+                              className="w-32 px-3 py-1.5 text-xs font-mono tracking-widest text-center border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={digilockerLoading || !digilockerOtp}
+                              onClick={handleVerifyOtp}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3"
+                            >
+                              {digilockerLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                              {isHindi ? 'सत्यापित करें' : 'Verify & Fetch Docs'}
+                            </Button>
+                            <button
+                              type="button"
+                              onClick={() => setDigilockerOtp('123456')}
+                              className="text-[10px] text-emerald-700 dark:text-emerald-400 underline font-semibold"
+                            >
+                              {isHindi ? 'ऑटो-भरें 123456' : 'Quick fill 123456'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {digilockerStep === 'verified' && digilockerData && (
+                        <div className="space-y-2 pt-1 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-xl border border-emerald-200/50 dark:border-emerald-900/40">
+                            <div>
+                              <span className="text-slate-500">{isHindi ? 'आवेदक का नाम:' : 'Name:'}</span>{' '}
+                              <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.applicant_name}</strong>
+                            </div>
+                            <div>
+                              <span className="text-slate-500">{isHindi ? 'जन्म तिथि:' : 'DOB:'}</span>{' '}
+                              <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.dob}</strong>
+                            </div>
+                            <div>
+                              <span className="text-slate-500">{isHindi ? 'दस्तावेज:' : 'Documents:'}</span>{' '}
+                              <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.documents_found?.join(', ')}</strong>
+                            </div>
+                            <div>
+                              <span className="text-slate-500">{isHindi ? 'आरटीओ टिप्पणी:' : 'RTO Remarks:'}</span>{' '}
+                              <strong className="text-emerald-700 dark:text-emerald-400">{digilockerData.verification?.remarks}</strong>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {digilockerError && (
+                        <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-2">
+                          ⚠ {digilockerError}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   /* If Non-DigiLocker Mode: Show Manual Document Uploader (File Attach & Camera Scanner) */

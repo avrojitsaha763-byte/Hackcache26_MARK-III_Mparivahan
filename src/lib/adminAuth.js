@@ -74,7 +74,7 @@ export function getOfficerSession() {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     return JSON.parse(raw)
-  } catch (e) {
+  } catch {
     return null
   }
 }

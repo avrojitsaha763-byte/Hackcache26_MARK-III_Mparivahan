@@ -1,16 +1,11 @@
-import { useEffect, useState } from 'react'
-import { Navigate, useLocation, Link } from 'react-router-dom'
-import { isOfficerAuthenticated, getOfficerSession } from '@/lib/adminAuth'
+import { useLocation, Link } from 'react-router-dom'
+import { isOfficerAuthenticated } from '@/lib/adminAuth'
 import { ShieldAlert, Lock, ArrowRight, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function AdminGuard({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => isOfficerAuthenticated())
   const location = useLocation()
-
-  useEffect(() => {
-    setIsAuthenticated(isOfficerAuthenticated())
-  }, [location])
+  const isAuthenticated = isOfficerAuthenticated()
 
   if (!isAuthenticated) {
     return (

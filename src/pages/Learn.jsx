@@ -1,7 +1,6 @@
-'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Volume2, BookOpen, Award, Sparkles, Filter, Search } from 'lucide-react'
+import { ChevronLeft, Volume2, BookOpen, Award, Search } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { trafficSigns } from '@/data/signs'
 import { useStickyState } from '@/hooks/useStickyState'

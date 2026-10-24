@@ -9,14 +9,12 @@ import {
   Bike, 
   CheckCircle2, 
   Clock, 
-  Ticket, 
-  Download,
-  AlertCircle,
-  FileText
+  Ticket
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
+import { api } from '@/lib/api'
 
 export default function PermanentDL() {
   const [lang] = useStickyState('en', 'app-lang')
@@ -24,6 +22,7 @@ export default function PermanentDL() {
   const [rtoGround, setRtoGround] = useState('IDTR-DELHI')
   const [slotTime, setSlotTime] = useState('09:30 AM - 11:00 AM')
   const [appointmentBooked, setAppointmentBooked] = useState(false)
+  const [bookedSlotId, setBookedSlotId] = useState('SLOT-2026-9812')
   const isHindi = lang === 'hi'
 
   // Calculate earliest eligible DL test date (Today + 30 days per CMVR Rule 15)
@@ -198,7 +197,19 @@ export default function PermanentDL() {
                 </div>
 
                 <Button
-                  onClick={() => setAppointmentBooked(true)}
+                  onClick={async () => {
+                    const res = await api.bookSlot({
+                      app_no: "DL-2026-98124",
+                      track_type: selectedTrack,
+                      ground: rtoGround,
+                      test_date: testDate,
+                      slot_time: slotTime
+                    })
+                    if (res && res.slot_id) {
+                      setBookedSlotId(res.slot_id)
+                    }
+                    setAppointmentBooked(true)
+                  }}
                   className="w-full h-12 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold mt-2 shadow-lg shadow-blue-600/20"
                 >
                   {isHindi ? 'स्लॉट बुक करें एवं पर्ची देखें' : 'Confirm Slot & Generate Appointment Slip'}
@@ -212,7 +223,7 @@ export default function PermanentDL() {
                       <Ticket className="w-4 h-4" /> {isHindi ? 'स्लॉट बुकिंग पुष्टि (Form 4)' : 'Confirmed Slot (Form 4 Slip)'}
                     </span>
                     <span className="font-mono text-xs bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-full text-emerald-800 dark:text-emerald-300 font-bold">
-                      SLOT-2026-9812
+                      {bookedSlotId}
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-700/60 text-slate-600 dark:text-slate-300">
