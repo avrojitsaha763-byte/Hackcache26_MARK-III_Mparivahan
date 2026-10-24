@@ -1,15 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button' // shadcn button
+import { ChevronLeft, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, Car, Bike, Sparkles, FileText } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
 
 export default function CanIApply() {
   const [lang] = useStickyState('en', 'app-lang')
   const [age, setAge] = useStickyState('', 'user-age')
-  const [vehicle, setVehicle] = useStickyState('', 'user-vehicle')
+  const [vehicle, setVehicle] = useStickyState('combo-bike-car', 'user-vehicle')
   const [step, setStep] = useState(1)
 
   const isHindi = lang === 'hi'
@@ -67,222 +67,216 @@ export default function CanIApply() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 pt-12 pb-24 bg-white dark:bg-slate-900 transition-colors">
-      <Link href="/" className="mb-6 inline-flex items-center text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+    <div className="w-full max-w-4xl mx-auto py-4 sm:py-6">
+      <Link to="/" className="inline-flex items-center text-xs sm:text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 mb-6 font-medium">
         <ChevronLeft className="w-4 h-4 mr-1" /> {isHindi ? 'मुख्य पृष्ठ पर वापस' : 'Back to Home'}
       </Link>
 
-      <motion.div 
-        key={step}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex-1"
-      >
-        {step === 1 && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isHindi ? 'आपकी आयु कितनी है?' : 'How old are you?'}
-            </h1>
-            <input 
-              type="number" 
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="w-full p-4 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-lg focus:border-blue-600 outline-none transition-colors"
-              placeholder={isHindi ? 'अपनी आयु दर्ज करें (उदा. 18)' : 'Enter your age (e.g. 18)'}
-            />
-            <Button 
-              onClick={() => setStep(2)}
-              disabled={!age || Number(age) < 14}
-              className="w-full h-12 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isHindi ? 'आगे बढ़ें' : 'Next'} <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
-        )}
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
+          <FileText className="w-3.5 h-3.5" />
+          <span>{isHindi ? 'पात्रता एवं आयु कैलकुलेटर' : 'CMVR Statutory Eligibility Calculator'}</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+          {isHindi ? 'क्या आप ड्राइविंग लाइसेंस के लिए पात्र हैं?' : 'Can I Apply for a Driving Licence?'}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          {isHindi 
+            ? 'मोटर वाहन अधिनियम 1988 (धारा 4) के अनुसार अपनी न्यूनतम आयु एवं वाहन श्रेणी जांचें।' 
+            : 'Check your eligibility criteria and statutory age limits under Section 4 of the Motor Vehicles Act 1988.'}
+        </p>
+      </div>
 
-        {step === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isHindi ? 'वाहन श्रेणी चुनें (Class of Vehicle)' : 'Select Vehicle Class (All Bikes & Cars)'}
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isHindi ? 'केंद्रीय मोटर वाहन नियम (CMVR 1989) के अनुसार श्रेणी चुनें:' : 'Choose your category as per Central Motor Vehicles Rules:'}
-              </p>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Interactive Form (7 Cols on Desktop) */}
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <motion.div key={step} initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }}>
+            {step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {isHindi ? 'आपकी आयु कितनी है?' : 'Step 1: What is your current age?'}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isHindi ? 'जन्म तिथि के अनुसार पूर्ण आयु वर्ष दर्ज करें:' : 'Enter completed years as per your Aadhaar or 10th marksheet:'}
+                  </p>
+                </div>
 
-            <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-              {/* Option 1: Combo Bike + Car (Most Popular) */}
-              <button 
-                onClick={() => setVehicle('combo-bike-car')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'combo-bike-car' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                    🚗 + 🏍️ {isHindi ? 'बाइक + कार कॉम्बो (MCWG + LMV)' : 'Bike + Car Combo (MCWG + LMV)'}
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-full">
-                    {isHindi ? 'सर्वाधिक लोकप्रिय' : 'Most Popular'}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'गियर वाली मोटरसाइकिल एवं निजी कार दोनों (न्यूनतम 18 वर्ष)' : 'Both geared motorbike & private passenger car (Min 18 yrs)'}
-                </div>
-              </button>
+                <div className="space-y-3">
+                  <input 
+                    type="number" 
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="w-full p-4 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl text-xl font-mono focus:border-blue-600 outline-none transition-colors"
+                    placeholder={isHindi ? 'अपनी आयु दर्ज करें (उदा. 18)' : 'e.g. 18 or 21'}
+                  />
 
-              {/* Option 2: Private Car (LMV) */}
-              <button 
-                onClick={() => setVehicle('lmv-car')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'lmv-car' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                  🚗 {isHindi ? 'चार पहिया निजी कार (LMV-NT)' : 'Light Motor Vehicle / Car (LMV)'}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'निजी कार, हैचबैक, सेडान, एसयूवी (न्यूनतम 18 वर्ष)' : 'Private cars, hatchbacks, sedans, SUVs (Min 18 yrs)'}
-                </div>
-              </button>
-
-              {/* Option 3: Geared Motorcycle (MCWG) */}
-              <button 
-                onClick={() => setVehicle('motorcycle-gear')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'motorcycle-gear' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                  🏍️ {isHindi ? 'गियर वाली मोटरसाइकिल (MCWG)' : 'Motorcycle with Gear (MCWG)'}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'सभी प्रकार की गियर वाली बाइक (न्यूनतम 18 वर्ष)' : 'Standard geared motorbikes & manual bikes (Min 18 yrs)'}
-                </div>
-              </button>
-
-              {/* Option 4: Gearless Scooter > 50cc (MCWOG) */}
-              <button 
-                onClick={() => setVehicle('gearless-scooter')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'gearless-scooter' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                  🛵 {isHindi ? 'गियरलेस स्कूटर (MCWOG >50cc)' : 'Gearless Scooter (MCWOG >50cc)'}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'एक्टिवा, जुपिटर, ओला/एथर ईवी स्कूटर (न्यूनतम 18 वर्ष)' : 'Activa, Jupiter, EV scooters without gears (Min 18 yrs)'}
-                </div>
-              </button>
-
-              {/* Option 5: 50cc Moped / Light EV (16+) */}
-              <button 
-                onClick={() => setVehicle('gearless-50cc')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'gearless-50cc' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                  ⚡ {isHindi ? '50cc तक गियरलेस मोपेड (16+ वर्ष)' : 'Gearless up to 50cc / Moped (16+ yrs)'}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'हल्के मोपेड एवं धीमी गति के इलेक्ट्रिक स्कूटर (अभिभावक सहमति)' : 'Mopeds & light EVs with parental consent (Min 16 yrs)'}
-                </div>
-              </button>
-
-              {/* Option 6: Commercial Transport */}
-              <button 
-                onClick={() => setVehicle('commercial-transport')}
-                className={`w-full p-3.5 text-left border-2 rounded-xl transition-all ${
-                  vehicle === 'commercial-transport' 
-                    ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500' 
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-                }`}
-              >
-                <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                  🚕 {isHindi ? 'वाणिज्यिक / ट्रांसपोर्ट वाहन (TRANS)' : 'Commercial & Transport (TRANS)'}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isHindi ? 'टैक्सी, कमर्शियल कैब, डिलीवरी वैन (न्यूनतम 20 वर्ष)' : 'Taxis, commercial vans, transport cabs (Min 20 yrs)'}
-                </div>
-              </button>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} className="h-12 w-16 rounded-xl">
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button 
-                onClick={() => setStep(3)}
-                disabled={!vehicle}
-                className="w-full h-12 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex-1"
-              >
-                {isHindi ? 'पात्रता जांचें' : 'Check Eligibility'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6 mt-10">
-            {checkEligibility() ? (
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto text-4xl mb-4 font-bold">✓</div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {isHindi ? 'हाँ, आप आवेदन कर सकते हैं!' : 'Yes, you can apply!'}
-                </h1>
-                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed px-2">
-                  {getEligibilityNote()}
-                </p>
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-left space-y-1">
-                  <div className="font-semibold text-slate-800 dark:text-white">
-                    {isHindi ? 'आवश्यक दस्तावेज (आधार ई-केवाईसी):' : 'Required Documents (Aadhaar e-KYC):'}
-                  </div>
-                  <div className="text-slate-500 dark:text-slate-400">
-                    • {isHindi ? 'आधार कार्ड (ओटीपी आधारित सत्यापन)' : 'Aadhaar Card (Paperless OTP verification)'}
-                  </div>
-                  <div className="text-slate-500 dark:text-slate-400">
-                    • {isHindi ? 'आयु प्रमाण पत्र (10वीं की मार्कशीट या जन्म प्रमाण पत्र)' : 'Age Proof (10th Board Certificate or Birth Certificate)'}
-                  </div>
-                  <div className="text-slate-500 dark:text-slate-400">
-                    • {isHindi ? 'चिकित्सा प्रमाण पत्र (फॉर्म 1 स्व-घोषणा)' : 'Medical Fitness (Form 1 Self-Declaration)'}
+                  {/* Quick Age Chips */}
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="text-slate-400 py-1">Quick Select:</span>
+                    {[16, 18, 20, 22, 25].map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => setAge(String(a))}
+                        className={`px-3 py-1 rounded-xl border transition-all ${
+                          Number(age) === a 
+                            ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-bold'
+                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {a} yrs
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <Link href="/apply">
-                  <Button className="w-full h-12 text-lg rounded-xl bg-green-600 hover:bg-green-700 text-white mt-4">
-                    {isHindi ? 'आवेदन फॉर्म भरें' : 'Proceed to Apply Form'}
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto text-4xl mb-4 font-bold">✗</div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {isHindi ? 'अभी आप पात्र नहीं हैं' : 'Not yet eligible'}
-                </h1>
-                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed px-2">
-                  {getIneligibilityReason()}
-                </p>
-                <Button variant="outline" onClick={() => setStep(1)} className="w-full h-12 text-lg rounded-xl mt-6">
-                  {isHindi ? 'पुनः प्रयास करें' : 'Start over'}
+
+                <Button 
+                  onClick={() => setStep(2)}
+                  disabled={!age || Number(age) < 14}
+                  className="w-full h-12 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 mt-4 shadow-lg shadow-blue-600/20"
+                >
+                  {isHindi ? 'आगे बढ़ें (वाहन श्रेणी चुनें)' : 'Next (Select Vehicle Class)'} 
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             )}
+
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {isHindi ? 'वाहन श्रेणी चुनें (Class of Vehicle)' : 'Step 2: Select Vehicle Class (COV)'}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isHindi ? 'केंद्रीय मोटर वाहन नियम (CMVR 1989) के अनुसार श्रेणी चुनें:' : 'Select which vehicle class you wish to drive:'}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                  {[
+                    { id: 'combo-bike-car', label: '🚗 + 🏍️ Bike + Car Combo (MCWG + LMV)', sub: 'Dual Licence: Geared Motorbike + Private Car (₹350 Fee)' },
+                    { id: 'lmv-car', label: '🚗 Four-Wheeler Car / SUV (LMV)', sub: 'Private motor cars, hatchbacks, sedans (₹200 Fee)' },
+                    { id: 'motorcycle-gear', label: '🏍️ Motorcycle with Gear (MCWG)', sub: 'Standard geared motorcycles and motorbikes (₹200 Fee)' },
+                    { id: 'gearless-scooter', label: '🛵 Gearless Scooter >50cc (MCWOG)', sub: 'Automatic scooters like Activa, Jupiter, Ola EV (₹200 Fee)' },
+                    { id: 'gearless-50cc', label: '⚡ Gearless up to 50cc (Min Age 16)', sub: 'Lightweight mopeds with parental consent (₹200 Fee)' },
+                    { id: 'commercial-transport', label: '🚕 Commercial Transport (TRANS)', sub: 'Taxis, commercial cabs, delivery vans (Min Age 20)' },
+                  ].map((item) => (
+                    <button 
+                      key={item.id}
+                      onClick={() => setVehicle(item.id)}
+                      className={`w-full p-3.5 text-left border rounded-2xl transition-all ${
+                        vehicle === item.id 
+                          ? 'border-blue-600 bg-blue-50/80 dark:bg-blue-950/40 dark:border-blue-500 shadow-sm ring-1 ring-blue-500' 
+                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                        {item.label}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {item.sub}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep(1)} className="h-12 w-16 rounded-xl">
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button 
+                    onClick={() => setStep(3)}
+                    disabled={!vehicle}
+                    className="w-full h-12 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex-1 shadow-lg shadow-blue-600/20"
+                  >
+                    {isHindi ? 'पात्रता परिणाम देखें' : 'Evaluate Statutory Eligibility'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-6">
+                {checkEligibility() ? (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center mx-auto text-3xl font-extrabold shadow-inner">
+                      ✓
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                      {isHindi ? 'हाँ, आप आवेदन करने के पात्र हैं!' : 'Yes, you are eligible to apply!'}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
+                      {getEligibilityNote()}
+                    </p>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs text-left space-y-1.5">
+                      <div className="font-bold text-slate-800 dark:text-white">
+                        {isHindi ? 'आवश्यक दस्तावेज (आधार ई-केवाईसी):' : 'Mandatory Faceless DigiLocker Documents:'}
+                      </div>
+                      <div className="text-slate-500 dark:text-slate-400">
+                        • {isHindi ? 'आधार कार्ड (ओटीपी आधारित सत्यापन)' : 'Aadhaar Card (Instant OTP demographic authentication)'}
+                      </div>
+                      <div className="text-slate-500 dark:text-slate-400">
+                        • {isHindi ? 'आयु प्रमाण (10वीं की मार्कशीट या जन्म प्रमाण पत्र)' : 'Age Proof (10th Board Certificate or Municipal Birth Record)'}
+                      </div>
+                      <div className="text-slate-500 dark:text-slate-400">
+                        • {isHindi ? 'चिकित्सा प्रमाण (फॉर्म 1 स्व-घोषणा)' : 'Physical Fitness (Form 1 Online Self-Declaration)'}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button variant="outline" onClick={() => setStep(1)} className="rounded-xl h-11 text-xs">
+                        Recalculate
+                      </Button>
+                      <Link to="/apply" className="flex-1">
+                        <Button className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/20">
+                          {isHindi ? 'आवेदन फॉर्म भरें' : 'Proceed to Apply Form (Form 2)'}
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-3xl flex items-center justify-center mx-auto text-3xl font-extrabold shadow-inner">
+                      ✗
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+                      {isHindi ? 'अभी आप पात्र नहीं हैं' : 'Not yet eligible under MV Act'}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
+                      {getIneligibilityReason()}
+                    </p>
+                    <Button variant="outline" onClick={() => setStep(1)} className="w-full h-11 rounded-xl text-xs sm:text-sm mt-4 font-semibold">
+                      {isHindi ? 'पुनः प्रयास करें' : 'Start Over with Different Details'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Right Column: Statutory Reference Matrix (5 Cols on Desktop) */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
+              <span>Motor Vehicles Act 1988 (Section 4)</span>
+            </h3>
+            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Age 16+:</strong> Mopeds / light electric scooters up to 50cc with parental consent (Form 2 Part II).
+              </div>
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Age 18+:</strong> Geared motorcycles (MCWG), gearless scooters (MCWOG), and private cars (LMV).
+              </div>
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Age 20+:</strong> Commercial passenger & goods transport vehicles (Taxis, buses, trucks).
+              </div>
+            </div>
           </div>
-        )}
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }

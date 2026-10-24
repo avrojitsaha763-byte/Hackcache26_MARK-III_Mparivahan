@@ -1,10 +1,26 @@
 import { motion } from 'framer-motion'
-import { ChevronRight, FileText, CheckCircle, Car, Award, ShieldCheck } from 'lucide-react'
+import { 
+  ChevronRight, 
+  FileText, 
+  CheckCircle, 
+  Car, 
+  Award, 
+  ShieldCheck, 
+  Clock, 
+  Sparkles, 
+  ArrowRight, 
+  FileCheck, 
+  Building2,
+  Lock,
+  Compass,
+  AlertCircle
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStickyState } from '@/hooks/useStickyState'
 
 export default function Home() {
   const [lang] = useStickyState('en', 'app-lang')
+  const isHindi = lang === 'hi'
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -15,110 +31,225 @@ export default function Home() {
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0 }
   }
 
-  const isHindi = lang === 'hi'
-
   return (
-    <div className="min-h-screen flex flex-col p-6 pt-12 pb-24 bg-white dark:bg-slate-900 transition-colors">
+    <div className="w-full flex flex-col space-y-8 sm:space-y-12">
+      {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-10 lg:p-12 shadow-2xl border border-blue-800/40"
       >
-        <div className="inline-block px-3 py-1 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300 text-xs font-semibold mb-3">
-          🇮🇳 {isHindi ? 'सारथी परिवहन सहायक' : 'Sarathi Parivahan Assistant'}
+        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-3xl relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-blue-200 text-xs font-semibold mb-4">
+            <span>🇮🇳</span>
+            <span>{isHindi ? 'सारथी परिवहन डिजिटल सहायक' : 'Sarathi Parivahan Citizen Digital Assistant'}</span>
+            <span>•</span>
+            <span className="text-amber-300 font-bold">MARK-III</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
+            {isHindi ? (
+              <>अपनी ड्राइविंग <span className="text-blue-400">लाइसेंस यात्रा</span> बिना किसी बाधा के पूरी करें</>
+            ) : (
+              <>Where are you in your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200">licence journey?</span></>
+            )}
+          </h1>
+
+          <p className="text-blue-100/80 mt-3 text-sm sm:text-base leading-relaxed max-w-2xl">
+            {isHindi 
+              ? 'मोटर वाहन अधिनियम 1988 एवं CMVR नियमों के अनुसार पात्रता जांचें, फॉर्म 2 आवेदन जमा करें, मॉक टेस्ट दें और आवेदन स्थिति ट्रैक करें।' 
+              : 'End-to-end assistance compliant with CMVR 1989: Check eligibility, submit Form 2 with DigiLocker e-KYC, practice STALL test questions, and track approval status.'}
+          </p>
+
+          {/* Quick Stat Highlights */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 sm:mt-8 pt-6 border-t border-white/10 text-xs">
+            <div>
+              <div className="text-blue-300 font-bold text-sm">100% Faceless</div>
+              <div className="text-blue-200/70 text-[11px]">DigiLocker e-KYC</div>
+            </div>
+            <div>
+              <div className="text-amber-300 font-bold text-sm">Rule 11(3)</div>
+              <div className="text-blue-200/70 text-[11px]">7-Day Test Deadline</div>
+            </div>
+            <div>
+              <div className="text-emerald-300 font-bold text-sm">Rule 32 CMVR</div>
+              <div className="text-blue-200/70 text-[11px]">Zero Agent Overcharging</div>
+            </div>
+            <div>
+              <div className="text-cyan-300 font-bold text-sm">ADTT Guide</div>
+              <div className="text-blue-200/70 text-[11px]">Automated Track Skills</div>
+            </div>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white leading-tight">
-          {isHindi ? (
-            <>अपनी ड्राइविंग <span className="text-blue-600">लाइसेंस यात्रा</span> शुरू करें</>
-          ) : (
-            <>Where are you in your <span className="text-blue-600">licence journey?</span></>
-          )}
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-          {isHindi ? 'अपने वर्तमान चरण का चयन करें और आगे के चरण देखें।' : 'Select your current stage to see your next steps.'}
-        </p>
       </motion.div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="flex flex-col gap-4"
-      >
-        <JourneyCard 
-          to="/can-i-apply" 
-          icon={<FileText className="text-blue-600 dark:text-blue-400 w-5 h-5" />} 
-          title={isHindi ? 'शुरुआत कर रहे हैं' : 'Just starting'} 
-          subtitle={isHindi ? 'पात्रता जांचें एवं आवेदन करें' : "Check eligibility & apply for Learner's Licence"}
-          variants={itemVariants}
-        />
-        <JourneyCard 
-          to="/learn" 
-          icon={<CheckCircle className="text-green-600 dark:text-green-400 w-5 h-5" />} 
-          title={isHindi ? 'लर्नर्स लाइसेंस है मेरे पास' : "I have a learner's licence"} 
-          subtitle={isHindi ? 'ट्रैफिक संकेत सीखें एवं मॉक टेस्ट दें' : 'Practice traffic signs & take mock test'}
-          variants={itemVariants}
-        />
-        <JourneyCard 
-          to="/track" 
-          icon={<Car className="text-orange-600 dark:text-orange-400 w-5 h-5" />} 
-          title={isHindi ? 'आवेदन कर चुके हैं और प्रतीक्षा कर रहे हैं' : "I've applied and waiting"} 
-          subtitle={isHindi ? 'आवेदन स्थिति एवं टाइमलाइन ट्रैक करें' : 'Track application status & timeline'}
-          variants={itemVariants}
-        />
-        <JourneyCard 
-          to="/permanent-dl" 
-          icon={<Award className="text-purple-600 dark:text-purple-400 w-5 h-5" />} 
-          title={isHindi ? 'स्थायी लाइसेंस की तैयारी' : 'Ready for Permanent Licence?'} 
-          subtitle={isHindi ? '30 दिन का नियम एवं ड्राइविंग टेस्ट चेकलिस्ट' : '30-day rule & ADTT track test guide'}
-          variants={itemVariants}
-        />
-        <JourneyCard 
-          to="/admin" 
-          icon={<ShieldCheck className="text-emerald-600 dark:text-emerald-400 w-5 h-5" />} 
-          title={isHindi ? 'आरटीओ अधिकारी पोर्टल' : 'RTO Official Scrutiny Desk'} 
-          subtitle={isHindi ? 'दस्तावेज़ सत्यापन एवं लाइसेंस स्वीकृति' : 'Document verification, scrutiny & approvals'}
-          variants={itemVariants}
-        />
-      </motion.div>
+      {/* Citizen Journey Stages Header */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+              {isHindi ? 'नागरिक सेवा यात्रा चरण' : 'Citizen Licence Journey Steps'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              {isHindi ? 'अपने वर्तमान चरण का चयन करें और आगे के कदम जानें:' : 'Select your current stage to proceed with next steps:'}
+            </p>
+          </div>
+        </div>
 
-      {/* Official disclaimer required by Hackathon prompt */}
-      <div className="mt-auto pt-8 text-center px-4">
-        <p className="text-[10px] text-slate-400 dark:text-slate-500">
-          Prototype with sample data. Check rules and fees with your state's RTO.
-        </p>
+        {/* Responsive Grid for Journey Cards (4 Columns on Desktop, 2 on Tablet, 1 on Mobile) */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
+        >
+          <JourneyCard 
+            to="/can-i-apply" 
+            icon={<FileText className="text-blue-600 dark:text-blue-400 w-6 h-6" />} 
+            stepNum="01"
+            title={isHindi ? 'शुरुआत कर रहे हैं' : 'Just Starting'} 
+            subtitle={isHindi ? 'पात्रता जांचें एवं आवेदन करें' : "Check eligibility & apply for Learner's Licence (Form 2)"}
+            badge={isHindi ? 'पात्रता कैलकुलेटर' : 'Eligibility Check'}
+            variants={itemVariants}
+          />
+          <JourneyCard 
+            to="/learn" 
+            icon={<CheckCircle className="text-emerald-600 dark:text-emerald-400 w-6 h-6" />} 
+            stepNum="02"
+            title={isHindi ? 'लर्नर्स लाइसेंस की तैयारी' : "I have a Learner's"} 
+            subtitle={isHindi ? 'यातायात संकेत सीखें एवं मॉक टेस्ट दें' : 'Practice mandatory signs & take mock STALL test'}
+            badge={isHindi ? 'संकेत एवं टेस्ट' : 'Audio Flashcards'}
+            variants={itemVariants}
+          />
+          <JourneyCard 
+            to="/track" 
+            icon={<Clock className="text-orange-600 dark:text-orange-400 w-6 h-6" />} 
+            stepNum="03"
+            title={isHindi ? 'आवेदन स्थिति ट्रैक करें' : "I've Applied & Waiting"} 
+            subtitle={isHindi ? 'आवेदन स्थिति एवं समयरेखा ट्रैक करें' : 'Track application status & RTO scrutiny timeline'}
+            badge={isHindi ? 'लाइव टाइमलाइन' : 'Live Status'}
+            variants={itemVariants}
+          />
+          <JourneyCard 
+            to="/permanent-dl" 
+            icon={<Car className="text-purple-600 dark:text-purple-400 w-6 h-6" />} 
+            stepNum="04"
+            title={isHindi ? 'स्थायी लाइसेंस की तैयारी' : 'Ready for Permanent DL?'} 
+            subtitle={isHindi ? '30 दिन का नियम एवं ड्राइविंग टेस्ट चेकलिस्ट' : 'Rule 15 (30-day wait) & ADTT automated track guide'}
+            badge={isHindi ? 'टेस्ट स्लॉट बुकिंग' : 'ADTT Track Skills'}
+            variants={itemVariants}
+          />
+        </motion.div>
+      </div>
+
+      {/* Statutory Guidance Advisory Box */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 flex items-start gap-3.5">
+          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <strong className="text-amber-900 dark:text-amber-200 font-bold block mb-1">
+              {isHindi ? 'नियम 11(3) CMVR — 7 दिनों का ऑनलाइन टेस्ट नियम:' : 'Rule 11(3) CMVR — 7-Day Online STALL Test Rule:'}
+            </strong>
+            <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+              {isHindi
+                ? 'सारथी पोर्टल पर नया आवेदन जमा करने के बाद 7 दिनों के भीतर ऑनलाइन परीक्षा पूर्ण करना अनिवार्य है, अन्यथा आवेदन स्वतः निरस्त हो जाता है।'
+                : 'Applicants must appear for and complete the computerised learner licence test within 7 days of form submission, failing which the application lapses automatically.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-start gap-3.5">
+          <Award className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <strong className="text-blue-900 dark:text-blue-200 font-bold block mb-1">
+              {isHindi ? 'नियम 15 CMVR — स्थायी लाइसेंस हेतु 30-दिन की अवधि:' : 'Rule 15 CMVR — Mandatory 30-Day Waiting Period:'}
+            </strong>
+            <p className="text-blue-800/90 dark:text-blue-300/80 leading-relaxed">
+              {isHindi
+                ? 'फॉर्म 3 लर्नर्स लाइसेंस जारी होने की तिथि से न्यूनतम 30 दिन पूर्ण होने के उपरांत ही स्थायी ड्राइविंग लाइसेंस (फॉर्म 4) परीक्षा हेतु स्लॉट बुक किया जा सकता है।'
+                : 'Permanent driving test (Form 4) can only be taken after holding a valid Form 3 Learner Licence for at least 30 continuous days.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* DEDICATED OFFICIAL RTO AUTHORITY BANNER */}
+      {/* Clearly separated from normal citizen journey so applicants cannot self-verify */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white border border-slate-800 relative overflow-hidden shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/20 border border-purple-400/30 rounded-full text-purple-300 text-xs font-semibold mb-3">
+              <ShieldCheck className="w-4 h-4 text-purple-400" />
+              <span>{isHindi ? 'आरटीओ अधिकारी संवीक्षा अधिकार क्षेत्र' : 'Restricted Official RTO Scrutiny Desk'}</span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              {isHindi ? 'अधिकृत परिवहन अधिकारी संवीक्षा एवं अनुमोदन पटल' : 'Authorized Licensing Authority Scrutiny & Approval Desk'}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+              {isHindi 
+                ? 'यह पटल केवल अधिकृत मोटर वाहन निरीक्षकों (MVI) एवं आरटीओ अधिकारियों के लिए सुरक्षित है। नागरिक एवं आवेदक अपने आवेदन को स्वयं अनुमोदित नहीं कर सकते हैं।' 
+                : 'Designated Transport Department Officers can sign in to inspect citizen Form 2 uploads, verify DigiLocker documents, and grant official Form 3 LL approvals.'}
+            </p>
+          </div>
+
+          <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+            <Link to="/admin/login">
+              <button className="w-full sm:w-auto px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all group">
+                <Lock className="w-4 h-4 text-purple-200" />
+                <span>{isHindi ? 'अधिकारी लॉगिन / संवीक्षा प्रवेश' : 'RTO Officer Sign In'}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-function JourneyCard({ to, icon, title, subtitle, variants }) {
-  const defaultVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  }
-
+function JourneyCard({ to, icon, title, subtitle, badge, stepNum, variants }) {
   return (
-    <Link to={to} className="block group">
+    <Link to={to} className="block group h-full">
       <motion.div 
-        variants={variants || defaultVariants}
-        whileTap={{ scale: 0.97 }}
-        className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 p-4 rounded-2xl shadow-sm hover:border-blue-500 dark:hover:border-blue-400 transition-all flex items-center justify-between"
+        variants={variants}
+        whileTap={{ scale: 0.98 }}
+        className="h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
       >
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-600/50">
-            {icon}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/60 group-hover:scale-110 transition-transform">
+              {icon}
+            </div>
+            <span className="font-mono text-xs font-bold text-slate-400 dark:text-slate-500">
+              {stepNum}
+            </span>
           </div>
-          <div>
-            <h3 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{title}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+
+          <div className="inline-block px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-2">
+            {badge}
           </div>
+
+          <h3 className="font-bold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
+            {title}
+          </h3>
+
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+            {subtitle}
+          </p>
         </div>
-        <ChevronRight className="text-slate-300 dark:text-slate-500 w-5 h-5 group-hover:translate-x-1 group-hover:text-blue-600 transition-all" />
+
+        <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
+          <span>Explore Step</span>
+          <ChevronRight className="w-4 h-4" />
+        </div>
       </motion.div>
     </Link>
   )

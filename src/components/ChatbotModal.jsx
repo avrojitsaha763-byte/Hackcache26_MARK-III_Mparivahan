@@ -83,7 +83,7 @@ export default function ChatbotModal() {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Open Saathi AI Assistant"
-        className="fixed bottom-4 left-4 p-3.5 bg-blue-600 text-white rounded-full shadow-xl z-50 hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-1.5"
+        className="fixed bottom-16 sm:bottom-6 left-4 sm:left-6 p-3.5 bg-blue-600 text-white rounded-full shadow-2xl z-50 hover:bg-blue-700 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20"
       >
         <Bot className="w-5 h-5" />
         <span className="text-xs font-bold hidden sm:inline">Saathi AI</span>
@@ -92,12 +92,12 @@ export default function ChatbotModal() {
       {/* Chat Modal Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center sm:items-center p-3 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center sm:items-center p-3 sm:p-4 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
-              className="bg-white dark:bg-slate-900 w-full max-w-[360px] h-[520px] rounded-3xl flex flex-col relative border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
+              className="bg-white dark:bg-slate-900 w-full max-w-sm sm:max-w-md h-[520px] sm:h-[580px] rounded-3xl flex flex-col relative border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="p-3.5 bg-blue-600 text-white flex items-center justify-between">

@@ -1,11 +1,26 @@
 'use client'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
+import { 
+  ChevronLeft, 
+  ArrowRight, 
+  ShieldCheck, 
+  AlertCircle, 
+  CheckCircle2, 
+  FileText, 
+  CreditCard, 
+  Upload, 
+  Camera, 
+  Sparkles,
+  Lock
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
 import { supabase } from '@/lib/supabase'
+import { addApplication } from '@/lib/applicationsStore'
+import ManualDocumentUploader from '@/components/ManualDocumentUploader'
+import { RTO_DOC_STANDARDS } from '@/lib/rtoDocStandards'
 
 export default function Apply() {
   const [lang] = useStickyState('en', 'app-lang')
@@ -13,9 +28,11 @@ export default function Apply() {
   const [phone, setPhone] = useStickyState('', 'user-phone')
   const [name, setName] = useStickyState('', 'user-name')
   const [vehicle, setVehicle] = useStickyState('combo-bike-car', 'user-vehicle')
-  const [stateRto, setStateRto] = useStickyState('KA-01', 'user-rto')
+  const [stateRto, setStateRto] = useStickyState('DL-01', 'user-rto')
   const [aadhaarConsent, setAadhaarConsent] = useState(true)
-  const [generatedAppNo, setGeneratedAppNo] = useState(() => 'APP' + Math.floor(100000 + Math.random() * 900000))
+  const [uploadMode, setUploadMode] = useState('digilocker') // 'digilocker' | 'manual'
+  const [manualDocs, setManualDocs] = useState({})
+  const [generatedAppNo, setGeneratedAppNo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isHindi = lang === 'hi'
@@ -76,9 +93,10 @@ export default function Apply() {
 
   const getRtoLabel = (code) => {
     const map = {
-      'KA-01': 'Karnataka (Bengaluru Central - Sarathi)',
-      'MH-01': 'Maharashtra (Mumbai South - Tardeo)',
       'DL-01': 'Delhi (Mall Road - North Delhi)',
+      'MH-01': 'Maharashtra (Mumbai South - Tardeo)',
+      'MH-02': 'Maharashtra (Mumbai West - Andheri)',
+      'KA-01': 'Karnataka (Bengaluru Central - Sarathi)',
       'TN-01': 'Tamil Nadu (Chennai Central)',
       'WB-01': 'West Bengal (Kolkata - Beltala)',
       'UP-32': 'Uttar Pradesh (Lucknow - Transport Nagar)'
@@ -86,13 +104,85 @@ export default function Apply() {
     return map[code] || code
   }
 
+  // Quick helper to fill sample compliant documents for testing
+  const handleQuickAttachSampleDocs = () => {
+    const sampleDocs = {}
+    Object.keys(RTO_DOC_STANDARDS).forEach((docKey) => {
+      const std = RTO_DOC_STANDARDS[docKey]
+      const canvas = document.createElement('canvas')
+      canvas.width = std.targetWidth
+      canvas.height = std.targetHeight
+      const ctx = canvas.getContext('2d')
+
+      ctx.fillStyle = '#F8FAFC'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.strokeStyle = '#2563EB'
+      ctx.lineWidth = 4
+      ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16)
+
+      ctx.fillStyle = '#1E3A8A'
+      ctx.font = 'bold 16px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText(`RTO COMPLIANT: ${std.labelEn.toUpperCase()}`, canvas.width / 2, canvas.height / 2 - 10)
+      ctx.fillStyle = '#059669'
+      ctx.font = '12px sans-serif'
+      ctx.fillText(`Dimensions: ${std.targetWidth}x${std.targetHeight} px • Resized per ${std.ruleCitation}`, canvas.width / 2, canvas.height / 2 + 15)
+
+      sampleDocs[docKey] = {
+        id: docKey,
+        title: std.labelEn,
+        type: `${std.labelEn} (${std.ruleCitation})`,
+        dataUrl: canvas.toDataURL('image/jpeg', 0.8),
+        fileName: `sample_${docKey}.jpg`,
+        width: std.targetWidth,
+        height: std.targetHeight,
+        sizeKB: Math.round(std.maxSizeKB * 0.7),
+        verified: false,
+        authority: 'Sample RTO-Resized Document',
+        source: 'Auto-Resized RTO Document'
+      }
+    })
+    setManualDocs(sampleDocs)
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
-    const newAppNo = `APP${Math.floor(100000 + Math.random() * 900000)}`
+    const newAppNo = `${stateRto.split('-')[0]}-2026-${Math.floor(10000 + Math.random() * 90000)}`
     setGeneratedAppNo(newAppNo)
 
+    // Format manual documents if uploadMode === 'manual'
+    const formattedDocs = uploadMode === 'manual' && Object.keys(manualDocs).length > 0
+      ? Object.values(manualDocs).map(doc => ({
+          id: doc.id,
+          title: doc.title,
+          type: doc.type,
+          verified: false,
+          authority: doc.authority,
+          docNumber: `MANUAL-${doc.id.toUpperCase()}-${newAppNo.slice(-5)}`,
+          details: `Attached via ${doc.source} (${doc.sizeKB} KB, ${doc.width}x${doc.height} px). Compliant with CMVR dimensional caps. Requires RTO officer manual scrutiny.`,
+          dataUrl: doc.dataUrl,
+          sizeKB: doc.sizeKB,
+          dimensions: `${doc.width}x${doc.height} px`
+        }))
+      : undefined
+
+    // Add application to centralized store so RTO Admin immediately sees it!
+    addApplication({
+      appNo: newAppNo,
+      name: name || "Citizen Applicant",
+      phone: phone || "+91 98765 00000",
+      rto: getRtoLabel(stateRto),
+      rtoCode: stateRto,
+      category: getVehicleLabel(vehicle),
+      feePaid: `₹${feeData.total} (CMVR Rule 32)`,
+      dob: "2004-06-15",
+      uploadMode: uploadMode,
+      documents: formattedDocs
+    })
+
+    // Fallback to Supabase if configured
     try {
-      if (supabase) {
+      if (supabase && supabase.from) {
         const { data: citizen, error: citizenError } = await supabase
           .from('citizens')
           .insert([{ phone_number: phone, full_name: name }])
@@ -112,224 +202,396 @@ export default function Apply() {
     } catch (err) {
       console.warn('Supabase submission fallback:', err)
     }
-    setStep(3) // Success screen
+
+    setStep(3) // Success confirmation
     setIsSubmitting(false)
   }
 
+  // Determine if Step 1 is valid
+  const isStep1Valid = () => {
+    if (!name || !phone) return false
+    if (uploadMode === 'digilocker') {
+      return aadhaarConsent
+    }
+    // If manual upload mode, ensure at least one document or all docs attached
+    return Object.keys(manualDocs).length > 0
+  }
+
   return (
-    <div className="min-h-screen flex flex-col p-6 pt-12 pb-24 bg-white dark:bg-slate-900 transition-colors">
-      <Link href="/can-i-apply" className="mb-6 inline-flex items-center text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
-        <ChevronLeft className="w-4 h-4 mr-1" /> {isHindi ? 'वापस' : 'Back'}
+    <div className="w-full max-w-5xl mx-auto py-4 sm:py-6">
+      {/* Back button */}
+      <Link to="/" className="inline-flex items-center text-xs sm:text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 mb-6 font-medium">
+        <ChevronLeft className="w-4 h-4 mr-1" /> {isHindi ? 'मुख्य पृष्ठ पर वापस' : 'Back to Home'}
       </Link>
 
-      <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-        <div className="mb-6 h-2 bg-slate-100 dark:bg-slate-800 rounded-full">
-          <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${(step / 3) * 100}%` }} />
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+          <span>{isHindi ? 'चरण 1: व्यक्तिगत विवरण एवं दस्तावेज' : 'Step 1: Details & Documents'}</span>
+          <span>{isHindi ? 'चरण 2: सरकारी शुल्क' : 'Step 2: Statutory Fee'}</span>
+          <span>{isHindi ? 'चरण 3: पावती' : 'Step 3: Registration Confirmation'}</span>
+        </div>
+        <div className="h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-blue-600 rounded-full transition-all duration-500" 
+            style={{ width: `${(step / 3) * 100}%` }} 
+          />
+        </div>
+      </div>
+
+      {/* Main Grid: Form on Left, Guidelines on Right (Desktop) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Form Column (7 Cols on Desktop) */}
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+          {step === 1 && (
+            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300 text-xs font-semibold mb-2">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{isHindi ? 'सारथी फॉर्म 2 आवेदन' : 'Sarathi Form 2 Application'}</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {isHindi ? 'व्यक्तिगत विवरण एवं दस्तावेज' : 'Personal Details & Document Upload'}
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  {isHindi 
+                    ? 'सारथी पोर्टल पर नया लर्नर्स लाइसेंस आवेदन भरें अथवा दस्तावेज संलग्न करें:' 
+                    : 'Fill citizen particulars and choose verification mode:'}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isHindi ? 'राज्य एवं आरटीओ अधिकार क्षेत्र' : 'State & RTO Jurisdiction (Sarathi)'}
+                  </label>
+                  <select
+                    value={stateRto}
+                    onChange={(e) => setStateRto(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs sm:text-sm focus:border-blue-600 outline-none font-medium"
+                  >
+                    <option value="DL-01">Delhi — Mall Road (North Delhi / Automated Track)</option>
+                    <option value="MH-01">Maharashtra — Mumbai South (Tardeo)</option>
+                    <option value="MH-02">Maharashtra — Mumbai West (Andheri)</option>
+                    <option value="KA-01">Karnataka — Bengaluru Central (Sarathi Online / 7-Day Rule)</option>
+                    <option value="TN-01">Tamil Nadu — Chennai Central</option>
+                    <option value="WB-01">West Bengal — Kolkata (Beltala)</option>
+                    <option value="UP-32">Uttar Pradesh — Lucknow (Transport Nagar)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isHindi ? 'वाहन श्रेणी (Class of Vehicle)' : 'Vehicle Category (COV)'}
+                  </label>
+                  <select
+                    value={vehicle}
+                    onChange={(e) => setVehicle(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs sm:text-sm focus:border-blue-600 outline-none font-medium"
+                  >
+                    <option value="combo-bike-car">🚗 + 🏍️ Bike + Car Combo (MCWG + LMV) — ₹350</option>
+                    <option value="lmv-car">🚗 Light Motor Vehicle / Car (LMV) — ₹200</option>
+                    <option value="motorcycle-gear">🏍️ Motorcycle with Gear (MCWG) — ₹200</option>
+                    <option value="gearless-scooter">🛵 Gearless Scooter &gt;50cc (MCWOG) — ₹200</option>
+                    <option value="gearless-50cc">⚡ Gearless Moped &le;50cc (16+ yrs) — ₹200</option>
+                    <option value="commercial-transport">🚕 Commercial Transport (TRANS) — ₹300</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isHindi ? 'आवेदक का पूरा नाम' : 'Full Name (As per Identity Proof)'}
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder={isHindi ? 'पूरा नाम दर्ज करें (उदा. Avrojit Saha)' : 'e.g. Avrojit Saha'} 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isHindi ? 'मोबाइल नंबर (ओटीपी एवं एसएमएस हेतु)' : 'Mobile Number (For OTP & Tracking)'}
+                  </label>
+                  <input 
+                    type="tel" 
+                    placeholder={isHindi ? '10 अंकों का मोबाइल नंबर' : 'e.g. 9876543210'} 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"
+                  />
+                </div>
+
+                {/* Document Verification Mode Selector (DigiLocker vs Non-DigiLocker) */}
+                <div className="pt-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                    {isHindi ? 'दस्तावेज सत्यापन माध्यम (Verification Option):' : 'Select Document Verification Option:'}
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* DigiLocker Option */}
+                    <button
+                      type="button"
+                      onClick={() => setUploadMode('digilocker')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                        uploadMode === 'digilocker'
+                          ? 'border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 ring-2 ring-emerald-500'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      }`}
+                    >
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm">DigiLocker / Aadhaar e-KYC</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          Instant faceless OTP authentication
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Non-DigiLocker Option */}
+                    <button
+                      type="button"
+                      onClick={() => setUploadMode('manual')}
+                      className={`p-3.5 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                        uploadMode === 'manual'
+                          ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200 ring-2 ring-blue-500'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      }`}
+                    >
+                      <Upload className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm">No DigiLocker (Manual Upload)</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          Attach local disk file OR scan via Camera
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* If DigiLocker Mode: Show DPDP Consent Checkbox */}
+                {uploadMode === 'digilocker' ? (
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aadhaarConsent}
+                        onChange={(e) => setAadhaarConsent(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300"
+                      />
+                      <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {isHindi 
+                          ? 'मैं डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 के तहत आधार ई-केवाईसी एवं डिजीलॉकर सत्यापन हेतु सहमति देता/देती हूँ। कोई कच्चा आधार नंबर संग्रहीत नहीं होता है।'
+                          : 'I consent to Aadhaar e-KYC and DigiLocker verification under the DPDP Act 2023 and Aadhaar Act 2016. No raw UID is stored.'}
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  /* If Non-DigiLocker Mode: Show Manual Document Uploader (File Attach & Camera Scanner) */
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {isHindi ? 'दस्तावेज अपलोड करें (लोकल फाइल / कैमरा)' : 'Upload Documents (Local File or Camera Scan):'}
+                      </span>
+                      {/* Quick attach sample docs for frictionless reviewer testing */}
+                      <button
+                        type="button"
+                        onClick={handleQuickAttachSampleDocs}
+                        className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
+                      >
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span>Auto-Fill Sample Compliant Docs (Quick Test)</span>
+                      </button>
+                    </div>
+
+                    <ManualDocumentUploader
+                      documents={manualDocs}
+                      onChange={setManualDocs}
+                      isHindi={isHindi}
+                    />
+                  </div>
+                )}
+
+                <Button 
+                  onClick={() => setStep(2)} 
+                  disabled={!isStep1Valid()} 
+                  className="w-full h-12 text-sm sm:text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 mt-4 shadow-lg shadow-blue-600/20 disabled:opacity-50"
+                >
+                  {isHindi ? 'आगे बढ़ें (शुल्क भुगतान विवरण)' : 'Proceed to Statutory Fees'} 
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {isHindi ? 'सरकारी शुल्क भुगतान (CMVR नियम 32)' : 'Statutory Fee Schedule (CMVR Rule 32)'}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  {isHindi 
+                    ? 'परिवहन मंत्रालय द्वारा निर्धारित आधिकारिक शुल्क संरचना:' 
+                    : 'Official fee breakdown prescribed by Ministry of Road Transport and Highways:'}
+                </p>
+              </div>
+
+              <div className="p-5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex justify-between items-center text-xs pb-3 border-b border-slate-200 dark:border-slate-700">
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{getVehicleLabel(vehicle)}</span>
+                  <span className="text-slate-500 dark:text-slate-400 text-xs">{getRtoLabel(stateRto)}</span>
+                </div>
+
+                {feeData.breakdown.map((item, idx) => (
+                  <div key={idx} className="flex justify-between text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                    <span>{item.label}</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">₹{item.amount}</span>
+                  </div>
+                ))}
+
+                <div className="flex justify-between font-bold text-lg pt-3 border-t border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+                  <span>{isHindi ? 'कुल सरकारी शुल्क' : 'Total Statutory Fee'}</span>
+                  <span className="text-blue-600 dark:text-blue-400">₹{feeData.total}</span>
+                </div>
+              </div>
+
+              {/* Upload Mode Confirmation Summary */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs flex items-center justify-between">
+                <div>
+                  <span className="text-slate-500 block">Verification Method:</span>
+                  <strong className="text-slate-900 dark:text-white">
+                    {uploadMode === 'manual' 
+                      ? 'Non-DigiLocker Manual Attachment / Camera Scan' 
+                      : 'DigiLocker / Aadhaar e-KYC'}
+                  </strong>
+                </div>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                  {uploadMode === 'manual' ? `${Object.keys(manualDocs).length} Documents Attached` : 'Aadhaar Verified'}
+                </span>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep(1)} className="h-12 w-20 rounded-xl">
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting} 
+                  className="w-full h-12 text-sm sm:text-base rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex-1 shadow-lg shadow-emerald-600/20"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {isSubmitting ? (isHindi ? 'प्रसंस्करण जारी...' : 'Processing...') : (isHindi ? `शुल्क भुगतान करें (₹${feeData.total})` : `Submit & Pay ₹${feeData.total} (Simulated)`)}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-5 py-4">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center mx-auto text-3xl font-extrabold shadow-inner">
+                ✓
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                {isHindi ? 'आवेदन सफलतापूर्वक पंजीकृत हुआ' : 'Application Registered Successfully'}
+              </h2>
+
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
+                {isHindi 
+                  ? 'आपका फॉर्म 2 आवेदन सारथी परिवहन प्रणाली में पंजीकृत कर लिया गया है तथा आरटीओ संवीक्षा हेतु प्रेषित है।' 
+                  : 'Your Form 2 application is registered and dispatched to the official RTO Scrutiny Desk for document examination.'}
+              </p>
+
+              <div className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-left space-y-2 text-xs sm:text-sm">
+                <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
+                  <span className="text-slate-500">{isHindi ? 'आवेदन संख्या:' : 'Application Number:'}</span>
+                  <span className="font-mono font-extrabold text-blue-600 dark:text-blue-400 text-base">{generatedAppNo}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
+                  <span className="text-slate-500">{isHindi ? 'आवेदक नाम:' : 'Applicant:'}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{name}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
+                  <span className="text-slate-500">{isHindi ? 'आरटीओ केंद्र:' : 'RTO Office:'}</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{getRtoLabel(stateRto)}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
+                  <span className="text-slate-500">{isHindi ? 'वाहन श्रेणी:' : 'Vehicle Class:'}</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{getVehicleLabel(vehicle)}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
+                  <span className="text-slate-500">{isHindi ? 'दस्तावेज माध्यम:' : 'Verification Source:'}</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    {uploadMode === 'manual' ? 'Manual Upload & Camera Scan' : 'DigiLocker e-KYC'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-1 text-amber-600 dark:text-amber-400 font-bold">
+                  <span>{isHindi ? 'परीक्षा समय सीमा:' : 'Online Test Deadline:'}</span>
+                  <span>Within 7 Days (Rule 11(3))</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Link to="/mock-test" className="flex-1">
+                  <Button className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm">
+                    {isHindi ? 'मॉक टेस्ट अभ्यास शुरू करें (STALL)' : 'Start Exam Practice (STALL)'}
+                  </Button>
+                </Link>
+                <Link to="/track" className="flex-1">
+                  <Button variant="outline" className="w-full h-11 rounded-xl text-xs sm:text-sm font-semibold">
+                    {isHindi ? 'आवेदन स्थिति ट्रैक करें' : 'Track Status on Sarathi'}
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
         </div>
 
-        {step === 1 && (
-          <div className="space-y-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-50 dark:bg-green-950/60 border border-green-200 dark:border-green-800 rounded-full text-green-700 dark:text-green-300 text-[11px] font-semibold mb-2">
-                <ShieldCheck className="w-3.5 h-3.5" /> {isHindi ? 'आधार ई-केवाईसी समर्थित (डिजीलॉकर)' : 'Aadhaar e-KYC Enabled (DigiLocker)'}
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isHindi ? 'व्यक्तिगत विवरण (फॉर्म 2)' : 'Personal Details (Form 2)'}
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {isHindi ? 'सारथी पोर्टल पर नया लर्नर्स लाइसेंस आवेदन:' : 'New Learner Licence Application on Sarathi Parivahan:'}
-              </p>
+        {/* Right Information & Compliance Column (5 Cols on Desktop) */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Statutory 7-Day Alert */}
+          <div className="p-5 rounded-3xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 space-y-3">
+            <div className="flex items-center gap-2 text-blue-900 dark:text-blue-200 font-bold text-sm">
+              <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span>CMVR Rule 11(3) Statutory Mandate</span>
             </div>
-
-            <div className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isHindi ? 'राज्य एवं आरटीओ अधिकार क्षेत्र' : 'State & RTO Jurisdiction (Sarathi)'}
-                </label>
-                <select
-                  value={stateRto}
-                  onChange={(e) => setStateRto(e.target.value)}
-                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs focus:border-blue-600 outline-none"
-                >
-                  <option value="KA-01">Karnataka — Bengaluru Central (Sarathi Online / 7-Day Rule)</option>
-                  <option value="MH-01">Maharashtra — Mumbai South (Tardeo)</option>
-                  <option value="DL-01">Delhi — Mall Road (North Delhi / Automated Track)</option>
-                  <option value="TN-01">Tamil Nadu — Chennai Central</option>
-                  <option value="WB-01">West Bengal — Kolkata (Beltala)</option>
-                  <option value="UP-32">Uttar Pradesh — Lucknow (Transport Nagar)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isHindi ? 'वाहन श्रेणी (Class of Vehicle)' : 'Vehicle Category (COV)'}
-                </label>
-                <select
-                  value={vehicle}
-                  onChange={(e) => setVehicle(e.target.value)}
-                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs focus:border-blue-600 outline-none"
-                >
-                  <option value="combo-bike-car">🚗 + 🏍️ Bike + Car Combo (MCWG + LMV) — ₹350</option>
-                  <option value="lmv-car">🚗 Light Motor Vehicle / Car (LMV) — ₹200</option>
-                  <option value="motorcycle-gear">🏍️ Motorcycle with Gear (MCWG) — ₹200</option>
-                  <option value="gearless-scooter">🛵 Gearless Scooter &gt;50cc (MCWOG) — ₹200</option>
-                  <option value="gearless-50cc">⚡ Gearless Moped &le;50cc (16+ yrs) — ₹200</option>
-                  <option value="commercial-transport">🚕 Commercial Transport (TRANS) — ₹300</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isHindi ? 'आवेदक का पूरा नाम' : 'Full Name (As per Aadhaar Card)'}
-                </label>
-                <input 
-                  type="text" 
-                  placeholder={isHindi ? 'पूरा नाम दर्ज करें' : 'e.g. Avrojit Saha'} 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isHindi ? 'मोबाइल नंबर (ओटीपी एवं एसएमएस हेतु)' : 'Mobile Number (For OTP & Tracking)'}
-                </label>
-                <input 
-                  type="tel" 
-                  placeholder={isHindi ? '10 अंकों का मोबाइल नंबर' : 'e.g. 9876543210'} 
-                  value={phone} 
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full p-3 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none transition-colors"
-                />
-              </div>
-
-              {/* DPDP Act 2023 & UIDAI Consent */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={aadhaarConsent}
-                    onChange={(e) => setAadhaarConsent(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 text-blue-600 rounded border-slate-300"
-                  />
-                  <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-tight">
-                    {isHindi 
-                      ? 'मैं डिजिटल व्यक्तिगत डेटा संरक्षण (DPDP) अधिनियम 2023 के तहत आधार ई-केवाईसी एवं डिजीलॉकर सत्यापन हेतु सहमति देता/देती हूँ। कोई कच्चा आधार नंबर संग्रहीत नहीं होता है।'
-                      : 'I consent to Aadhaar e-KYC and DigiLocker verification under the DPDP Act 2023 and Aadhaar Act 2016. No raw UID is stored.'}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <Button onClick={() => setStep(2)} disabled={!name || !phone || !aadhaarConsent} className="w-full h-12 text-base rounded-xl bg-blue-600 hover:bg-blue-700 text-white mt-2">
-              {isHindi ? 'आगे बढ़ें (शुल्क विवरण)' : 'Next (Statutory Fees)'} <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-5">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isHindi ? 'सरकारी शुल्क विवरण (CMVR नियम 32)' : 'Statutory Fee Schedule (CMVR Rule 32)'}
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isHindi ? 'परिवहन मंत्रालय द्वारा निर्धारित आधिकारिक शुल्क संरचना:' : 'Official fee breakdown prescribed by MoRTH:'}
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-              <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200 dark:border-slate-700">
-                <span className="font-semibold text-blue-600 dark:text-blue-400">{getVehicleLabel(vehicle)}</span>
-                <span className="text-slate-500 dark:text-slate-400 text-[10px]">{getRtoLabel(stateRto)}</span>
-              </div>
-
-              {feeData.breakdown.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-xs text-slate-600 dark:text-slate-300">
-                  <span>{item.label}</span>
-                  <span className="font-medium">₹{item.amount}</span>
-                </div>
-              ))}
-
-              <div className="flex justify-between font-bold text-base pt-2.5 border-t border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
-                <span>{isHindi ? 'कुल सरकारी शुल्क' : 'Total Statutory Fee'}</span>
-                <span className="text-blue-600 dark:text-blue-400">₹{feeData.total}</span>
-              </div>
-            </div>
-
-            {/* CMVR Rule 11(3) Statutory 7-Day Alert */}
-            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl text-xs flex gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-              <div className="text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
-                <strong>{isHindi ? 'नियम 11(3) CMVR (7-दिन का नियम):' : 'Rule 11(3) CMVR (7-Day LL Test Rule):'}</strong>{' '}
-                {isHindi 
-                  ? 'आवेदन जमा करने के 7 दिनों के भीतर ऑनलाइन परीक्षा देना अनिवार्य है, अन्यथा आवेदन स्वतः रद्द हो जाता है।' 
-                  : 'Applicants must take the online LL test within 7 days of application, failing which it is automatically cancelled.'}
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)} className="h-12 w-16 rounded-xl">
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-12 text-base rounded-xl bg-green-600 hover:bg-green-700 text-white flex-1">
-                {isSubmitting ? (isHindi ? 'प्रसंस्करण जारी...' : 'Processing...') : (isHindi ? `शुल्क भुगतान करें (₹${feeData.total})` : `Pay ₹${feeData.total} (Simulated)`)}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="text-center space-y-4 mt-6">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-950/60 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">✓</div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isHindi ? 'आवेदन सफलतापूर्वक जमा हुआ' : 'Application Submitted Successfully'}
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-xs">
-              {isHindi 
-                ? 'आपका फॉर्म 2 आवेदन सारथी परिवहन प्रणाली में पंजीकृत कर लिया गया है।' 
-                : 'Your Form 2 application has been registered on the Sarathi Parivahan system.'}
+            <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+              {isHindi
+                ? 'नियम 11(3) के अनुसार, आवेदन करने के 7 दिनों के भीतर ऑनलाइन परीक्षा देना अनिवार्य है।'
+                : 'Under Rule 11(3) of the Central Motor Vehicles Rules, applicants must complete their computerised LL test within 7 calendar days of fee submission.'}
             </p>
+          </div>
 
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-left space-y-1.5 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'आवेदन संख्या:' : 'Application Number:'}</span>
-                <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{generatedAppNo}</span>
+          {/* RTO Document Guidelines Card */}
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
+              <FileText className="w-4 h-4 text-blue-600" />
+              <span>RTO Document Standards (CMVR Rule 14)</span>
+            </div>
+            <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Photograph:</strong> 35mm x 45mm, size between 10 KB and 50 KB.
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'आरटीओ केंद्र:' : 'RTO Office:'}</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{getRtoLabel(stateRto)}</span>
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Signature:</strong> 400x120 px, size between 10 KB and 20 KB.
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'वाहन श्रेणी:' : 'Vehicle Class:'}</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{getVehicleLabel(vehicle)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">{isHindi ? 'ई-केवाईसी स्थिति:' : 'e-KYC Status:'}</span>
-                <span className="text-green-600 dark:text-green-400 font-semibold">✓ Verified (DigiLocker)</span>
-              </div>
-              <div className="flex justify-between items-center pt-1 border-t border-slate-200 dark:border-slate-700">
-                <span className="text-amber-600 dark:text-amber-400 font-medium">{isHindi ? 'परीक्षा समय सीमा:' : 'Test Deadline:'}</span>
-                <span className="text-amber-600 dark:text-amber-400 font-semibold">Within 7 Days (Rule 11(3))</span>
+              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+                <strong>Age/Address Proof:</strong> Max 200 KB (Auto-compressed by system).
               </div>
             </div>
-
-            <div className="space-y-2.5 pt-1">
-              <Link href="/mock-test">
-                <Button className="w-full h-11 text-sm rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
-                  {isHindi ? 'लर्नर्स टेस्ट अभ्यास शुरू करें (STALL)' : 'Start RTO Exam Practice (STALL)'}
-                </Button>
-              </Link>
-              <Link href="/track">
-                <Button variant="outline" className="w-full h-11 text-sm rounded-xl">
-                  {isHindi ? 'आवेदन स्थिति ट्रैक करें' : 'Track Application Status'}
-                </Button>
-              </Link>
+            <div className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800">
+              ✓ Auto-resizing engine handles dimensions automatically
             </div>
           </div>
-        )}
-      </motion.div>
+
+          {/* Security Advisory: Applicants cannot approve their own forms */}
+          <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+            <strong>Official Scrutiny Note:</strong> Once submitted, your Form 2 is scrutinized by an appointed RTO Inspector. Citizen applicants cannot self-approve applications. Track your status on the Track portal.
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

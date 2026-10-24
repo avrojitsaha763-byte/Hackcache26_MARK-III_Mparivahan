@@ -24,14 +24,14 @@ export default function SettingsModal() {
       <button 
         onClick={() => setIsOpen(true)}
         aria-label="Accessibility Settings"
-        className="fixed bottom-4 right-4 p-4 bg-slate-900 text-white rounded-full shadow-lg z-50 hover:bg-slate-800 active:scale-95 transition-all dark:bg-blue-600 dark:hover:bg-blue-700"
+        className="fixed bottom-16 sm:bottom-6 right-4 sm:right-6 p-3.5 bg-slate-900 text-white rounded-full shadow-2xl z-50 hover:bg-slate-800 active:scale-95 transition-all dark:bg-blue-600 dark:hover:bg-blue-700 border-2 border-white/20"
       >
-        <Settings className="w-6 h-6" />
+        <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center sm:items-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-[360px] rounded-3xl p-6 relative border border-slate-200 dark:border-slate-800 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center sm:items-center p-3 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-sm sm:max-w-md rounded-3xl p-6 relative border border-slate-200 dark:border-slate-800 shadow-2xl">
             <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Accessibility Settings</h2>
             
             <div className="space-y-6">
