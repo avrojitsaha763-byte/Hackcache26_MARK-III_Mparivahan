@@ -84,6 +84,7 @@ export default async function handler(req, res) {
         txnId: `TXN-DL-${cleanPhone}-${Date.now()}`,
         smsGatewayLive: smsDispatched,
         gatewayNotice: gatewayNotice,
+        generatedOtp: !smsDispatched ? generatedOtp : undefined,
         developerHint: !smsDispatched && gatewayNotice ? `Fast2SMS Note: ${gatewayNotice} (Generated OTP: ${generatedOtp})` : undefined,
         phone: cleanPhone
       });

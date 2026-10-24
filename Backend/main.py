@@ -584,6 +584,7 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                     "txnId": f"TXN-DL-{clean_phone}-{int(time.time() * 1000)}",
                     "smsGatewayLive": sms_dispatched,
                     "gatewayNotice": gateway_notice,
+                    "generatedOtp": generated_otp if not sms_dispatched else None,
                     "phone": clean_phone
                 }
             )
