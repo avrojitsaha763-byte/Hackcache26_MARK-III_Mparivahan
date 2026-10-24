@@ -16,7 +16,10 @@ import {
   Menu,
   X,
   Compass,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  Zap,
+  QrCode
 } from 'lucide-react'
 import SmoothScroll from '@/components/SmoothScroll'
 import SettingsModal from '@/components/SettingsModal'
@@ -50,9 +53,12 @@ export default function RootLayout({ children }) {
     { to: '/', labelEn: 'Home', labelHi: 'मुख्य पृष्ठ', icon: Home },
     { to: '/can-i-apply', labelEn: 'Eligibility', labelHi: 'पात्रता जांचें', icon: FileText },
     { to: '/apply', labelEn: 'Apply LL', labelHi: 'आवेदन करें', icon: CheckCircle },
+    { to: '/vision-test', labelEn: 'Vision Test', labelHi: 'दृष्टि परीक्षण', icon: Eye },
+    { to: '/hazard-test', labelEn: 'Hazard Arena', labelHi: 'हैज़र्ड एरेना', icon: Zap },
     { to: '/mock-test', labelEn: 'Mock Test', labelHi: 'मॉक टेस्ट', icon: Award },
     { to: '/learn', labelEn: 'Traffic Signs', labelHi: 'यातायात संकेत', icon: BookOpen },
     { to: '/track', labelEn: 'Track Status', labelHi: 'स्थिति ट्रैक करें', icon: Search },
+    { to: '/verify', labelEn: 'Verify Form 3', labelHi: 'सत्यापन', icon: QrCode },
     { to: '/permanent-dl', labelEn: 'Permanent DL', labelHi: 'स्थायी लाइसेंस', icon: Car },
   ]
 

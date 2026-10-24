@@ -8,6 +8,9 @@ import Learn from './pages/Learn'
 import Track from './pages/Track'
 import DigiLockerCallback from './pages/DigiLockerCallback'
 import PermanentDL from './pages/PermanentDL'
+import VisionTest from './pages/VisionTest'
+import HazardTest from './pages/HazardTest'
+import TrustLedger from './pages/TrustLedger'
 import AdminPortal from './pages/AdminPortal'
 import AdminAuth from './pages/AdminAuth'
 import AdminGuard from './components/AdminGuard'
@@ -28,6 +31,14 @@ export default function App() {
           <Route path="/learn" element={<Learn />} />
           <Route path="/track" element={<Track />} />
           <Route path="/permanent-dl" element={<PermanentDL />} />
+
+          {/* HackCache26 Mark-III Winning Innovation Pillars */}
+          <Route path="/vision-test" element={<VisionTest />} />
+          <Route path="/netra-vision" element={<VisionTest />} />
+          <Route path="/hazard-test" element={<HazardTest />} />
+          <Route path="/stall-pro" element={<HazardTest />} />
+          <Route path="/verify" element={<TrustLedger />} />
+          <Route path="/trust-ledger" element={<TrustLedger />} />
 
           {/* Dedicated Official RTO Admin Authentication Routes */}
           <Route path="/admin/login" element={<AdminAuth />} />

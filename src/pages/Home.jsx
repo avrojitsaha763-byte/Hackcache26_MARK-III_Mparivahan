@@ -9,7 +9,11 @@ import {
   Clock, 
   ArrowRight, 
   Lock,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Zap,
+  QrCode,
+  Sparkles
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStickyState } from '@/hooks/useStickyState'
@@ -142,6 +146,108 @@ export default function Home() {
             variants={itemVariants}
           />
         </motion.div>
+      </div>
+
+      {/* 4 NATIONAL INNOVATION PILLARS (HackCache26 MARK-III Winning Suite) */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>{isHindi ? 'हैककैश26 मार्क-III राष्ट्रीय नवाचार स्तंभ' : 'HackCache26 Mark-III Strategic Innovations'}</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+              {isHindi ? 'एआई-संचालित चिकित्सीय एवं सड़क सुरक्षा सूट' : 'AI-Powered Clinical & Road Safety Suite'}
+            </h2>
+          </div>
+          <span className="text-xs text-slate-500">CMVR 1989 & MoRTH Compliant</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Pillar 2: Netra-Vision */}
+          <Link to="/vision-test" className="group">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50/60 dark:from-slate-900 dark:to-purple-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-lg hover:border-purple-400 transition-all h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2.5 rounded-xl bg-purple-600 text-white shadow-md">
+                    <Eye className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                    Rule 5(2) Form 1
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  {isHindi ? 'नेत्र-विज़न चिकित्सीय दृष्टि जांच' : 'Netra-Vision Clinical Screener'}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                  {isHindi 
+                    ? 'इशिहारा रंग अंधता एवं स्नेलन दृष्टि तीक्ष्णता जांच। स्वचालित फॉर्म 1 टोकन।' 
+                    : 'Ishihara chromatic plates & Snellen tumbling E acuity screener. Generates verifiable Form 1 medical fitness tokens.'}
+                </p>
+              </div>
+              <div className="pt-3 mt-3 border-t border-purple-100 dark:border-purple-900/40 flex items-center justify-between text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform">
+                <span>{isHindi ? 'दृष्टि जांच शुरू करें' : 'Launch Vision Test'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Pillar 3: STALL Pro Hazard Arena */}
+          <Link to="/hazard-test" className="group">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-red-50 to-orange-50/60 dark:from-slate-900 dark:to-red-950/30 border border-red-200 dark:border-red-800 hover:shadow-lg hover:border-red-400 transition-all h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2.5 rounded-xl bg-red-600 text-white shadow-md">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300">
+                    60fps Cockpit
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                  {isHindi ? 'STALL प्रो हैज़र्ड परसेप्शन एरेना' : 'STALL Pro Hazard Arena'}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                  {isHindi 
+                    ? '50 किमी/घंटा पर वास्तविक 5 सड़क खतरों में मिलीसेकंड प्रतिक्रिया समय एवं रुकने की दूरी मापें।' 
+                    : 'Measure exact ms driver reaction latency (tr) and physical stopping distance across 5 statutory Indian road situations.'}
+                </p>
+              </div>
+              <div className="pt-3 mt-3 border-t border-red-100 dark:border-red-900/40 flex items-center justify-between text-xs font-semibold text-red-600 dark:text-red-400 group-hover:translate-x-1 transition-transform">
+                <span>{isHindi ? 'रिफ्लेक्स एरेना खेलें' : 'Enter Reflex Arena'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Pillar 4: Form 3 TrustLedger */}
+          <Link to="/verify" className="group">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/60 dark:from-slate-900 dark:to-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-lg hover:border-emerald-400 transition-all h-full flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-600 text-white shadow-md">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                    Rule 16 CMVR
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  {isHindi ? 'फॉर्म 3 ट्रस्टलेजर सार्वजनिक सत्यापन' : 'Form 3 TrustLedger Portal'}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                  {isHindi 
+                    ? 'क्यूआर कोड, SHA-256 ब्लॉक, एमवीआई डिजिटल हस्ताक्षर एवं ई-पे चालान से लाइसेंस की सत्यता जांचें।' 
+                    : 'Public cryptographic validation for Form 3 LLs. Inspect MVI digital signature certificates and Bharat e-Pay treasury GRN.'}
+                </p>
+              </div>
+              <div className="pt-3 mt-3 border-t border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform">
+                <span>{isHindi ? 'लाइसेंस सत्यापित करें' : 'Verify LL Number'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* Statutory Guidance Advisory Box */}
