@@ -43,7 +43,6 @@ export default function DigiLockerAuthModal({
   const [timer, setTimer] = useState(30)
   const [fetchedDocs, setFetchedDocs] = useState(null)
   const [dispatchedOtp, setDispatchedOtp] = useState('')
-  const [gatewayNotice, setGatewayNotice] = useState('')
   const [confirmationResult, setConfirmationResult] = useState(null)
   const [isFirebaseSession, setIsFirebaseSession] = useState(false)
 
@@ -320,7 +319,7 @@ export default function DigiLockerAuthModal({
                     ) : (
                       <>
                         <Smartphone className="w-3.5 h-3.5 text-blue-500" />
-                        Fast2SMS & MeriPehchaan SSO
+                        National MeriPehchaan SSO Gateway
                       </>
                     )}
                   </span>
@@ -503,11 +502,6 @@ export default function DigiLockerAuthModal({
                       Paste OTP
                     </button>
                   </div>
-                  {gatewayNotice && (
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                      Note: Fast2SMS external gateway requires ₹100 topup before SIM cellular transmission. Above code is your live generated OTP for +91 {cleanPhone}.
-                    </p>
-                  )}
                 </div>
               )}
 

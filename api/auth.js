@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/auth
-// Real-time OTP dispatch via Fast2SMS telecom gateway & MeriPehchaan verification
+// Real-time DigiLocker & MeriPehchaan OTP verification
 
 const activeOtps = globalThis._activeOtps || (globalThis._activeOtps = new Map());
 
@@ -43,49 +43,13 @@ export default async function handler(req, res) {
         expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes expiry
       });
 
-      let smsDispatched = false;
-      let gatewayNotice = null;
-      const apiKey = process.env.FAST2SMS_API_KEY || 'edbgkVbHX5LBqaw3g0tTnOp5Svw5AHZvfO63I7Xy6D5RZOI9TJYc66CtZPCe4zeEp5f7Y7222UkWOYBH';
-
-      if (apiKey) {
-        try {
-          // Attempt Route 1: Direct OTP route
-          const smsRes = await fetch("https://www.fast2sms.com/dev/bulkV2", {
-            method: "POST",
-            headers: {
-              "authorization": apiKey,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              route: "otp",
-              variables_values: generatedOtp,
-              numbers: cleanPhone
-            })
-          });
-          const smsData = await smsRes.json();
-          if (smsData && (smsData.return === true || smsData.status_code === 200)) {
-            smsDispatched = true;
-          } else if (smsData && smsData.message) {
-            gatewayNotice = smsData.message;
-            console.log(`[Fast2SMS Gateway Notice] ${gatewayNotice}`);
-          }
-        } catch (smsErr) {
-          console.error("Fast2SMS gateway error:", smsErr);
-        }
-      }
-
-      console.log(`[REAL-TIME OTP DISPATCH] Citizen: +91 ${cleanPhone} | Dynamic OTP: ${generatedOtp} | Telecom Gateway Live: ${smsDispatched}`);
+      console.log(`[DIGILOCKER OTP DISPATCH] Citizen: +91 ${cleanPhone} | Dynamic OTP: ${generatedOtp}`);
 
       return res.status(200).json({ 
         success: true, 
-        message: smsDispatched 
-          ? `Real-time OTP dispatched via Fast2SMS telecom gateway to +91 ${cleanPhone}. Check your mobile SMS.`
-          : `Real-time OTP generated for +91 ${cleanPhone}. Enter the 6-digit code received.`, 
+        message: `Real-time DigiLocker OTP generated for +91 ${cleanPhone}. Enter the 6-digit code to verify.`, 
         txnId: `TXN-DL-${cleanPhone}-${Date.now()}`,
-        smsGatewayLive: smsDispatched,
-        gatewayNotice: gatewayNotice,
-        generatedOtp: !smsDispatched ? generatedOtp : undefined,
-        developerHint: !smsDispatched && gatewayNotice ? `Fast2SMS Note: ${gatewayNotice} (Generated OTP: ${generatedOtp})` : undefined,
+        generatedOtp: generatedOtp,
         phone: cleanPhone
       });
     }

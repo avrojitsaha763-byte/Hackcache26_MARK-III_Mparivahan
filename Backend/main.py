@@ -524,7 +524,7 @@ _active_backend_otps: Dict[str, Dict[str, Any]] = {}
 async def digilocker_auth(req: DigiLockerAuthRequest):
     """
     DigiLocker / Aadhaar Real-Time Authentication Handler:
-    - Flow A: Request dynamic 6-digit OTP via citizen mobile number (with optional Fast2SMS telecom dispatch)
+    - Flow A: Request dynamic 6-digit OTP via citizen mobile number
     - Flow B: Verify the actual OTP dispatched to citizen handset
     - Flow C: Username & PIN/Password SSO authentication
     """
@@ -545,47 +545,13 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                 "expires_at": time.time() + 600 # 10 minutes
             }
 
-            import os
-            fast2sms_key = os.environ.get("FAST2SMS_API_KEY") or "edbgkVbHX5LBqaw3g0tTnOp5Svw5AHZvfO63I7Xy6D5RZOI9TJYc66CtZPCe4zeEp5f7Y7222UkWOYBH"
-            sms_dispatched = False
-            gateway_notice = None
-
-            if fast2sms_key:
-                try:
-                    import urllib.request
-                    import json
-                    sms_payload = json.dumps({
-                        "route": "otp",
-                        "variables_values": generated_otp,
-                        "numbers": clean_phone
-                    }).encode("utf-8")
-                    sms_req = urllib.request.Request(
-                        "https://www.fast2sms.com/dev/bulkV2",
-                        data=sms_payload,
-                        headers={
-                            "authorization": fast2sms_key,
-                            "Content-Type": "application/json"
-                        }
-                    )
-                    with urllib.request.urlopen(sms_req, timeout=5) as resp:
-                        resp_data = json.loads(resp.read().decode("utf-8"))
-                        if resp_data.get("return") is True or resp_data.get("status_code") == 200:
-                            sms_dispatched = True
-                        elif resp_data.get("message"):
-                            gateway_notice = resp_data.get("message")
-                except Exception as sms_err:
-                    gateway_notice = str(sms_err)
-                    print(f"Fast2SMS error in Backend: {sms_err}")
-
             return JSONResponse(
                 status_code=200, 
                 content={
                     "success": True, 
-                    "message": f"Real-time OTP dispatched to +91 {clean_phone}. Check your mobile SMS." if sms_dispatched else f"Real-time OTP generated for +91 {clean_phone}.", 
+                    "message": f"Real-time DigiLocker OTP generated for +91 {clean_phone}.", 
                     "txnId": f"TXN-DL-{clean_phone}-{int(time.time() * 1000)}",
-                    "smsGatewayLive": sms_dispatched,
-                    "gatewayNotice": gateway_notice,
-                    "generatedOtp": generated_otp if not sms_dispatched else None,
+                    "generatedOtp": generated_otp,
                     "phone": clean_phone
                 }
             )
