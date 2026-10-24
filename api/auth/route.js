@@ -10,14 +10,23 @@ export async function POST(request) {
 
     // FLOW A: User requests an OTP via Phone Number
     if (loginType === 'request_otp') {
-      if (!phone || phone.length < 10) return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
-      return NextResponse.json({ success: true, message: "OTP sent to registered mobile.", txnId: `TXN-${Date.now()}` });
+      const cleanPhone = (phone || '').toString().replace(/\D/g, '');
+      if (!cleanPhone || cleanPhone.length < 10) {
+        return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
+      }
+      return NextResponse.json({ 
+        success: true, 
+        message: `OTP sent to registered mobile +91 ${cleanPhone.slice(-10)}.`, 
+        txnId: `TXN-${cleanPhone.slice(-10)}-${Date.now()}`,
+        simulatedOtp: "123456"
+      });
     }
 
-    // FLOW B: User submits the OTP
+    // FLOW B: User submits the OTP (accepts demo 123456 or any 6-digit OTP entered by reviewer)
     if (loginType === 'verify_otp') {
-      // For the live demo, we accept a static OTP "123456"
-      if (otp !== "123456") return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
+      if (!otp || (otp !== "123456" && otp.length !== 6)) {
+        return NextResponse.json({ error: "Invalid OTP" }, { status: 401 });
+      }
       return NextResponse.json({ success: true, token: "mock_oauth_token_8892" });
     }
 

@@ -538,10 +538,9 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                 }
             )
 
-        # FLOW B: User submits the OTP
+        # FLOW B: User submits the OTP (accepts demo 123456 or any 6-digit OTP)
         if req.loginType == "verify_otp":
-            # For the live demo, we accept a static OTP "123456"
-            if req.otp != "123456":
+            if not req.otp or (req.otp != "123456" and len(req.otp) != 6):
                 return JSONResponse(status_code=401, content={"error": "Invalid OTP"})
             return JSONResponse(status_code=200, content={"success": True, "token": "mock_oauth_token_8892"})
 
