@@ -6,6 +6,7 @@ import Apply from './pages/Apply'
 import MockTest from './pages/MockTest'
 import Learn from './pages/Learn'
 import Track from './pages/Track'
+import DigiLockerCallback from './pages/DigiLockerCallback'
 import PermanentDL from './pages/PermanentDL'
 import AdminPortal from './pages/AdminPortal'
 import AdminAuth from './pages/AdminAuth'
@@ -21,6 +22,8 @@ export default function App() {
           <Route path="/can-i-apply" element={<CanIApply />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/documents" element={<Apply />} />
+          <Route path="/digilocker-callback" element={<DigiLockerCallback />} />
+          <Route path="/digilocker/callback" element={<DigiLockerCallback />} />
           <Route path="/mock-test" element={<MockTest />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/track" element={<Track />} />

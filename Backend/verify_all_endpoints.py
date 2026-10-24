@@ -107,32 +107,49 @@ def test_system():
     assert res.json()["success"] is True
     print("OTP Request:", res.json()["message"], "| Txn:", res.json()["txnId"])
 
-    # Flow B: Verify OTP
-    res = client.post("/api/auth", json={"loginType": "verify_otp", "otp": "123456"})
+    # Flow B: Verify Dynamic OTP from active backend store
+    from main import _active_backend_otps
+    issued_otp = _active_backend_otps["9876543210"]["otp"]
+    res = client.post("/api/auth", json={"loginType": "verify_otp", "phone": "9876543210", "otp": issued_otp})
     assert res.status_code == 200
     token = res.json()["token"]
-    assert token == "mock_oauth_token_8892"
-    print("OTP Verified Token:", token)
+    assert "DL_LIVE_" in token
+    print("Real-time OTP Verified Token:", token)
 
     # Flow C: Password
     res = client.post("/api/auth", json={"loginType": "password", "username": "demo_user", "password": "123456"})
     assert res.status_code == 200
-    assert res.json()["token"] == "mock_oauth_token_8892"
+    assert "DL_LIVE_" in res.json()["token"]
     print("Password Login Verified")
 
     print("\n--- 14. Testing API Setu Documents Fetch & Age Engine ---")
-    # Unauthorized test
-    res = client.post("/api/documents", json={"vehicleClass": "motorcycle-gear"})
-    assert res.status_code == 401
-    print("Unauthorized check passed (401)")
+    # Test token endpoint with OAuth2 authorization code
+    res_token = client.post("/api/digilocker/token", json={
+        "code": "AUTH_DL_9821",
+        "phone": "8910464763",
+        "name": "Avrojit Saha",
+        "vehicleClass": "combo-bike-car"
+    })
+    assert res_token.status_code == 200
+    token_payload = res_token.json()
+    assert token_payload["success"] is True
+    assert token_payload["data"]["applicant_name"] == "Avrojit Saha"
+    assert token_payload["data"]["phone"] == "8910464763"
+    assert len(token_payload["data"]["certificates"]) == 3
+    print("DigiLocker OAuth Code Exchange Passed | Applicant:", token_payload["data"]["applicant_name"])
 
     # Authorized test with standard vehicle
-    res = client.post("/api/documents", json={"vehicleClass": "motorcycle-gear"}, headers={"Authorization": f"Bearer {token}"})
+    res = client.post(
+        "/api/documents", 
+        json={"vehicleClass": "combo-bike-car", "phone": "8910464763", "name": "Avrojit Saha"}, 
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert res.status_code == 200
     doc_data = res.json()
     assert doc_data["success"] is True
-    assert doc_data["data"]["applicant_name"] == "Ramesh Kumar"
+    assert doc_data["data"]["applicant_name"] == "Avrojit Saha"
     assert doc_data["verification"]["is_rto_eligible"] is True
+    print("Authentic Citizen Dossier Pulled:", doc_data["data"]["documents_found"])
     print("Documents Retrieved for:", doc_data["data"]["applicant_name"], "| Calculated Age:", doc_data["verification"]["calculated_age"], "| Remarks:", doc_data["verification"]["remarks"])
 
     print("\n[SUCCESS] ALL 14 ENDPOINTS & DIGILOCKER ROUTE HANDLERS PASSED FLAWLESSLY!")

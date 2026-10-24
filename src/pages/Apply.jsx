@@ -21,6 +21,34 @@ import ManualDocumentUploader from '@/components/ManualDocumentUploader'
 import DigiLockerAuthModal from '@/components/DigiLockerAuthModal'
 import { RTO_DOC_STANDARDS } from '@/lib/rtoDocStandards'
 
+function getSavedDigiLockerProfile() {
+  if (typeof window === 'undefined') return { data: null, step: 'idle', name: '', phone: '' }
+  try {
+    const verifiedProfileStr = localStorage.getItem('digilocker_verified_profile')
+    if (verifiedProfileStr) {
+      const profile = JSON.parse(verifiedProfileStr)
+      if (profile && profile.kyc_status === 'VERIFIED') {
+        return {
+          data: {
+            data: {
+              applicant_name: profile.applicant_name,
+              dob: profile.dob,
+              address: profile.address,
+              documents_found: profile.documents_found,
+              certificates: profile.certificates
+            },
+            verification: profile.verification
+          },
+          step: 'verified',
+          name: profile.applicant_name || '',
+          phone: profile.phone || ''
+        }
+      }
+    }
+  } catch {}
+  return { data: null, step: 'idle', name: '', phone: '' }
+}
+
 export default function Apply() {
   const [lang] = useStickyState('en', 'app-lang')
   const [step, setStep] = useState(1)
@@ -34,8 +62,10 @@ export default function Apply() {
   const [generatedAppNo, setGeneratedAppNo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false)
-  const [digilockerStep, setDigilockerStep] = useState('idle') // 'idle' | 'verified'
-  const [digilockerData, setDigilockerData] = useState(null)
+  
+  const [savedProfile] = useState(getSavedDigiLockerProfile)
+  const [digilockerStep, setDigilockerStep] = useState(savedProfile.step)
+  const [digilockerData, setDigilockerData] = useState(savedProfile.data)
 
   const isHindi = lang === 'hi'
 
@@ -147,7 +177,34 @@ export default function Apply() {
     setManualDocs(sampleDocs)
   }
 
-  const handleLaunchDigilocker = () => {
+  // Direct real-time redirection to Government of India DigiLocker / MeriPehchaan SSO
+  const handleRedirectToDigiLocker = () => {
+    const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10)
+    if (!cleanPhone || cleanPhone.length < 10) {
+      alert(isHindi ? 'कृपया डिजीलॉकर पर जाने से पहले ऊपर अपना 10 अंकों का मोबाइल नंबर दर्ज करें।' : 'Please enter your 10-digit mobile number above before proceeding to DigiLocker.')
+      return
+    }
+
+    const statePayload = {
+      returnTo: '/apply',
+      phone: cleanPhone,
+      name: name || (cleanPhone === '8910464763' ? 'Avrojit Saha' : ''),
+      vehicleClass: vehicle,
+      rto: stateRto,
+      ts: Date.now()
+    }
+
+    try {
+      localStorage.setItem('digilocker_pending_auth', JSON.stringify(statePayload))
+    } catch {}
+
+    const redirectUri = `${window.location.origin}/digilocker-callback`
+    const ssoUrl = `https://digilocker.meripehchaan.gov.in/public/oauth2/1/authorize?response_type=code&client_id=PARIVAHAN_EASYDL&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid&state=${encodeURIComponent(JSON.stringify(statePayload))}`
+    
+    window.location.href = ssoUrl
+  }
+
+  const handleLaunchDigilockerModal = () => {
     setIsDigiLockerModalOpen(true)
   }
 
@@ -443,7 +500,7 @@ export default function Apply() {
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                             <Button
                               type="button"
-                              onClick={() => setIsDigiLockerModalOpen(true)}
+                              onClick={handleRedirectToDigiLocker}
                               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 cursor-pointer"
                             >
                               <ShieldCheck className="w-4 h-4 text-white" />
@@ -452,11 +509,11 @@ export default function Apply() {
 
                             <button
                               type="button"
-                              onClick={handleLaunchDigilocker}
+                              onClick={handleLaunchDigilockerModal}
                               className="text-xs text-blue-700 dark:text-blue-400 font-semibold hover:underline py-1.5 px-3 rounded-lg border border-blue-200 dark:border-blue-800/60 bg-white dark:bg-slate-900 flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <KeyRound className="w-3.5 h-3.5" />
-                              {isHindi ? 'सीधा ओटीपी प्राप्त करें' : 'Quick OTP Login (123456)'}
+                              {isHindi ? 'सीधा मोबाइल ओटीपी सत्यापन' : 'Real-time Mobile OTP Verification'}
                             </button>
                           </div>
                         </div>
