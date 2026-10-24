@@ -14,13 +14,14 @@ import {
 import { mockQuestions } from '../data/questions'
 import { trafficSigns } from '../data/signs'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:8000')
 
 async function safeFetch(endpoint, options = {}) {
   try {
     const controller = new AbortController()
-    const id = setTimeout(() => controller.abort(), 3500)
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const id = setTimeout(() => controller.abort(), 4500)
+    const url = API_BASE ? `${API_BASE}${endpoint}` : endpoint
+    const res = await fetch(url, {
       ...options,
       signal: controller.signal,
       headers: {
@@ -32,9 +33,13 @@ async function safeFetch(endpoint, options = {}) {
     if (!res.ok) {
       throw new Error(`API returned HTTP ${res.status}`)
     }
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      throw new Error('Non-JSON response')
+    }
     return await res.json()
   } catch {
-    // Graceful fallback to local store/memory if backend is offline
+    // Graceful fallback to local store/memory if backend is offline or static
     return null
   }
 }

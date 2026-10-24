@@ -11,14 +11,14 @@ import {
   Upload, 
   Sparkles,
   CheckCircle2,
-  KeyRound,
-  Loader2
+  KeyRound
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useStickyState } from '@/hooks/useStickyState'
 import { api } from '@/lib/api'
 import ManualDocumentUploader from '@/components/ManualDocumentUploader'
+import DigiLockerAuthModal from '@/components/DigiLockerAuthModal'
 import { RTO_DOC_STANDARDS } from '@/lib/rtoDocStandards'
 
 export default function Apply() {
@@ -33,11 +33,9 @@ export default function Apply() {
   const [manualDocs, setManualDocs] = useState({})
   const [generatedAppNo, setGeneratedAppNo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [digilockerStep, setDigilockerStep] = useState('idle') // 'idle' | 'otp' | 'verified'
-  const [digilockerOtp, setDigilockerOtp] = useState('')
-  const [digilockerLoading, setDigilockerLoading] = useState(false)
+  const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false)
+  const [digilockerStep, setDigilockerStep] = useState('idle') // 'idle' | 'verified'
   const [digilockerData, setDigilockerData] = useState(null)
-  const [digilockerError, setDigilockerError] = useState('')
 
   const isHindi = lang === 'hi'
 
@@ -149,42 +147,8 @@ export default function Apply() {
     setManualDocs(sampleDocs)
   }
 
-  const handleRequestOtp = async () => {
-    if (!phone || phone.length < 10) {
-      setDigilockerError(isHindi ? 'कृपया मान्य 10 अंकों का फोन नंबर दर्ज करें।' : 'Please enter a valid 10-digit phone number.')
-      return
-    }
-    setDigilockerLoading(true)
-    setDigilockerError('')
-    const res = await api.requestDigilockerOtp(phone)
-    setDigilockerLoading(false)
-    if (res && res.success) {
-      setDigilockerStep('otp')
-    } else {
-      setDigilockerError(res?.error || 'Failed to send OTP')
-    }
-  }
-
-  const handleVerifyOtp = async () => {
-    setDigilockerLoading(true)
-    setDigilockerError('')
-    const verifyRes = await api.verifyDigilockerOtp(digilockerOtp)
-    if (!verifyRes || !verifyRes.token) {
-      setDigilockerLoading(false)
-      setDigilockerError(verifyRes?.error || 'Invalid OTP. Enter 123456 for demo.')
-      return
-    }
-    const docRes = await api.fetchDigilockerDocuments(vehicle, verifyRes.token)
-    setDigilockerLoading(false)
-    if (docRes && docRes.success) {
-      setDigilockerData(docRes)
-      setDigilockerStep('verified')
-      if (!name && docRes.data?.applicant_name) {
-        setName(docRes.data.applicant_name)
-      }
-    } else {
-      setDigilockerError(docRes?.error || 'Failed to fetch documents.')
-    }
+  const handleLaunchDigilocker = () => {
+    setIsDigiLockerModalOpen(true)
   }
 
   const handleSubmit = async () => {
@@ -409,84 +373,47 @@ export default function Apply() {
                       </label>
                     </div>
 
-                    {/* Interactive DigiLocker Auth & Document Retrieval Card */}
-                    <div className="p-4 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/60">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                          <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
-                            {isHindi ? 'लाइव डिजीलॉकर / API Setu सत्यापन' : 'Live DigiLocker & API Setu Verification'}
-                          </span>
-                        </div>
-                        {digilockerStep === 'verified' && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> {isHindi ? 'सत्यापित' : 'KYC VERIFIED'}
-                          </span>
-                        )}
-                      </div>
-
-                      {digilockerStep === 'idle' && (
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                            {isHindi 
-                              ? 'अपने पंजीकृत मोबाइल पर ओटीपी प्राप्त कर API Setu से 10वीं की अंकतालिका एवं पहचान पत्र स्वतः प्राप्त करें।' 
-                              : 'Authenticate via mobile OTP to automatically pull verified Class X Marksheet and Identity records.'}
-                          </p>
-                          <Button
-                            type="button"
-                            size="sm"
-                            disabled={digilockerLoading || !phone}
-                            onClick={handleRequestOtp}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3.5 shrink-0"
-                          >
-                            {digilockerLoading ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
-                            ) : (
-                              <KeyRound className="w-3.5 h-3.5 mr-1" />
-                            )}
-                            {isHindi ? 'ओटीपी प्राप्त करें' : 'Verify with OTP'}
-                          </Button>
-                        </div>
-                      )}
-
-                      {digilockerStep === 'otp' && (
-                        <div className="space-y-2.5">
-                          <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                            {isHindi ? 'दर्ज करें 6-अंकों का ओटीपी (डेमो कोड: 123456):' : 'Enter 6-digit verification OTP (Demo code: 123456):'}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <input
-                              type="text"
-                              value={digilockerOtp}
-                              maxLength={6}
-                              onChange={(e) => setDigilockerOtp(e.target.value)}
-                              placeholder="123456"
-                              className="w-32 px-3 py-1.5 text-xs font-mono tracking-widest text-center border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                            />
-                            <Button
-                              type="button"
-                              size="sm"
-                              disabled={digilockerLoading || !digilockerOtp}
-                              onClick={handleVerifyOtp}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3"
-                            >
-                              {digilockerLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
-                              {isHindi ? 'सत्यापित करें' : 'Verify & Fetch Docs'}
-                            </Button>
-                            <button
-                              type="button"
-                              onClick={() => setDigilockerOtp('123456')}
-                              className="text-[10px] text-emerald-700 dark:text-emerald-400 underline font-semibold"
-                            >
-                              {isHindi ? 'ऑटो-भरें 123456' : 'Quick fill 123456'}
-                            </button>
+                    {/* DigiLocker Official SSO Launch Card */}
+                    <div className="p-4 sm:p-5 bg-gradient-to-br from-blue-50/80 via-emerald-50/40 to-slate-50 dark:from-blue-950/30 dark:via-emerald-950/20 dark:to-slate-900 rounded-2xl border-2 border-blue-200 dark:border-blue-800/60 shadow-sm space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20">
+                            🇮🇳
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                                {isHindi ? 'डिजीलॉकर / मेरी पहचान (SSO)' : 'DigiLocker / MeriPehchan (SSO)'}
+                              </h3>
+                              {digilockerStep === 'verified' && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
+                                  <CheckCircle2 className="w-3 h-3" /> {isHindi ? 'सत्यापित' : 'KYC VERIFIED'}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              {isHindi ? 'कागज रहित प्रमाणीकरण एवं 10वीं मार्कशीट/पहचान पत्र स्वतः प्राप्ति' : 'Paperless authentication & automated Class X / ID retrieval via API Setu'}
+                            </p>
                           </div>
                         </div>
-                      )}
+                      </div>
 
-                      {digilockerStep === 'verified' && digilockerData && (
-                        <div className="space-y-2 pt-1 text-xs">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-xl border border-emerald-200/50 dark:border-emerald-900/40">
+                      {digilockerStep === 'verified' && digilockerData ? (
+                        <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-emerald-300 dark:border-emerald-800/60 space-y-2">
+                          <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                            <span className="flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                              {isHindi ? 'दस्तावेज सफलतापूर्वक प्राप्त हुए' : 'Verified Government Dossier Pulled'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsDigiLockerModalOpen(true)}
+                              className="text-[11px] text-blue-600 dark:text-blue-400 underline font-semibold"
+                            >
+                              {isHindi ? 'पुनः सत्यापित करें' : 'Re-authenticate'}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                             <div>
                               <span className="text-slate-500">{isHindi ? 'आवेदक का नाम:' : 'Name:'}</span>{' '}
                               <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.applicant_name}</strong>
@@ -496,20 +423,42 @@ export default function Apply() {
                               <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.dob}</strong>
                             </div>
                             <div>
-                              <span className="text-slate-500">{isHindi ? 'दस्तावेज:' : 'Documents:'}</span>{' '}
+                              <span className="text-slate-500">{isHindi ? 'सत्यापित दस्तावेज:' : 'Documents:'}</span>{' '}
                               <strong className="text-slate-800 dark:text-slate-200">{digilockerData.data?.documents_found?.join(', ')}</strong>
                             </div>
                             <div>
-                              <span className="text-slate-500">{isHindi ? 'आरटीओ टिप्पणी:' : 'RTO Remarks:'}</span>{' '}
-                              <strong className="text-emerald-700 dark:text-emerald-400">{digilockerData.verification?.remarks}</strong>
+                              <span className="text-slate-500">{isHindi ? 'आरटीओ पात्रता:' : 'RTO Status:'}</span>{' '}
+                              <strong className="text-emerald-600 dark:text-emerald-400">{digilockerData.verification?.remarks}</strong>
                             </div>
                           </div>
                         </div>
-                      )}
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {isHindi
+                              ? 'राष्ट्रीय सिंगल साइन-ऑन (MeriPehchan) के माध्यम से लॉग इन करें। आपके पंजीकृत मोबाइल नंबर पर ओटीपी प्रेषित किया जाएगा।'
+                              : 'Launch the National Single Sign-On portal to verify your phone with an incoming security OTP and pull your verified documents directly into your Form 2.'}
+                          </p>
 
-                      {digilockerError && (
-                        <div className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-2">
-                          ⚠ {digilockerError}
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                            <Button
+                              type="button"
+                              onClick={() => setIsDigiLockerModalOpen(true)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 cursor-pointer"
+                            >
+                              <ShieldCheck className="w-4 h-4 text-white" />
+                              {isHindi ? 'डिजीलॉकर / मेरी पहचान से कनेक्ट करें' : 'Proceed to DigiLocker (MeriPehchan SSO)'}
+                            </Button>
+
+                            <button
+                              type="button"
+                              onClick={handleLaunchDigilocker}
+                              className="text-xs text-blue-700 dark:text-blue-400 font-semibold hover:underline py-1.5 px-3 rounded-lg border border-blue-200 dark:border-blue-800/60 bg-white dark:bg-slate-900 flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                              {isHindi ? 'सीधा ओटीपी प्राप्त करें' : 'Quick OTP Login (123456)'}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -719,6 +668,26 @@ export default function Apply() {
           </div>
         </div>
       </div>
+
+      {/* DigiLocker Official Authentication Modal with Live SMS Audio & Toast */}
+      <DigiLockerAuthModal
+        isOpen={isDigiLockerModalOpen}
+        onClose={() => setIsDigiLockerModalOpen(false)}
+        initialPhone={phone}
+        vehicleClass={vehicle}
+        lang={lang}
+        onSuccess={(result) => {
+          setDigilockerData(result)
+          setDigilockerStep('verified')
+          setAadhaarConsent(true)
+          if (result.data?.applicant_name) {
+            setName(result.data.applicant_name)
+          }
+          if (result.phone && !phone) {
+            setPhone(result.phone)
+          }
+        }}
+      />
     </div>
   )
 }
