@@ -36,6 +36,17 @@ class EligibilityRequest(BaseModel):
 class QuizSubmission(BaseModel):
     answers: Dict[int, int] = Field(..., description="Map of question ID to chosen option index")
 
+class ApplicationSubmission(BaseModel):
+    applicant_name: str = Field(..., description="Full legal name of the applicant")
+    dob: str = Field(..., description="Date of birth in YYYY-MM-DD format")
+    rto_code: str = Field(..., description="State RTO circle code")
+    vehicle_classes: List[str] = Field(..., description="Selected vehicle classes (e.g. MCWG, LMV)")
+    mobile: Optional[str] = Field(None, description="Citizen 10-digit mobile number")
+    email: Optional[str] = Field(None, description="Citizen email address")
+    address: Optional[str] = Field(None, description="Residential address")
+    verification_mode: Optional[str] = Field("digilocker", description="Verification mode (digilocker or manual)")
+    status: Optional[str] = Field("Form 2 Submitted", description="Initial application status")
+
 # ----------------- Routes -----------------
 @app.get("/")
 def root():
@@ -45,11 +56,32 @@ def root():
         "supabase_connected": is_connected,
         "supabase_url": SUPABASE_URL,
         "endpoints": [
-            "/api/applications/{app_number}",
-            "/api/questions",
-            "/api/check-eligibility",
-            "/api/quiz/submit"
+            "POST /api/applications",
+            "GET /api/applications/{app_number}",
+            "GET /api/track",
+            "GET /api/questions",
+            "POST /api/check-eligibility",
+            "POST /api/quiz/submit"
         ]
+    }
+
+@app.post("/api/applications")
+def create_application(app_data: ApplicationSubmission):
+    """Submit a new Learner's Licence application into Supabase or fallback store."""
+    payload = app_data.model_dump()
+    payload["submission_date"] = datetime.now().strftime("%Y-%m-%d")
+    payload["stage_index"] = 0
+    payload["timeline"] = [
+        {"title": "Application Submitted (Form 2)", "date": payload["submission_date"], "completed": True},
+        {"title": "Document Scrutiny", "date": "In Progress", "completed": False, "active": True},
+        {"title": "LL Test Slot Booking", "date": "Pending", "completed": False},
+        {"title": "Learner's Licence Approval", "date": "Pending", "completed": False}
+    ]
+    result = insert_application(payload)
+    return {
+        "status": "success",
+        "message": "Application submitted successfully per CMVR Rule 14",
+        "data": result
     }
 
 @app.get("/api/applications/{app_number}")
