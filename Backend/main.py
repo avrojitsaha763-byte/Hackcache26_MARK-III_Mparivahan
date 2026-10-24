@@ -545,8 +545,9 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
             }
 
             import os
-            fast2sms_key = os.environ.get("FAST2SMS_API_KEY")
+            fast2sms_key = os.environ.get("FAST2SMS_API_KEY") or "edbgkVbHX5LBqaw3g0tTnOp5Svw5AHZvfO63I7Xy6D5RZOI9TJYc66CtZPCe4zeEp5f7Y7222UkWOYBH"
             sms_dispatched = False
+            gateway_notice = None
 
             if fast2sms_key:
                 try:
@@ -566,18 +567,23 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                         }
                     )
                     with urllib.request.urlopen(sms_req, timeout=5) as resp:
-                        if resp.status == 200:
+                        resp_data = json.loads(resp.read().decode("utf-8"))
+                        if resp_data.get("return") is True or resp_data.get("status_code") == 200:
                             sms_dispatched = True
+                        elif resp_data.get("message"):
+                            gateway_notice = resp_data.get("message")
                 except Exception as sms_err:
+                    gateway_notice = str(sms_err)
                     print(f"Fast2SMS error in Backend: {sms_err}")
 
             return JSONResponse(
                 status_code=200, 
                 content={
                     "success": True, 
-                    "message": f"Real-time OTP dispatched to +91 {clean_phone}. Check your mobile SMS.", 
+                    "message": f"Real-time OTP dispatched to +91 {clean_phone}. Check your mobile SMS." if sms_dispatched else f"Real-time OTP generated for +91 {clean_phone}.", 
                     "txnId": f"TXN-DL-{clean_phone}-{int(time.time() * 1000)}",
                     "smsGatewayLive": sms_dispatched,
+                    "gatewayNotice": gateway_notice,
                     "phone": clean_phone
                 }
             )
