@@ -11,7 +11,8 @@ import {
   Upload, 
   Sparkles,
   CheckCircle2,
-  KeyRound
+  KeyRound,
+  Printer
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import { useStickyState } from '@/hooks/useStickyState'
 import { api } from '@/lib/api'
 import ManualDocumentUploader from '@/components/ManualDocumentUploader'
 import DigiLockerAuthModal from '@/components/DigiLockerAuthModal'
+import PaymentGatewayModal from '@/components/PaymentGatewayModal'
 import { RTO_DOC_STANDARDS } from '@/lib/rtoDocStandards'
 
 function getSavedDigiLockerProfile() {
@@ -62,6 +64,8 @@ export default function Apply() {
   const [generatedAppNo, setGeneratedAppNo] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDigiLockerModalOpen, setIsDigiLockerModalOpen] = useState(false)
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [paymentReceipt, setPaymentReceipt] = useState(null)
   
   const [savedProfile] = useState(getSavedDigiLockerProfile)
   const [digilockerStep, setDigilockerStep] = useState(savedProfile.step)
@@ -208,7 +212,8 @@ export default function Apply() {
     setIsDigiLockerModalOpen(true)
   }
 
-  const handleSubmit = async () => {
+  const handlePaymentSuccess = async (receipt) => {
+    setPaymentReceipt(receipt)
     setIsSubmitting(true)
     const newAppNo = `${stateRto.split('-')[0]}-2026-${Math.floor(10000 + Math.random() * 90000)}`
     setGeneratedAppNo(newAppNo)
@@ -238,10 +243,17 @@ export default function Apply() {
       rtoCode: stateRto,
       category: getVehicleLabel(vehicle),
       vehicle_classes: [vehicle],
-      feePaid: `₹${feeData.total} (CMVR Rule 32)`,
+      feePaid: `₹${receipt?.amount || feeData.total} (CMVR Rule 32)`,
       dob: "2004-06-15",
       uploadMode: uploadMode,
-      documents: formattedDocs
+      documents: formattedDocs,
+      challanNo: receipt?.challanNo,
+      bankRef: receipt?.bankRef,
+      cin: receipt?.cin,
+      npciUtr: receipt?.npciUtr,
+      paymentMode: receipt?.paymentMode,
+      paymentStatus: 'PAID',
+      paymentTimestamp: receipt?.timestamp || new Date().toISOString()
     })
 
     setStep(3) // Success confirmation
@@ -610,13 +622,19 @@ export default function Apply() {
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <Button 
-                  onClick={handleSubmit} 
+                  onClick={() => setPaymentModalOpen(true)} 
                   disabled={isSubmitting} 
-                  className="w-full h-12 text-sm sm:text-base rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex-1 shadow-lg shadow-emerald-600/20"
+                  className="w-full h-12 text-sm sm:text-base rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold flex-1 shadow-lg shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {isSubmitting ? (isHindi ? 'प्रसंस्करण जारी...' : 'Processing...') : (isHindi ? `शुल्क भुगतान करें (₹${feeData.total})` : `Submit & Pay ₹${feeData.total} (Simulated)`)}
+                  <CreditCard className="w-4 h-4 mr-1" />
+                  {isSubmitting 
+                    ? (isHindi ? 'प्रसंस्करण जारी...' : 'Finalizing Application...') 
+                    : (isHindi ? `शुल्क भुगतान करें (₹${feeData.total})` : `Proceed to Payment Gateway (₹${feeData.total})`)}
                 </Button>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Credit Card • Debit Card • UPI QR/VPA • Netbanking (40+ Banks)</span>
               </div>
             </motion.div>
           )}
@@ -628,15 +646,82 @@ export default function Apply() {
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                {isHindi ? 'आवेदन सफलतापूर्वक पंजीकृत हुआ' : 'Application Registered Successfully'}
+                {isHindi ? 'आवेदन एवं शुल्क भुगतान सफलतापूर्वक संपन्न' : 'Application & Statutory Fee Paid'}
               </h2>
 
               <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto">
                 {isHindi 
-                  ? 'आपका फॉर्म 2 आवेदन सारथी परिवहन प्रणाली में पंजीकृत कर लिया गया है तथा आरटीओ संवीक्षा हेतु प्रेषित है।' 
-                  : 'Your Form 2 application is registered and dispatched to the official RTO Scrutiny Desk for document examination.'}
+                  ? 'आपका फॉर्म 2 आवेदन सारथी परिवहन प्रणाली में पंजीकृत कर लिया गया है तथा ई-चालान राजकोष में जमा हो चुका है।' 
+                  : 'Your Form 2 application is registered in Sarathi Parivahan and statutory fees are credited to Government Consolidated Treasury.'}
               </p>
 
+              {/* Official Bharat Treasury e-Challan Receipt */}
+              {paymentReceipt && (
+                <div className="p-5 bg-gradient-to-br from-emerald-50/90 via-slate-50 to-teal-50/70 dark:from-emerald-950/30 dark:via-slate-900 dark:to-teal-950/20 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700/60 text-left space-y-3.5 shadow-sm font-sans">
+                  <div className="flex items-start justify-between border-b pb-3 border-emerald-200 dark:border-emerald-800/60">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center text-sm shadow">
+                        🇮🇳
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wide">
+                          Government of India • Ministry of Road Transport
+                        </div>
+                        <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                          Consolidated Treasury e-Challan (CMVR 1989 Rule 32)
+                        </div>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-800">
+                      <CheckCircle2 className="w-3 h-3" /> TREASURY SETTLED
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                    <div className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                      <span className="text-[10px] text-slate-500 uppercase block">Government Ref No (GRN)</span>
+                      <strong className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-bold">{paymentReceipt.challanNo}</strong>
+                    </div>
+                    <div className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                      <span className="text-[10px] text-slate-500 uppercase block">Bank Ref No (BRN)</span>
+                      <strong className="text-slate-800 dark:text-slate-200 text-xs sm:text-sm">{paymentReceipt.bankRef}</strong>
+                    </div>
+                    <div className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                      <span className="text-[10px] text-slate-500 uppercase block">Challan ID (CIN)</span>
+                      <strong className="text-slate-800 dark:text-slate-200">{paymentReceipt.cin}</strong>
+                    </div>
+                    <div className="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                      <span className="text-[10px] text-slate-500 uppercase block">Payment Channel</span>
+                      <strong className="text-slate-800 dark:text-slate-200 uppercase">
+                        {paymentReceipt.paymentMode} {paymentReceipt.npciUtr ? `(UTR: ${paymentReceipt.npciUtr})` : ''}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-1 border-t border-emerald-200 dark:border-emerald-800/60 text-xs">
+                    <span className="text-slate-600 dark:text-slate-400">Head of Account:</span>
+                    <strong className="font-mono text-[11px] text-slate-700 dark:text-slate-300">0041-00-102-01-00 (Taxes on Vehicles)</strong>
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="text-slate-800 dark:text-slate-200">Total Statutory Fee Credited:</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-base">₹{paymentReceipt.amount || feeData.total}.00</span>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      Print e-Challan
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Application Details Summary */}
               <div className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-left space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/60">
                   <span className="text-slate-500">{isHindi ? 'आवेदन संख्या:' : 'Application Number:'}</span>
@@ -744,6 +829,19 @@ export default function Apply() {
             setPhone(result.phone)
           }
         }}
+      />
+
+      {/* Official Bharat e-Pay Treasury Gateway Modal */}
+      <PaymentGatewayModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        onSuccess={handlePaymentSuccess}
+        amount={feeData.total}
+        applicantName={name}
+        phone={phone}
+        rtoCode={stateRto}
+        vehicleClass={vehicle}
+        isHindi={isHindi}
       />
     </div>
   )

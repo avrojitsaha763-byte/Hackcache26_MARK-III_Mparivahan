@@ -152,7 +152,70 @@ def test_system():
     print("Authentic Citizen Dossier Pulled:", doc_data["data"]["documents_found"])
     print("Documents Retrieved for:", doc_data["data"]["applicant_name"], "| Calculated Age:", doc_data["verification"]["calculated_age"], "| Remarks:", doc_data["verification"]["remarks"])
 
-    print("\n[SUCCESS] ALL 14 ENDPOINTS & DIGILOCKER ROUTE HANDLERS PASSED FLAWLESSLY!")
+    print("\n--- 15. Testing Bharat e-Pay Treasury Payment Gateway (4 Modes) ---")
+    # 1. Test Create Order
+    res_order = client.post("/api/payment/create-order", json={
+        "amount": 350,
+        "applicantName": "Avrojit Saha",
+        "rtoCode": "DL-01",
+        "vehicleClass": "combo-bike-car"
+    })
+    assert res_order.status_code == 200
+    order_data = res_order.json()
+    assert order_data["success"] is True
+    assert "ORD-PARIVAHAN" in order_data["orderId"]
+    assert "GRN-" in order_data["challanNo"]
+    print("Bharat e-Pay Order Created:", order_data["orderId"], "| Treasury Challan (GRN):", order_data["challanNo"])
+
+    # 2. Test Payment Verification for UPI with NPCI UTR
+    res_verify_upi = client.post("/api/payment/verify", json={
+        "orderId": order_data["orderId"],
+        "challanNo": order_data["challanNo"],
+        "paymentMode": "upi",
+        "amount": 350,
+        "payerDetails": {
+            "name": "Avrojit Saha",
+            "phone": "8910464763",
+            "bankName": "NPCI / BHIM Dynamic UPI"
+        }
+    })
+    assert res_verify_upi.status_code == 200
+    upi_receipt = res_verify_upi.json()
+    assert upi_receipt["success"] is True
+    assert upi_receipt["status"] == "PAID"
+    assert "npciUtr" in upi_receipt["receipt"]
+    assert "cin" in upi_receipt["receipt"]
+    print("UPI Payment Verified | CIN:", upi_receipt["receipt"]["cin"], "| NPCI UTR:", upi_receipt["receipt"]["npciUtr"])
+
+    # 3. Test Payment Verification for Credit Card
+    res_verify_card = client.post("/api/payment/verify", json={
+        "orderId": order_data["orderId"],
+        "paymentMode": "credit_card",
+        "amount": 350,
+        "payerDetails": {
+            "name": "Avrojit Saha",
+            "bankName": "HDFC Bank (Visa 3DS)"
+        }
+    })
+    assert res_verify_card.status_code == 200
+    assert res_verify_card.json()["status"] == "PAID"
+    print("Credit Card (3DS) Verified | Bank Ref:", res_verify_card.json()["receipt"]["bankRef"])
+
+    # 4. Test Payment Verification for Netbanking
+    res_verify_nb = client.post("/api/payment/verify", json={
+        "orderId": order_data["orderId"],
+        "paymentMode": "netbanking",
+        "amount": 350,
+        "payerDetails": {
+            "name": "Avrojit Saha",
+            "bankName": "State Bank of India (INB)"
+        }
+    })
+    assert res_verify_nb.status_code == 200
+    assert res_verify_nb.json()["status"] == "PAID"
+    print("Netbanking (SBI INB) Verified | GRN:", res_verify_nb.json()["receipt"]["challanNo"])
+
+    print("\n[SUCCESS] ALL 15 ENDPOINTS, DIGILOCKER ROUTE HANDLERS & PAYMENT GATEWAY PASSED FLAWLESSLY!")
 
 if __name__ == "__main__":
     test_system()
