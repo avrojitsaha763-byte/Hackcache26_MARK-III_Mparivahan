@@ -189,3 +189,73 @@ export function validateRtoFile(file, docType = 'age_proof') {
     standard
   }
 }
+
+/**
+ * Strict Pre-Flight Client-side Validation (File Manager / Local Disk Uploads)
+ * Enforces size limits (50KB - 2MB), format types (.jpg, .jpeg, .png, .pdf), and dimensions (min 300x300)
+ * @param {File} file 
+ * @returns {Promise<{ valid: boolean, error?: string, dimensions?: { width: number, height: number } }>}
+ */
+export async function validateClientDocument(file) {
+  if (!file) {
+    return { valid: false, error: 'No file selected.' }
+  }
+
+  // 1. Type Check: Only accept .jpg, .jpeg, .png, and .pdf
+  const validExtensions = ['jpg', 'jpeg', 'png', 'pdf']
+  const ext = (file.name.split('.').pop() || '').toLowerCase()
+  const isImage = file.type.startsWith('image/') || ['jpg', 'jpeg', 'png'].includes(ext)
+  const isPdf = file.type === 'application/pdf' || ext === 'pdf'
+
+  if (!validExtensions.includes(ext) || (!isImage && !isPdf)) {
+    return {
+      valid: false,
+      error: 'Invalid file type. Only JPG, JPEG, PNG, and PDF files are accepted.'
+    }
+  }
+
+  // 2. Size Limit: Check file.size (> 2MB or < 50KB)
+  const minBytes = 50 * 1024 // 50KB
+  const maxBytes = 2 * 1024 * 1024 // 2MB
+  if (file.size < minBytes || file.size > maxBytes) {
+    return {
+      valid: false,
+      error: 'File must be between 50KB and 2MB.'
+    }
+  }
+
+  // 3. Dimension Check (Images only): Min 300x300 pixels
+  if (isImage) {
+    try {
+      const dimensions = await new Promise((resolve, reject) => {
+        const img = new Image()
+        const objectUrl = URL.createObjectURL(file)
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl)
+          resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height })
+        }
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl)
+          reject(new Error('Corrupt or unreadable image file.'))
+        }
+        img.src = objectUrl
+      })
+
+      if (dimensions.width < 300 || dimensions.height < 300) {
+        return {
+          valid: false,
+          error: 'Image resolution is too low. Please upload a clearer document.'
+        }
+      }
+
+      return { valid: true, dimensions }
+    } catch {
+      return {
+        valid: false,
+        error: 'Unable to inspect image resolution. Please upload a clearer document.'
+      }
+    }
+  }
+
+  return { valid: true }
+}
