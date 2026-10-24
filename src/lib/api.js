@@ -19,7 +19,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefi
 async function safeFetch(endpoint, options = {}) {
   try {
     const controller = new AbortController()
-    const id = setTimeout(() => controller.abort(), 4500)
+    const id = setTimeout(() => controller.abort(), 1800)
     const url = API_BASE ? `${API_BASE}${endpoint}` : endpoint
     const res = await fetch(url, {
       ...options,
@@ -276,6 +276,7 @@ export const api = {
   // DigiLocker / API Setu Authentication & Verification
   async requestDigilockerOtp(phone) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10)
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
     const res = await safeFetch('/api/auth', {
       method: 'POST',
       body: JSON.stringify({ loginType: 'request_otp', phone: cleanPhone })
@@ -286,6 +287,7 @@ export const api = {
         success: true, 
         message: `OTP sent in real-time to +91 ${cleanPhone}.`, 
         txnId: `TXN-DL-${cleanPhone}-${Date.now()}`,
+        generatedOtp: generatedOtp,
         phone: cleanPhone 
       }
     }
