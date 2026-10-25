@@ -13,6 +13,7 @@ import {
 } from './adminAuth'
 import { mockQuestions } from '../data/questions'
 import { trafficSigns } from '../data/signs'
+import { getCopilotReply } from './aiChatService'
 
 // Unify API Architecture: In production, routes all requests directly to the deployed FastAPI server
 // configured via import.meta.env.VITE_API_BASE_URL (or VITE_BACKEND_URL).
@@ -521,6 +522,29 @@ export const api = {
         disclaimer: 'DEMO / SANDBOX RECEIPT: Simulated Treasury Challan generated for hackathon demonstration. No real monetary transactions took place.'
       }
     }
+  },
+
+  // Citizen Copilot & AI Conversational Assistant
+  async sendCopilotIntent(query, lang = 'en', history = []) {
+    return this.sendChatMessage(query, lang, history)
+  },
+
+  async sendChatMessage(query, lang = 'en', history = []) {
+    // 1. Try backend serverless/FastAPI endpoint if available
+    try {
+      const backendRes = await safeFetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({ query, lang, history })
+      })
+      if (backendRes && backendRes.status === 'success' && backendRes.reply) {
+        return backendRes
+      }
+    } catch {
+      // Backend unavailable, fallback to client AI engine
+    }
+
+    // 2. Client-side Dual-Engine (Gemini 2.5 Flash + CMVR Statutory Engine)
+    return await getCopilotReply(query, lang, history)
   }
 }
 

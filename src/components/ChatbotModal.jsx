@@ -18,31 +18,132 @@ import {
   CheckCircle2,
   HelpCircle,
   BookOpen,
-  CreditCard
+  CreditCard,
+  Calendar,
+  Search,
+  Compass,
+  Eye
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { useStickyState } from '@/hooks/useStickyState'
+import { 
+  OFFICIAL_RTOS, 
+  VEHICLE_OPTIONS, 
+  parseCitizenQuery, 
+  getStatutoryResponse 
+} from '@/lib/aiChatService'
 
-// Official RTO Circles for explicit selection (No fragile guessing)
-const OFFICIAL_RTOS = [
-  { code: 'WB-01', state: 'West Bengal', name: 'West Bengal (Kolkata - Beltala)' },
-  { code: 'DL-01', state: 'Delhi', name: 'Delhi (Mall Road - North Delhi)' },
-  { code: 'KA-01', state: 'Karnataka', name: 'Karnataka (Bengaluru Central - Sarathi)' },
-  { code: 'MH-01', state: 'Maharashtra', name: 'Maharashtra (Mumbai South - Tardeo)' },
-  { code: 'MH-02', state: 'Maharashtra', name: 'Maharashtra (Mumbai West - Andheri)' },
-  { code: 'UP-32', state: 'Uttar Pradesh', name: 'Uttar Pradesh (Lucknow - Transport Nagar)' },
-  { code: 'TN-01', state: 'Tamil Nadu', name: 'Tamil Nadu (Chennai Central)' }
-]
+// Custom Markdown & Step Formatter for Rich Guidance
+function FormattedBotContent({ text }) {
+  if (!text) return null
 
-const VEHICLE_OPTIONS = [
-  { id: 'motorcycle-gear', label: 'Motorcycle with Gear (MCWG)', fee: 200 },
-  { id: 'lmv-car', label: 'Light Motor Vehicle / Car (LMV)', fee: 200 },
-  { id: 'combo-bike-car', label: 'Dual Motorcycle + Car (MCWG + LMV)', fee: 350 },
-  { id: 'gearless-50cc', label: 'Gearless Moped up to 50cc (16+)', fee: 200 },
-  { id: 'commercial-transport', label: 'Commercial Transport (TRANS)', fee: 300 }
-]
+  const lines = text.split('\n')
+
+  return (
+    <div className="space-y-1.5 leading-relaxed">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim()
+        if (!trimmed) {
+          return <div key={idx} className="h-1.5" />
+        }
+
+        // Section Headers (starting with emoji icons or uppercase titles)
+        if (
+          trimmed.startsWith('📍') ||
+          trimmed.startsWith('📋') ||
+          trimmed.startsWith('📖') ||
+          trimmed.startsWith('⏳') ||
+          trimmed.startsWith('🚗') ||
+          trimmed.startsWith('🛵') ||
+          trimmed.startsWith('💰') ||
+          trimmed.startsWith('📑') ||
+          trimmed.startsWith('📄') ||
+          trimmed.startsWith('🔍') ||
+          trimmed.startsWith('💡') ||
+          trimmed.startsWith('🔄') ||
+          trimmed.startsWith('🌍') ||
+          trimmed.startsWith('📱') ||
+          trimmed.startsWith('🎯') ||
+          trimmed.startsWith('🛡️') ||
+          trimmed.startsWith('⚠️')
+        ) {
+          return (
+            <div 
+              key={idx} 
+              className="font-bold text-slate-900 dark:text-blue-200 mt-2 pt-1 border-t border-slate-200/60 dark:border-slate-700/60 first:border-t-0 first:pt-0 text-[11.5px] flex items-start gap-1.5"
+            >
+              <span>{trimmed}</span>
+            </div>
+          )
+        }
+
+        // Step numbers: e.g. "1.", "2.", "3.", "Stage 1:", "चरण 1:"
+        const stepMatch = trimmed.match(/^(\d+\.|\bStep\s+\d+:|\bStage\s+\d+:|चरण\s+\d+:)\s*(.*)/i)
+        if (stepMatch) {
+          const stepBadge = stepMatch[1]
+          const stepContent = stepMatch[2]
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-1 py-0.5 text-[11.5px]">
+              <span className="shrink-0 px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-[10px] font-mono">
+                {stepBadge}
+              </span>
+              <span className="flex-1">{renderInlineStyles(stepContent)}</span>
+            </div>
+          )
+        }
+
+        // Bullet points: • or -
+        if (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*')) {
+          const bulletContent = trimmed.replace(/^[•\-*]\s*/, '')
+          return (
+            <div key={idx} className="flex items-start gap-1.5 pl-2 text-[11px] text-slate-700 dark:text-slate-300">
+              <span className="text-blue-500 font-bold select-none">•</span>
+              <span className="flex-1">{renderInlineStyles(bulletContent)}</span>
+            </div>
+          )
+        }
+
+        // Standard Paragraph
+        return (
+          <p key={idx} className="text-[11.5px] text-slate-800 dark:text-slate-200">
+            {renderInlineStyles(trimmed)}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+// Inline formatting: bold **text**, citations [CMVR ...]
+function renderInlineStyles(text) {
+  if (!text) return ''
+
+  // Split by bold patterns **...** or citations [ ... ]
+  const parts = text.split(/(\*\*.*?\*\*|\[.*?\])/g)
+
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={index} className="font-semibold text-slate-900 dark:text-white">
+          {part.slice(2, -2)}
+        </strong>
+      )
+    }
+    if (part.startsWith('[') && part.endsWith(']')) {
+      return (
+        <span 
+          key={index} 
+          className="inline-block mx-0.5 px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 text-[10px] font-mono border border-amber-300 dark:border-amber-800"
+        >
+          {part}
+        </span>
+      )
+    }
+    return part
+  })
+}
 
 export default function ChatbotModal() {
   const navigate = useNavigate()
@@ -61,38 +162,81 @@ export default function ChatbotModal() {
   const recognitionRef = useRef(null)
   const messagesEndRef = useRef(null)
 
-  // Curated 1-Click Guided Chips
+  // FIX: Body Scroll Lock to prevent background webpage from scrolling when Chatbot modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      const originalPaddingRight = document.body.style.paddingRight
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      document.body.style.overflow = 'hidden'
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`
+      }
+      return () => {
+        document.body.style.overflow = originalOverflow
+        document.body.style.paddingRight = originalPaddingRight
+      }
+    }
+  }, [isOpen])
+
+  // Curated 1-Click Guided Quick Prompts — Specifically tailored for village & common citizen questions
   const quickPrompts = [
     {
-      q: isHindi 
-        ? '🎙️ 90s डेमो: पश्चिम बंगाल बाइक लाइसेंस' 
-        : '🎙️ 90s Demo: WB Motorcycle LL',
-      query: 'I live in West Bengal and want a learner\'s licence for a motorcycle. What should I do?'
+      q: isHindi ? '🛵 मुझे बाइक चलानी है' : '🛵 I want to ride a bike',
+      query: isHindi 
+        ? 'मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?' 
+        : 'I want to ride a motorcycle. How do I get a licence?'
     },
     {
-      q: isHindi ? 'लर्नर्स टेस्ट (Rule 11) के क्या नियम हैं?' : 'Rule 11 Knowledge Test Rules?',
-      query: 'What are the rules for the computerized learner licence knowledge test under CMVR Rule 11?'
+      q: isHindi ? '📄 10वीं मार्कशीट नहीं है, आधार चलेगा?' : '📄 No 10th marksheet, Aadhaar ok?',
+      query: isHindi 
+        ? 'मेरे पास 10वीं की मार्कशीट नहीं है, क्या केवल आधार कार्ड से लाइसेंस बन जाएगा?' 
+        : 'I don\'t have a 10th pass marksheet. Will my Aadhaar card work?'
     },
     {
-      q: isHindi ? 'स्थायी DL के लिए 30-दिन का नियम?' : 'Permanent DL 30-Day Rule?',
-      query: 'What is the mandatory 30-day waiting period for permanent DL under CMVR Rule 15?'
+      q: isHindi ? '💰 कुल कितना खर्चा आएगा?' : '💰 How much money in total?',
+      query: isHindi 
+        ? 'ड्राइविंग लाइसेंस में कुल कितना पैसा और सरकारी फीस लगेगी?' 
+        : 'How much money will it take in total?'
     },
     {
-      q: isHindi ? 'आधिकारिक सरकारी फीस (Rule 32)?' : 'Official Fees (Rule 32)?',
-      query: 'What are the statutory fees for motorcycle and car learner licence under CMVR Rule 32?'
+      q: isHindi ? '📱 फोन से होगा या RTO जाना पड़ेगा?' : '📱 Phone or visit RTO?',
+      query: isHindi 
+        ? 'क्या सारा काम मोबाइल फोन से हो जाएगा या आरटीओ ऑफिस जाना पड़ेगा?' 
+        : 'Do I have to go to the RTO office, or can I do it on my phone?'
+    },
+    {
+      q: isHindi ? '🎯 कंप्यूटर टेस्ट में फेल हो गया तो?' : '🎯 What if I fail computer test?',
+      query: isHindi 
+        ? 'कंप्यूटर टेस्ट में क्या पूछा जाता है और अगर मैं फेल हो गया तो क्या होगा?' 
+        : 'What happens in the computer test? What if I fail?'
+    },
+    {
+      q: isHindi ? '📬 घर पर कार्ड कितने दिन में आएगा?' : '📬 When will card reach my house?',
+      query: isHindi 
+        ? 'स्थायी स्मार्ट कार्ड लाइसेंस डाक से घर पर कितने दिन में आ जाता है?' 
+        : 'How many days will it take for the card to come to my house?'
     }
   ]
 
   const initialBotMessage = {
     sender: 'bot',
     text: isHindi
-      ? 'नमस्ते! मैं सारथी साथी — आपका ड्राइविंग लाइसेंस कोपायलट हूँ। आरटीओ नियम (नियम 11, 15, 32) पूछें, या सीधे 90s डेमो चिप पर क्लिक करके देखें कि मैं पश्चिम बंगाल में बाइक लाइसेंस आवेदन कैसे तैयार करता हूँ।'
-      : 'Namaste! I am Saathi — Your Driving Licence Copilot. Ask me about official RTO rules (CMVR 11, 15, 32), or click the 90s Demo chip to see how I prepare a West Bengal motorcycle application live.',
+      ? 'नमस्ते! मैं सारथी साथी — आपका डिजिटल आरटीओ मित्र हूँ।\n\nआपको किसी दलाल या एजेंट के पास जाने की जरूरत नहीं है। चाहे आपके पास 10वीं की मार्कशीट न हो, या आप पहली बार बाइक/कार का लाइसेंस बनवा रहे हों, आप मुझसे अपनी आम बोलचाल में कुछ भी पूछ सकते हैं!\n\nमैं आपको एक-एक करके समझाऊँगा और आपका आवेदन तैयार करूँगा।'
+      : 'Namaste! I am Saathi Copilot — your friendly Digital RTO Officer.\n\nYou do NOT need any brokers or middlemen. Even if you don\'t have a 10th marksheet or know nothing about government forms, you can ask me anything in simple everyday words!\n\nI will answer your questions, dispel your fears, and guide you through your licence application step by step.',
     sources: [
       { title: 'Central Motor Vehicles Rules 1989', url: 'https://parivahan.gov.in' },
       { title: 'MoRTH Official Portal', url: 'https://morth.nic.in' }
     ],
-    nextActions: ['apply', 'quiz', 'eligibility', 'fee']
+    isAiLive: true,
+    nextActions: ['apply', 'quiz', 'eligibility', 'fee'],
+    followUpChips: [
+      isHindi ? 'मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?' : 'I want to ride a motorcycle. How do I get a licence?',
+      isHindi ? '10वीं की मार्कशीट नहीं है, आधार चलेगा?' : 'I don\'t have a 10th pass marksheet. Will my Aadhaar card work?',
+      isHindi ? 'कुल कितना खर्चा आएगा?' : 'How much money will it take in total?',
+      isHindi ? 'फोन से होगा या RTO जाना पड़ेगा?' : 'Do I have to go to the RTO office, or can I do it on my phone?',
+      isHindi ? 'कंप्यूटर टेस्ट में क्या होता है? फेल हो गया तो?' : 'What happens in the computer test? What if I fail?'
+    ]
   }
 
   const [messages, setMessages] = useState([initialBotMessage])
@@ -104,10 +248,13 @@ export default function ChatbotModal() {
 
   // Speak bot replies via Web Speech Synthesis
   const speakText = useCallback((text) => {
-    if (!speechSynthesisActive || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
     try {
       window.speechSynthesis.cancel()
-      const cleanText = text.replace(/\[.*?\]/g, '').replace(/[#*_]/g, '')
+      const cleanText = text
+        .replace(/\[.*?\]/g, '')
+        .replace(/[#*_•📍📋📖⏳🚗🛵💰📑📄🔍💡🔄🌍📱🎯🛡️⚠️]/g, '')
+        .slice(0, 320)
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = isHindi ? 'hi-IN' : 'en-IN'
       utterance.rate = 1.0
@@ -116,109 +263,9 @@ export default function ChatbotModal() {
     } catch {
       // Speech synthesis unsupported or blocked by browser policy
     }
-  }, [speechSynthesisActive, isHindi])
+  }, [isHindi])
 
-  // Parse natural language for entities without injecting fake PII
-  const parseCitizenQuery = (text) => {
-    const lower = text.toLowerCase()
-
-    // 1. Vehicle category
-    let vehicle = 'motorcycle-gear'
-    let vehicleLabel = 'Motorcycle with Gear (MCWG)'
-    let fee = 200
-
-    if (
-      lower.includes('combo') ||
-      lower.includes('both') ||
-      (lower.includes('bike') && lower.includes('car')) ||
-      (lower.includes('motorcycle') && lower.includes('car')) ||
-      (lower.includes('बाइक') && lower.includes('कार'))
-    ) {
-      vehicle = 'combo-bike-car'
-      vehicleLabel = 'Dual Motorcycle + Car (MCWG + LMV)'
-      fee = 350
-    } else if (
-      lower.includes('car') ||
-      lower.includes('lmv') ||
-      lower.includes('four wheeler') ||
-      lower.includes('कार')
-    ) {
-      vehicle = 'lmv-car'
-      vehicleLabel = 'Light Motor Vehicle / Car (LMV)'
-      fee = 200
-    } else if (lower.includes('50cc') || lower.includes('moped')) {
-      vehicle = 'gearless-50cc'
-      vehicleLabel = 'Gearless Moped up to 50cc (16+)'
-      fee = 200
-    } else if (lower.includes('transport') || lower.includes('commercial')) {
-      vehicle = 'commercial-transport'
-      vehicleLabel = 'Commercial Transport (TRANS)'
-      fee = 300
-    }
-
-    // 2. Explicit State & RTO lookup
-    let rtoCode = 'WB-01'
-    let rtoName = 'West Bengal (Kolkata - Beltala)'
-
-    if (lower.includes('delhi') || lower.includes('dl')) {
-      rtoCode = 'DL-01'
-      rtoName = 'Delhi (Mall Road - North Delhi)'
-    } else if (lower.includes('bangalore') || lower.includes('bengaluru') || lower.includes('karnataka') || lower.includes('ka')) {
-      rtoCode = 'KA-01'
-      rtoName = 'Karnataka (Bengaluru Central - Sarathi)'
-    } else if (lower.includes('mumbai') || lower.includes('maharashtra') || lower.includes('mh')) {
-      rtoCode = 'MH-01'
-      rtoName = 'Maharashtra (Mumbai South - Tardeo)'
-    } else if (lower.includes('lucknow') || lower.includes('uttar pradesh') || lower.includes('up')) {
-      rtoCode = 'UP-32'
-      rtoName = 'Uttar Pradesh (Lucknow - Transport Nagar)'
-    } else if (lower.includes('chennai') || lower.includes('tamil nadu') || lower.includes('tn')) {
-      rtoCode = 'TN-01'
-      rtoName = 'Tamil Nadu (Chennai Central)'
-    } else if (lower.includes('west bengal') || lower.includes('bengal') || lower.includes('kolkata') || lower.includes('wb')) {
-      rtoCode = 'WB-01'
-      rtoName = 'West Bengal (Kolkata - Beltala)'
-    }
-
-    // 3. Strict candidate name parsing (Never inject default fake name)
-    let name = ''
-    const nameMatch = text.match(/(?:my name is|i am|mera naam|naam)\s+([a-zA-Z\s]{2,25})/i)
-    if (nameMatch && nameMatch[1]) {
-      const clean = nameMatch[1].trim().split(/\s+/).slice(0, 3).join(' ')
-      if (!clean.toLowerCase().includes('apply') && !clean.toLowerCase().includes('want')) {
-        name = clean
-      }
-    }
-
-    // 4. Strict candidate phone parsing (Never inject default fake phone)
-    let phone = ''
-    const phoneMatch = text.match(/\b[6-9]\d{9}\b/)
-    if (phoneMatch) {
-      phone = phoneMatch[0]
-    }
-
-    const isApply =
-      lower.includes('apply') ||
-      lower.includes('want a') ||
-      lower.includes('chahiye') ||
-      lower.includes('आवेदन') ||
-      lower.includes('motorcycle') ||
-      lower.includes('licence') ||
-      lower.includes('license')
-
-    return {
-      isApply,
-      name,
-      phone,
-      vehicle,
-      vehicleLabel,
-      fee,
-      rtoCode,
-      rtoName
-    }
-  }
-
-  // Handle message dispatch
+  // Handle message dispatch: Reads, Analyzes, Answers & Guides
   const handleSend = async (textToSend) => {
     const query = (textToSend || inputText).trim()
     if (!query) return
@@ -228,100 +275,94 @@ export default function ChatbotModal() {
     setInputText('')
     setIsAiLoading(true)
 
-    const parsed = parseCitizenQuery(query)
-
-    // Call Copilot intent endpoint with strict 4-second timeout
-    let backendData = null
     try {
-      const controller = new AbortController()
-      const timer = setTimeout(() => controller.abort(), 4000)
+      // Invoke Centralized API with Gemini 2.5 Flash + CMVR Statutory Engine
+      const res = await api.sendChatMessage(query, lang, newMsgs)
 
-      backendData = await api.sendCopilotIntent(query, lang)
-      clearTimeout(timer)
+      setIsAiLoading(false)
+
+      if (res && res.status === 'success' && res.reply) {
+        setAiUnavailable(!res.isAiLive)
+        const isApplyIntent = res.isApplyIntent === true
+
+        const botMsg = {
+          sender: 'bot',
+          text: res.reply,
+          isAiLive: res.isAiLive,
+          sourceTag: res.source,
+          sources: res.sources || [
+            { title: 'Central Motor Vehicles Rules 1989', url: 'https://parivahan.gov.in' },
+            { title: 'MoRTH Statutory Gazette', url: 'https://morth.nic.in' }
+          ],
+          nextActions: res.nextActions || (isApplyIntent ? ['apply', 'quiz', 'fee'] : ['apply', 'quiz', 'eligibility', 'track']),
+          followUpChips: res.followUpChips || [],
+          autoFillCard: isApplyIntent ? {
+            name: res.extractedData?.name || '',
+            phone: res.extractedData?.phone || '',
+            vehicle: res.extractedData?.vehicle || 'motorcycle-gear',
+            vehicleLabel: res.extractedData?.vehicleLabel || 'Motorcycle with Gear (MCWG)',
+            rtoCode: res.extractedData?.rtoCode || 'WB-01',
+            rtoName: res.extractedData?.rtoName || 'West Bengal (Kolkata - Beltala)',
+            fee: res.extractedData?.fee || 200
+          } : null
+        }
+
+        setMessages((prev) => [...prev, botMsg])
+        if (speechSynthesisActive) {
+          speakText(res.reply)
+        }
+      } else {
+        // High-Precision Statutory Offline Engine Fallback
+        const fallback = getStatutoryResponse(query, lang)
+        const parsed = parseCitizenQuery(query, isHindi)
+        const botMsg = {
+          sender: 'bot',
+          text: fallback.text,
+          isAiLive: false,
+          sources: fallback.sources,
+          nextActions: fallback.nextActions,
+          followUpChips: fallback.followUpChips,
+          autoFillCard: fallback.isApplyIntent ? {
+            name: parsed.name || '',
+            phone: parsed.phone || '',
+            vehicle: parsed.vehicle,
+            vehicleLabel: parsed.vehicleLabel,
+            rtoCode: parsed.rtoCode,
+            rtoName: parsed.rtoName,
+            fee: parsed.fee
+          } : null
+        }
+        setMessages((prev) => [...prev, botMsg])
+        if (speechSynthesisActive) {
+          speakText(fallback.text)
+        }
+      }
     } catch {
-      backendData = null
-    }
-
-    setIsAiLoading(false)
-
-    if (backendData && backendData.status === 'success' && backendData.reply) {
-      setAiUnavailable(false)
-      const isApplyIntent = backendData.intent === 'apply_ll' || parsed.isApply
-
+      setIsAiLoading(false)
+      const fallback = getStatutoryResponse(query, lang)
+      const parsed = parseCitizenQuery(query, isHindi)
       const botMsg = {
         sender: 'bot',
-        text: backendData.reply,
-        isAiLive: backendData.is_ai_live === true,
-        sources: backendData.sources || [
-          { title: 'Central Motor Vehicles Rules 1989', url: 'https://parivahan.gov.in' }
-        ],
-        nextActions: isApplyIntent ? ['quiz', 'fee'] : ['apply', 'quiz', 'eligibility'],
-        autoFillCard: isApplyIntent ? {
-          name: backendData.extracted_data?.name || parsed.name || '',
-          phone: backendData.extracted_data?.phone || parsed.phone || '',
-          vehicle: backendData.extracted_data?.vehicle || parsed.vehicle,
-          vehicleLabel: backendData.extracted_data?.vehicle_label || parsed.vehicleLabel,
-          rtoCode: backendData.extracted_data?.rto || parsed.rtoCode,
-          rtoName: backendData.extracted_data?.rto_name || parsed.rtoName,
-          fee: backendData.fee_details?.total || parsed.fee
+        text: fallback.text,
+        isAiLive: false,
+        sources: fallback.sources,
+        nextActions: fallback.nextActions,
+        followUpChips: fallback.followUpChips,
+        autoFillCard: fallback.isApplyIntent ? {
+          name: parsed.name || '',
+          phone: parsed.phone || '',
+          vehicle: parsed.vehicle,
+          vehicleLabel: parsed.vehicleLabel,
+          rtoCode: parsed.rtoCode,
+          rtoName: parsed.rtoName,
+          fee: parsed.fee
         } : null
       }
-
       setMessages((prev) => [...prev, botMsg])
-      speakText(backendData.reply)
-      return
+      if (speechSynthesisActive) {
+        speakText(fallback.text)
+      }
     }
-
-    // Graceful Statutory Fallback (If AI service is offline or timed out)
-    setAiUnavailable(true)
-    const lower = query.toLowerCase()
-    let fallbackReply = ''
-    let isApplyIntent = parsed.isApply
-
-    if (isApplyIntent) {
-      fallbackReply = isHindi
-        ? `नियम 14 CMVR के तहत, ${parsed.rtoName} में ${parsed.vehicleLabel} के लिए फॉर्म 2 आवेदन तैयार है। आवश्यक दस्तावेज: आयु प्रमाण (आधार), पता प्रमाण और फॉर्म 1 स्व-घोषणा। सांविधिक शुल्क ₹${parsed.fee} (नियम 32) है। नीचे विवरण की पुष्टि करके फॉर्म 2 स्वतः भरें:`
-        : `Under CMVR 1989 Rule 14, I have prepared your Form 2 draft for ${parsed.vehicleLabel} at ${parsed.rtoName}. Statutory fee is ₹${parsed.fee} per Rule 32. Required documents: Age proof (Aadhaar), Address proof, and Form 1 self-declaration. Please review and confirm below to autofill Form 2:`;
-    } else if (lower.includes('rule 11') || lower.includes('knowledge') || lower.includes('stall') || lower.includes('नियम 11')) {
-      fallbackReply = isHindi
-        ? 'नियम 11 CMVR के अनुसार, शिक्षार्थी लाइसेंस जारी करने से पहले सड़क संकेत, ट्रैफिक नियमों और सुरक्षित ड्राइविंग पर कंप्यूटर आधारित STALL परीक्षा में न्यूनतम 60% अंक प्राप्त करना अनिवार्य है।'
-        : 'Under CMVR 1989 Rule 11, candidates must pass a computerized preliminary knowledge test covering traffic signs, road regulations, and safe driving duties with a minimum 60% passing mark before Form 3 LL issuance.';
-    } else if (lower.includes('30') || lower.includes('wait') || lower.includes('permanent') || lower.includes('rule 15')) {
-      fallbackReply = isHindi
-        ? 'नियम 15 CMVR के तहत, स्थायी ड्राइविंग टेस्ट देने से पहले आपके पास न्यूनतम 30 दिनों तक वैध शिक्षार्थी अनुज्ञप्ति (Form 3) होना अनिवार्य है। यह पूरे भारत में 180 दिनों (6 महीने) तक वैध रहता है (नियम 13)।'
-        : 'Under Rule 15 CMVR, you must hold a valid Form 3 Learner\'s Licence for minimum 30 days before appearing for the permanent DL driving test. Valid for 180 days across India per Rule 13.';
-    } else if (lower.includes('fee') || lower.includes('cost') || lower.includes('फीस') || lower.includes('rule 32')) {
-      fallbackReply = isHindi
-        ? 'CMVR नियम 32 के अनुसार आधिकारिक शुल्क: सिंगल क्लास (केवल बाइक या केवल कार) = ₹200 (₹150 LL + ₹50 टेस्ट शुल्क)। बाइक + कार कॉम्बो = ₹350 (₹150 + ₹150 + ₹50)। भारत ई-पे चालान से भुगतान होता है, कोई दलाल शुल्क नहीं।'
-        : 'Per CMVR Rule 32: Single category (Bike or Car) = ₹200 (₹150 LL + ₹50 test). Dual Bike + Car combo = ₹350. Direct treasury payment via Bharat e-Pay with zero agent surcharge.';
-    } else {
-      fallbackReply = isHindi
-        ? 'नमस्ते! मैं सारथी साथी कोपायलट हूँ। मुझसे आरटीओ नियम (नियम 11, 15, 32) पूछें या सीधे कहें "मुझे पश्चिम बंगाल में बाइक लाइसेंस चाहिए" और मैं आपका फॉर्म 2 तैयार करूँगा।'
-        : 'Namaste! I am Saathi — Your Driving Licence Copilot. Ask me about RTO rules (CMVR 11, 15, 32), or say "I want a motorcycle learner\'s licence in West Bengal" to prepare your Form 2 draft.';
-    }
-
-    const fallbackMsg = {
-      sender: 'bot',
-      text: fallbackReply,
-      isAiLive: false,
-      sources: [
-        { title: 'Central Motor Vehicles Rules 1989', url: 'https://parivahan.gov.in' },
-        { title: 'MoRTH Statutory Gazette', url: 'https://morth.nic.in' }
-      ],
-      nextActions: isApplyIntent ? ['quiz', 'fee'] : ['apply', 'quiz', 'eligibility'],
-      autoFillCard: isApplyIntent ? {
-        name: parsed.name || '',
-        phone: parsed.phone || '',
-        vehicle: parsed.vehicle,
-        vehicleLabel: parsed.vehicleLabel,
-        rtoCode: parsed.rtoCode,
-        rtoName: parsed.rtoName,
-        fee: parsed.fee
-      } : null
-    }
-
-    setMessages((prev) => [...prev, fallbackMsg])
-    speakText(fallbackReply)
   }
 
   // Web Speech API Voice Recognition Toggle
@@ -329,7 +370,7 @@ export default function ChatbotModal() {
     if (typeof window === 'undefined') return
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRec) {
-      alert('Speech Recognition is not supported in this browser. Please use Chrome or Edge.')
+      alert('Speech Recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.')
       return
     }
 
@@ -387,13 +428,13 @@ export default function ChatbotModal() {
       setTimeout(() => {
         setIsOpen(false)
         navigate('/apply')
-      }, 700)
+      }, 600)
     } catch {
       navigate('/apply')
     }
   }
 
-  // Handle Action Chip Click
+  // Handle Action Button Navigation & Guidance Flow
   const handleActionClick = (actionType) => {
     switch (actionType) {
       case 'apply':
@@ -408,8 +449,24 @@ export default function ChatbotModal() {
         setIsOpen(false)
         navigate('/can-i-apply')
         break
+      case 'slot':
+        setIsOpen(false)
+        navigate('/permanent-dl')
+        break
+      case 'track':
+        setIsOpen(false)
+        navigate('/track')
+        break
+      case 'learn':
+        setIsOpen(false)
+        navigate('/learn')
+        break
+      case 'vision':
+        setIsOpen(false)
+        navigate('/vision-test')
+        break
       case 'fee':
-        handleSend('What are the official fees under Rule 32?')
+        handleSend(isHindi ? 'ड्राइविंग लाइसेंस में कुल कितना सरकारी खर्च आएगा?' : 'How much money will it take in total?')
         break
       default:
         break
@@ -456,14 +513,20 @@ export default function ChatbotModal() {
       {/* Copilot Sliding Modal / Mobile Bottom Sheet */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 backdrop-blur-sm">
+          <div 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsOpen(false)
+            }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 backdrop-blur-sm overscroll-contain"
+          >
             <motion.div
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 w-full sm:max-w-lg h-[90vh] sm:h-[660px] rounded-t-3xl sm:rounded-3xl flex flex-col relative border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
+              style={{ overscrollBehavior: 'contain' }}
+              className="bg-white dark:bg-slate-900 w-full sm:max-w-xl h-[92vh] sm:h-[720px] rounded-t-3xl sm:rounded-3xl flex flex-col relative border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden overscroll-contain"
             >
-              {/* Header with Bilingual Voice Controls */}
+              {/* Header with Bilingual Voice Controls & Live AI status */}
               <div className="p-3.5 sm:p-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shrink-0 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
@@ -471,14 +534,15 @@ export default function ChatbotModal() {
                   </div>
                   <div>
                     <h3 className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                      <span>Saathi — DL Copilot</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/20 font-mono tracking-wide">
-                        CMVR 1989
+                      <span>Saathi — AI Digital RTO Copilot</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 font-mono tracking-wide flex items-center gap-1 border border-emerald-400/30">
+                        <Sparkles className="w-2.5 h-2.5 text-emerald-300" />
+                        <span>Gemini 2.5 Flash</span>
                       </span>
                     </h3>
                     <p className="text-[10px] text-blue-200 flex items-center gap-1">
                       <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                      <span>{isHindi ? 'आधिकारिक स्रोत-आधारित आरटीओ सहायक' : 'Official Grounded RTO Copilot'}</span>
+                      <span>{isHindi ? 'सरल भाषा में आरटीओ मित्र • दलाल मुक्त' : 'Plain Language RTO Guide • Zero Agent Fee'}</span>
                     </p>
                   </div>
                 </div>
@@ -487,7 +551,7 @@ export default function ChatbotModal() {
                   {/* Voice Output Toggle */}
                   <button
                     onClick={() => setSpeechSynthesisActive(!speechSynthesisActive)}
-                    title={speechSynthesisActive ? 'Mute Speech' : 'Enable Speech Output'}
+                    title={speechSynthesisActive ? 'Mute Speech Output' : 'Enable Speech Output'}
                     className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-[11px]"
                   >
                     {speechSynthesisActive ? (
@@ -512,33 +576,76 @@ export default function ChatbotModal() {
                 <div className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-900/60 flex items-center justify-between text-[11px] text-amber-800 dark:text-amber-200 shrink-0">
                   <div className="flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    <span>⚡ Live AI offline — Operating on Verified CMVR Statutory Knowledge Base</span>
+                    <span>⚡ Operating on Verified CMVR Statutory Knowledge Base</span>
                   </div>
                 </div>
               )}
 
-              {/* Messages Body */}
-              <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3.5 text-xs">
+              {/* Messages Body — Fixed background scroll bleed with overscroll-contain & touch pan-y */}
+              <div 
+                style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+                className="flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-4 text-xs select-text touch-pan-y"
+              >
                 {messages.map((m, i) => (
                   <div
                     key={i}
                     className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
                   >
                     <div
-                      className={`max-w-[90%] p-3.5 rounded-2xl leading-relaxed shadow-sm ${
+                      className={`max-w-[92%] p-3.5 rounded-2xl leading-relaxed shadow-sm ${
                         m.sender === 'user'
-                          ? 'bg-blue-600 text-white rounded-br-none'
-                          : 'bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700/80'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none'
+                          : 'bg-slate-50 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-bl-none border border-slate-200 dark:border-slate-700/80'
                       }`}
                     >
-                      <p className="whitespace-pre-line">{m.text}</p>
+                      {/* Bot Message Header: AI Live indicator + Listen Speaker Button */}
+                      {m.sender === 'bot' && (
+                        <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-300 flex items-center gap-1">
+                            <Bot className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                            <span>Saathi Assistant</span>
+                          </span>
+
+                          <div className="flex items-center gap-1.5">
+                            {/* Individual Message Speaker Button */}
+                            <button
+                              type="button"
+                              onClick={() => speakText(m.text)}
+                              title={isHindi ? 'यह उत्तर सुनें' : 'Listen to this answer'}
+                              className="px-1.5 py-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex items-center gap-1 text-[10px] font-medium"
+                            >
+                              <Volume2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                              <span className="hidden sm:inline">{isHindi ? 'सुनें' : 'Listen'}</span>
+                            </button>
+
+                            {m.isAiLive ? (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono flex items-center gap-1">
+                                <Sparkles className="w-2.5 h-2.5 text-emerald-500" />
+                                <span>Live AI</span>
+                              </span>
+                            ) : (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono flex items-center gap-1">
+                                <ShieldCheck className="w-2.5 h-2.5 text-blue-500" />
+                                <span>CMVR Engine</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Message Content: Formatted with Steps, Bullets, and Highlights */}
+                      {m.sender === 'bot' ? (
+                        <FormattedBotContent text={m.text} />
+                      ) : (
+                        <p className="whitespace-pre-line text-[12px] font-medium">{m.text}</p>
+                      )}
 
                       {/* Official Source Citations */}
                       {m.sources && m.sources.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-700/60 flex flex-wrap gap-1.5 items-center">
-                          <span className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1">
+                        <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700/60 flex flex-wrap gap-1.5 items-center">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1">
                             <BookOpen className="w-3 h-3 text-blue-500" />
-                            <span>Sources:</span>
+                            <span>Statutory Sources:</span>
                           </span>
                           {m.sources.map((src, sIdx) => (
                             <a
@@ -597,10 +704,10 @@ export default function ChatbotModal() {
                             </strong>
                           </div>
 
-                          {/* Explicit RTO Selector (No Fragile Guessing) */}
+                          {/* Explicit RTO Selector */}
                           <div className="p-2 rounded-xl bg-white/80 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 sm:col-span-2">
                             <label className="text-[10px] text-slate-500 block mb-1 font-semibold">
-                              Confirm State & RTO Circle (Explicit Selection):
+                              Confirm State & RTO Circle:
                             </label>
                             <select
                               value={m.autoFillCard.rtoCode}
@@ -652,10 +759,10 @@ export default function ChatbotModal() {
                         <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 flex items-center justify-between text-xs">
                           <div>
                             <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
-                              Statutory Challan Fee (Rule 32):
+                              Statutory Treasury Challan (Rule 32):
                             </span>
                             <span className="font-bold text-blue-700 dark:text-blue-300">
-                              ₹{m.autoFillCard.fee} (Govt Treasury)
+                              ₹{m.autoFillCard.fee} (Bharat e-Pay Direct)
                             </span>
                           </div>
                           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
@@ -674,7 +781,7 @@ export default function ChatbotModal() {
                             className="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                           <label htmlFor="copilot-consent" className="cursor-pointer leading-tight">
-                            I consent to pre-filling Form 2 with these verified parameters. No data is submitted to RTO until final citizen review.
+                            I consent to pre-filling Form 2 with these parameters. You will review documents before final submission.
                           </label>
                         </div>
 
@@ -687,7 +794,7 @@ export default function ChatbotModal() {
                           {appliedPreFill ? (
                             <>
                               <Check className="w-4 h-4 text-emerald-300 animate-bounce" />
-                              <span>Opening Form 2 Draft...</span>
+                              <span>Opening Form 2 Application...</span>
                             </>
                           ) : (
                             <>
@@ -699,9 +806,9 @@ export default function ChatbotModal() {
                       </motion.div>
                     )}
 
-                    {/* Contextual Next Step Actions */}
+                    {/* Contextual Action & Guided Navigation Buttons */}
                     {m.nextActions && m.nextActions.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {m.nextActions.includes('apply') && (
                           <button
                             onClick={() => handleActionClick('apply')}
@@ -729,6 +836,42 @@ export default function ChatbotModal() {
                             <span>Check Age Eligibility (Sec 4)</span>
                           </button>
                         )}
+                        {m.nextActions.includes('slot') && (
+                          <button
+                            onClick={() => handleActionClick('slot')}
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 font-semibold flex items-center gap-1 transition-all"
+                          >
+                            <Calendar className="w-3 h-3 text-indigo-600" />
+                            <span>Book Driving Test Slot (Rule 15)</span>
+                          </button>
+                        )}
+                        {m.nextActions.includes('track') && (
+                          <button
+                            onClick={() => handleActionClick('track')}
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 border border-cyan-200 dark:border-cyan-800 font-semibold flex items-center gap-1 transition-all"
+                          >
+                            <Search className="w-3 h-3 text-cyan-600" />
+                            <span>Track Application Status</span>
+                          </button>
+                        )}
+                        {m.nextActions.includes('learn') && (
+                          <button
+                            onClick={() => handleActionClick('learn')}
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 font-semibold flex items-center gap-1 transition-all"
+                          >
+                            <Compass className="w-3 h-3 text-teal-600" />
+                            <span>Study Traffic Signs Catalog</span>
+                          </button>
+                        )}
+                        {m.nextActions.includes('vision') && (
+                          <button
+                            onClick={() => handleActionClick('vision')}
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 font-semibold flex items-center gap-1 transition-all"
+                          >
+                            <Eye className="w-3 h-3 text-rose-600" />
+                            <span>Form 1A Vision Screening</span>
+                          </button>
+                        )}
                         {m.nextActions.includes('fee') && (
                           <button
                             onClick={() => handleActionClick('fee')}
@@ -740,13 +883,29 @@ export default function ChatbotModal() {
                         )}
                       </div>
                     )}
+
+                    {/* Dynamic Follow-up Suggestions Chips */}
+                    {m.followUpChips && m.followUpChips.length > 0 && (
+                      <div className="mt-2.5 flex flex-wrap gap-1.5 items-center">
+                        <span className="text-[10px] text-slate-400 font-medium">Click to ask:</span>
+                        {m.followUpChips.map((chip, cIdx) => (
+                          <button
+                            key={cIdx}
+                            onClick={() => handleSend(chip)}
+                            className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs font-medium cursor-pointer"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
 
                 {isAiLoading && (
-                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs w-fit">
+                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs w-fit shadow-xs">
                     <Sparkles className="w-4 h-4 text-blue-500 animate-spin" />
-                    <span>Saathi Copilot is checking official CMVR guidelines...</span>
+                    <span>Analyzing your question with Gemini Generative AI...</span>
                   </div>
                 )}
 
@@ -759,7 +918,7 @@ export default function ChatbotModal() {
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                     <span className="font-bold">
-                      {isHindi ? '🎙️ सुन रहा हूँ... बोलिए (उदा. मुझे बाइक लाइसेंस चाहिए)' : '🎙️ Listening... Speak now (e.g. Apply for bike in West Bengal)'}
+                      {isHindi ? '🎙️ सुन रहा हूँ... बोलिए (उदा. मुझे बाइक लाइसेंस चाहिए)' : '🎙️ Listening... Speak now (e.g. How to get a motorcycle licence)'}
                     </span>
                   </div>
                   <button 
@@ -771,13 +930,13 @@ export default function ChatbotModal() {
                 </div>
               )}
 
-              {/* 1-Click Guided Chips for 90s Live Demo Reliability */}
+              {/* 1-Click Guided Chips for Instant Common Village Questions */}
               <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 overflow-x-auto flex gap-1.5 whitespace-nowrap no-scrollbar shrink-0">
                 {quickPrompts.map((p, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSend(p.query)}
-                    className="px-2.5 py-1 text-[11px] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-full text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 shrink-0 font-medium transition-all shadow-2xs"
+                    className="px-2.5 py-1 text-[11px] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-full text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 shrink-0 font-medium transition-all shadow-2xs cursor-pointer"
                   >
                     {p.q}
                   </button>
@@ -794,7 +953,7 @@ export default function ChatbotModal() {
                   type="button"
                   onClick={toggleListening}
                   title="Speak via Microphone"
-                  className={`p-2.5 rounded-xl border transition-all ${
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
                     isListening 
                       ? 'bg-red-600 text-white border-red-500 animate-pulse' 
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -813,8 +972,8 @@ export default function ChatbotModal() {
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder={
                     isHindi 
-                      ? 'बोलें या लिखें (उदा. पश्चिम बंगाल में बाइक लाइसेंस)...' 
-                      : 'Speak or type (e.g. Motorcycle licence in West Bengal)...'
+                      ? 'अपनी भाषा में पूछें (उदा. मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?)...' 
+                      : 'Ask in simple words (e.g. How to get a bike licence, no 10th marksheet)...'
                   }
                   className="flex-1 p-2.5 text-xs border rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-blue-600 transition-colors"
                 />
@@ -823,7 +982,7 @@ export default function ChatbotModal() {
                   type="submit" 
                   size="sm" 
                   disabled={!inputText.trim() || isAiLoading}
-                  className="h-9 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shrink-0 disabled:opacity-40"
+                  className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shrink-0 disabled:opacity-40 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </Button>

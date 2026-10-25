@@ -137,12 +137,16 @@ export default async function handler(req, res) {
     }
 
     const isApplyIntent =
-      lower.includes('apply') ||
-      lower.includes('want a') ||
-      lower.includes('chahiye') ||
-      lower.includes('आवेदन') ||
-      lower.includes('banwana') ||
-      (selectedState && vehicle);
+      (lower.includes('want to apply') ||
+        lower.includes('apply for') ||
+        lower.includes('want a licence') ||
+        lower.includes('want a license') ||
+        lower.includes('licence banwana') ||
+        lower.includes('आवेदन करना') ||
+        (selectedState && vehicle && (lower.includes('apply') || lower.includes('want')))) &&
+      !lower.includes('how to') &&
+      !lower.includes('what is') &&
+      !lower.includes('can i');
 
     // 4. Try Google Gemini API if configured
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;

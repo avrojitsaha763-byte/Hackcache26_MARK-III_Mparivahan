@@ -146,13 +146,18 @@ export default async function handler(req, res) {
     ];
 
     if (
-      lower.includes('apply') ||
-      lower.includes('want a') ||
-      lower.includes('want an') ||
-      lower.includes('chahiye') ||
-      lower.includes('आवेदन') ||
-      lower.includes('banwana') ||
-      (selectedState && vehicle)
+      (lower.includes('want to apply') ||
+        lower.includes('apply for') ||
+        lower.includes('want a licence') ||
+        lower.includes('want a license') ||
+        lower.includes('need a licence') ||
+        lower.includes('need a license') ||
+        lower.includes('licence banwana') ||
+        lower.includes('आवेदन करना') ||
+        (selectedState && vehicle && (lower.includes('apply') || lower.includes('want')))) &&
+      !lower.includes('how to') &&
+      !lower.includes('what is') &&
+      !lower.includes('can i')
     ) {
       intent = 'apply_ll';
       action = 'autofill_form';

@@ -1000,6 +1000,7 @@ async def chat_endpoint(req: ChatRequest):
     """
     Powers Saathi Copilot virtual tutor with statutory CMVR knowledge and intent parsing.
     """
+    import os
     lower = req.query.lower()
     is_hindi = req.lang == "hi"
 
@@ -1041,13 +1042,63 @@ async def chat_endpoint(req: ChatRequest):
             selected_rto_name = val["name"]
             break
 
-    # 3. Intent & Reply
-    is_apply = any(w in lower for w in ["apply", "want a", "chahiye", "आवेदन", "banwana"]) or (selected_state and vehicle)
+    # 3. Intent & Sources
+    is_apply = any(w in lower for w in ["apply for", "want to apply", "want a licence", "want a license", "आवेदन करना", "banwana hai"]) or (selected_state and vehicle and "apply" in lower)
     sources = [
         {"title": "Central Motor Vehicles Rules 1989", "url": "https://parivahan.gov.in"},
         {"title": "Ministry of Road Transport and Highways (MoRTH)", "url": "https://morth.nic.in"}
     ]
 
+    # 4. Attempt Google Gemini Generative AI
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            import requests
+            system_prompt = (
+                f"You are 'Saathi Copilot', the official AI Driving Licence Tutor and Assistant for MoRTH India. "
+                f"Read and analyse the user query: '{req.query}'. "
+                f"Respond in {'Hindi (Devanagari script)' if is_hindi else 'clear English'} in 2-3 concise paragraphs, citing CMVR Rules (11, 13, 14, 15, 32) and MV Act Section 4 where applicable. "
+                f"Conclude with a clear 'Next Steps:' guide containing 2-3 numbered action points."
+            )
+            gemini_res = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}",
+                json={
+                    "contents": [{"role": "user", "parts": [{"text": system_prompt}]}],
+                    "generationConfig": {"temperature": 0.25, "maxOutputTokens": 600}
+                },
+                timeout=5.0
+            )
+            if gemini_res.status_code == 200:
+                g_data = gemini_res.json()
+                cand_text = g_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text")
+                if cand_text and cand_text.strip():
+                    return {
+                        "status": "success",
+                        "reply": cand_text.strip(),
+                        "intent": "apply_ll" if is_apply else "ai_copilot_analysis",
+                        "action": "autofill_form" if is_apply else "guide",
+                        "nextActions": ["apply", "quiz", "fee"] if is_apply else ["quiz", "apply", "eligibility", "slot", "track"],
+                        "extracted_data": {
+                            "name": None,
+                            "phone": None,
+                            "vehicle": vehicle or "motorcycle-gear",
+                            "vehicle_label": vehicle_label or "Motorcycle with Gear (MCWG)",
+                            "state": selected_state or "West Bengal",
+                            "rto": selected_rto or "WB-01",
+                            "rto_name": selected_rto_name or "West Bengal (Kolkata - Beltala)"
+                        } if is_apply else None,
+                        "fee_details": {
+                            "total": fee,
+                            "rule_citation": "Central Motor Vehicles Rules 1989, Rule 32"
+                        },
+                        "sources": sources,
+                        "is_ai_live": True,
+                        "source": "gemini-2.5-flash"
+                    }
+        except Exception:
+            pass
+
+    # 5. Statutory Fallback Engine
     if is_apply:
         state_disp = selected_state or ("आपका राज्य" if is_hindi else "Your State")
         rto_disp = selected_rto_name or ("संबंधित आरटीओ" if is_hindi else "Assigned RTO")
