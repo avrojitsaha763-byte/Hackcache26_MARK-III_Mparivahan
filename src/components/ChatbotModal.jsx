@@ -22,7 +22,8 @@ import {
   Calendar,
   Search,
   Compass,
-  Eye
+  Eye,
+  Radio
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -153,6 +154,8 @@ export default function ChatbotModal() {
 
   const [inputText, setInputText] = useState('')
   const [isListening, setIsListening] = useState(false)
+  const [liveTranscript, setLiveTranscript] = useState('')
+  const [micErrorMessage, setMicErrorMessage] = useState('')
   const [speechSynthesisActive, setSpeechSynthesisActive] = useState(true)
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [aiUnavailable, setAiUnavailable] = useState(false)
@@ -160,6 +163,8 @@ export default function ChatbotModal() {
   const [cardConsent, setCardConsent] = useState(true)
 
   const recognitionRef = useRef(null)
+  const silenceTimerRef = useRef(null)
+  const accumulatedTranscriptRef = useRef('')
   const messagesEndRef = useRef(null)
 
   // FIX: Body Scroll Lock to prevent background webpage from scrolling when Chatbot modal is open
@@ -273,6 +278,7 @@ export default function ChatbotModal() {
     const newMsgs = [...messages, { sender: 'user', text: query }]
     setMessages(newMsgs)
     setInputText('')
+    setLiveTranscript('')
     setIsAiLoading(true)
 
     try {
@@ -365,51 +371,164 @@ export default function ChatbotModal() {
     }
   }
 
-  // Web Speech API Voice Recognition Toggle
-  const toggleListening = () => {
+  // Enhanced Resilient Web Speech API Voice Recognition Toggle
+  const toggleListening = async () => {
     if (typeof window === 'undefined') return
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRec) {
-      alert('Speech Recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.')
+
+    // If currently listening, stop and send captured audio text
+    if (isListening) {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      try {
+        recognitionRef.current?.stop()
+      } catch {}
+      setIsListening(false)
+      const captured = (accumulatedTranscriptRef.current || liveTranscript || inputText).trim()
+      if (captured) {
+        handleSend(captured)
+      }
       return
     }
 
-    if (isListening) {
-      recognitionRef.current?.stop()
-      setIsListening(false)
+    setMicErrorMessage('')
+    setLiveTranscript('')
+    accumulatedTranscriptRef.current = ''
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRec) {
+      setMicErrorMessage(
+        isHindi
+          ? 'इस ब्राउज़र में स्पीच रिकग्निशन उपलब्ध नहीं है। कृपया गूगल क्रोम (Chrome) या एज (Edge) का उपयोग करें, या नीचे दिए गए वॉयस बटनों पर क्लिक करें।'
+          : 'Speech Recognition is not available in this browser. Please use Chrome/Edge or tap the voice query chips below.'
+      )
       return
+    }
+
+    // Explicitly check/request microphone permission via getUserMedia
+    if (navigator?.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // Stop audio tracks immediately so SpeechRecognition can take over the mic hardware
+        stream.getTracks().forEach((track) => track.stop())
+      } catch (err) {
+        console.warn('Microphone permission check warning:', err?.message)
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setMicErrorMessage(
+            isHindi
+              ? 'माइक्रोफ़ोन अनुमति अस्वीकृत है। कृपया ब्राउज़र के एड्रेस बार में लॉक (🔒) आइकन पर क्लिक करके माइक की अनुमति दें।'
+              : 'Microphone permission was denied. Please click the lock (🔒) icon in your browser address bar to allow microphone access.'
+          )
+          return
+        }
+      }
     }
 
     try {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort() } catch {}
+      }
+
       const recognition = new SpeechRec()
       recognition.lang = isHindi ? 'hi-IN' : 'en-IN'
-      recognition.continuous = false
-      recognition.interimResults = false
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.maxAlternatives = 1
 
       recognition.onstart = () => {
         setIsListening(true)
+        setMicErrorMessage('')
+        setLiveTranscript('')
+        accumulatedTranscriptRef.current = ''
       }
 
       recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript
-        setIsListening(false)
-        setInputText(transcript)
-        handleSend(transcript)
+        let interim = ''
+        let final = ''
+
+        for (let i = 0; i < event.results.length; i++) {
+          const trans = event.results[i][0].transcript
+          if (event.results[i].isFinal) {
+            final += trans + ' '
+          } else {
+            interim += trans
+          }
+        }
+
+        const combined = (final + interim).trim()
+        accumulatedTranscriptRef.current = final.trim()
+        setLiveTranscript(combined)
+        setInputText(combined)
+
+        // Reset silence timer: auto-submit after 2.4s of quiet after speech
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = setTimeout(() => {
+          const textToSubmit = (accumulatedTranscriptRef.current || combined).trim()
+          if (textToSubmit) {
+            try { recognition.stop() } catch {}
+            setIsListening(false)
+            handleSend(textToSubmit)
+          }
+        }, 2400)
       }
 
-      recognition.onerror = () => {
-        setIsListening(false)
+      recognition.onerror = (event) => {
+        console.warn('SpeechRecognition error:', event.error)
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setMicErrorMessage(
+            isHindi
+              ? 'माइक्रोफ़ोन अनुमति ब्लॉक है। कृपया ब्राउज़र एड्रेस बार में लॉक आइकन दबाकर माइक ऑन करें।'
+              : 'Microphone permission blocked. Please allow mic in browser address bar (lock icon).'
+          )
+          setIsListening(false)
+        } else if (event.error === 'audio-capture') {
+          setMicErrorMessage(
+            isHindi
+              ? 'कोई माइक्रोफ़ोन नहीं मिला। कृपया माइक जोड़ें या नीचे दिए गए वॉयस बटन दबाएं।'
+              : 'No microphone found. Please connect a mic or tap the voice query chips below.'
+          )
+          setIsListening(false)
+        } else if (event.error === 'network') {
+          setMicErrorMessage(
+            isHindi
+              ? 'गूगल स्पीच नेटवर्क कनेक्ट नहीं हुआ। आप नीचे दिए गए वॉयस चिप्स से पूछ सकते हैं।'
+              : 'Speech recognition network issue. You can tap any voice query below.'
+          )
+          setIsListening(false)
+        } else if (event.error === 'no-speech') {
+          // Keep listening in continuous mode
+        }
       }
 
       recognition.onend = () => {
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+        const textToSubmit = (accumulatedTranscriptRef.current || liveTranscript || inputText).trim()
         setIsListening(false)
+        if (textToSubmit && !isAiLoading) {
+          handleSend(textToSubmit)
+        }
       }
 
       recognitionRef.current = recognition
       recognition.start()
-    } catch {
+    } catch (err) {
+      console.error('Speech recognition start failed:', err)
+      setMicErrorMessage(
+        isHindi
+          ? 'माइक शुरू नहीं हो सका। कृपया नीचे दिए गए वॉयस बटनों पर क्लिक करें।'
+          : 'Could not start microphone. Please tap any of the voice queries below.'
+      )
       setIsListening(false)
     }
+  }
+
+  // Instant Voice Query Dispatcher (Guaranteed voice test even if mic hardware is absent)
+  const handleVoiceQuery = (voicePrompt) => {
+    if (isListening) {
+      try { recognitionRef.current?.stop() } catch {}
+      setIsListening(false)
+    }
+    setLiveTranscript(voicePrompt)
+    setInputText(voicePrompt)
+    handleSend(voicePrompt)
   }
 
   // Consent-based transfer to Form 2 (/apply)
@@ -494,7 +613,7 @@ export default function ChatbotModal() {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Open Saathi Driving Licence Copilot"
-        className="fixed bottom-16 sm:bottom-6 left-4 sm:left-6 p-3 sm:px-4 sm:py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-2xl z-50 hover:from-blue-500 hover:to-indigo-500 active:scale-95 transition-all flex items-center gap-2.5 border-2 border-white/20 group backdrop-blur-md"
+        className="fixed bottom-16 sm:bottom-6 left-4 sm:left-6 p-3 sm:px-4 sm:py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-2xl z-50 hover:from-blue-500 hover:to-indigo-500 active:scale-95 transition-all flex items-center gap-2.5 border-2 border-white/20 group backdrop-blur-md cursor-pointer"
       >
         <div className="relative">
           <Bot className="w-5 h-5 text-white" />
@@ -505,7 +624,7 @@ export default function ChatbotModal() {
             <span>Saathi Copilot</span>
             <Sparkles className="w-3 h-3 text-amber-300" />
           </span>
-          <span className="text-[10px] text-blue-100 font-mono">Ask • Guide • Autofill</span>
+          <span className="text-[10px] text-blue-100 font-mono">Ask • Voice • Guide</span>
         </div>
         <Mic className="w-3.5 h-3.5 text-blue-200 hidden sm:inline" />
       </button>
@@ -552,7 +671,7 @@ export default function ChatbotModal() {
                   <button
                     onClick={() => setSpeechSynthesisActive(!speechSynthesisActive)}
                     title={speechSynthesisActive ? 'Mute Speech Output' : 'Enable Speech Output'}
-                    className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-[11px]"
+                    className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-[11px] cursor-pointer"
                   >
                     {speechSynthesisActive ? (
                       <Volume2 className="w-4 h-4 text-emerald-300" />
@@ -564,7 +683,7 @@ export default function ChatbotModal() {
                   <button 
                     onClick={() => setIsOpen(false)}
                     aria-label="Close Copilot"
-                    className="p-1.5 rounded-xl hover:bg-white/20 text-white transition-colors"
+                    className="p-1.5 rounded-xl hover:bg-white/20 text-white transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -612,7 +731,7 @@ export default function ChatbotModal() {
                               type="button"
                               onClick={() => speakText(m.text)}
                               title={isHindi ? 'यह उत्तर सुनें' : 'Listen to this answer'}
-                              className="px-1.5 py-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex items-center gap-1 text-[10px] font-medium"
+                              className="px-1.5 py-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex items-center gap-1 text-[10px] font-medium cursor-pointer"
                             >
                               <Volume2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                               <span className="hidden sm:inline">{isHindi ? 'सुनें' : 'Listen'}</span>
@@ -717,7 +836,7 @@ export default function ChatbotModal() {
                                   updateCard(i, { rtoCode: matched.code, rtoName: matched.name })
                                 }
                               }}
-                              className="w-full text-xs p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium outline-none focus:border-blue-600"
+                              className="w-full text-xs p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium outline-none focus:border-blue-600 cursor-pointer"
                             >
                               {OFFICIAL_RTOS.map((rto) => (
                                 <option key={rto.code} value={rto.code}>
@@ -744,7 +863,7 @@ export default function ChatbotModal() {
                                   })
                                 }
                               }}
-                              className="w-full text-xs p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium outline-none focus:border-blue-600"
+                              className="w-full text-xs p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium outline-none focus:border-blue-600 cursor-pointer"
                             >
                               {VEHICLE_OPTIONS.map((veh) => (
                                 <option key={veh.id} value={veh.id}>
@@ -789,7 +908,7 @@ export default function ChatbotModal() {
                         <button
                           onClick={() => applyAutoFillAndNavigate(m.autoFillCard)}
                           disabled={!cardConsent}
-                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                         >
                           {appliedPreFill ? (
                             <>
@@ -812,7 +931,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('apply') && (
                           <button
                             onClick={() => handleActionClick('apply')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <FileText className="w-3 h-3 text-blue-600" />
                             <span>Start Form 2 Application</span>
@@ -821,7 +940,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('quiz') && (
                           <button
                             onClick={() => handleActionClick('quiz')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <BookOpen className="w-3 h-3 text-emerald-600" />
                             <span>Practise STALL Test (Rule 11)</span>
@@ -830,7 +949,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('eligibility') && (
                           <button
                             onClick={() => handleActionClick('eligibility')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <HelpCircle className="w-3 h-3 text-purple-600" />
                             <span>Check Age Eligibility (Sec 4)</span>
@@ -839,7 +958,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('slot') && (
                           <button
                             onClick={() => handleActionClick('slot')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Calendar className="w-3 h-3 text-indigo-600" />
                             <span>Book Driving Test Slot (Rule 15)</span>
@@ -848,7 +967,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('track') && (
                           <button
                             onClick={() => handleActionClick('track')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 border border-cyan-200 dark:border-cyan-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 border border-cyan-200 dark:border-cyan-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Search className="w-3 h-3 text-cyan-600" />
                             <span>Track Application Status</span>
@@ -857,7 +976,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('learn') && (
                           <button
                             onClick={() => handleActionClick('learn')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Compass className="w-3 h-3 text-teal-600" />
                             <span>Study Traffic Signs Catalog</span>
@@ -866,7 +985,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('vision') && (
                           <button
                             onClick={() => handleActionClick('vision')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Eye className="w-3 h-3 text-rose-600" />
                             <span>Form 1A Vision Screening</span>
@@ -875,7 +994,7 @@ export default function ChatbotModal() {
                         {m.nextActions.includes('fee') && (
                           <button
                             onClick={() => handleActionClick('fee')}
-                            className="px-2.5 py-1 text-[10px] rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 font-semibold flex items-center gap-1 transition-all"
+                            className="px-2.5 py-1 text-[10px] rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 font-semibold flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <CreditCard className="w-3 h-3 text-amber-600" />
                             <span>View Rule 32 Fee Schedule</span>
@@ -912,21 +1031,105 @@ export default function ChatbotModal() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Listening Active Waveform Bar */}
-              {isListening && (
-                <div className="px-4 py-2 bg-red-50 dark:bg-red-950/60 border-t border-red-200 dark:border-red-900 flex items-center justify-between text-xs text-red-600 dark:text-red-400 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-                    <span className="font-bold">
-                      {isHindi ? '🎙️ सुन रहा हूँ... बोलिए (उदा. मुझे बाइक लाइसेंस चाहिए)' : '🎙️ Listening... Speak now (e.g. How to get a motorcycle licence)'}
-                    </span>
+              {/* Error Notice Bar if Mic access is denied or unavailable */}
+              {micErrorMessage && (
+                <div className="px-3 py-2 bg-amber-50 dark:bg-amber-950/80 border-t border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 flex items-center justify-between gap-2 shrink-0 animate-fadeIn">
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>{micErrorMessage}</span>
                   </div>
                   <button 
-                    onClick={toggleListening}
-                    className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:underline"
+                    onClick={() => setMicErrorMessage('')}
+                    className="text-[10px] text-amber-700 dark:text-amber-300 font-bold hover:underline shrink-0 cursor-pointer"
                   >
-                    Cancel
+                    Dismiss
                   </button>
+                </div>
+              )}
+
+              {/* Listening Active Waveform Bar with Live Interim Transcript Feedback */}
+              {isListening && (
+                <div className="px-3.5 py-2.5 bg-gradient-to-r from-red-50 via-rose-50 to-red-50 dark:from-red-950/70 dark:via-rose-950/60 dark:to-red-950/70 border-t border-red-200 dark:border-red-900/80 flex flex-col gap-2 shrink-0 shadow-inner">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      </span>
+                      <span className="font-bold text-xs text-red-700 dark:text-red-300 flex items-center gap-1.5">
+                        <Radio className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+                        <span>{isHindi ? 'माइक्रोफ़ोन सुन रहा है... बोलिए' : 'Microphone listening... Speak now'}</span>
+                      </span>
+
+                      {/* Animated Sound Wave Bars */}
+                      <div className="flex items-center gap-0.5 ml-2">
+                        <span className="w-1 bg-red-500 rounded-full h-3 animate-pulse" style={{ animationDelay: '0.1s' }} />
+                        <span className="w-1 bg-red-500 rounded-full h-5 animate-pulse" style={{ animationDelay: '0.3s' }} />
+                        <span className="w-1 bg-red-500 rounded-full h-2 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                        <span className="w-1 bg-red-500 rounded-full h-4 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => toggleListening()}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow-xs cursor-pointer flex items-center gap-1 transition-all"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>Done & Send</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+                          try { recognitionRef.current?.abort() } catch {}
+                          setIsListening(false)
+                          setLiveTranscript('')
+                        }}
+                        className="text-[11px] text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Real-time transcription feedback */}
+                  <div className="text-[11px] p-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-red-200 dark:border-red-900/60 text-slate-800 dark:text-slate-200 font-medium italic min-h-[26px]">
+                    {liveTranscript ? (
+                      <span>"{liveTranscript}"</span>
+                    ) : (
+                      <span className="text-slate-400 not-italic">
+                        {isHindi 
+                          ? 'उदा. "मुझे बाइक का लाइसेंस बनवाना है, क्या फीस लगेगी?"' 
+                          : 'Try saying: "I want to apply for a bike licence" or "What is the fee?"'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 1-Click Instant Voice Test Queries right inside the active mic bar */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+                    <span className="text-[10px] text-red-600 dark:text-red-400 font-semibold shrink-0">Or tap voice prompt:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleVoiceQuery('मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?')}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 shrink-0 cursor-pointer"
+                    >
+                      🎙️ मुझे बाइक चलानी है
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleVoiceQuery('मेरे पास 10वीं की मार्कशीट नहीं है, क्या आधार कार्ड चलेगा?')}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 shrink-0 cursor-pointer"
+                    >
+                      🎙️ 10वीं मार्कशीट नहीं है
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleVoiceQuery('ड्राइविंग लाइसेंस में कुल कितना सरकारी खर्च आएगा?')}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 shrink-0 cursor-pointer"
+                    >
+                      🎙️ कुल कितना खर्चा?
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -948,19 +1151,19 @@ export default function ChatbotModal() {
                 onSubmit={(e) => { e.preventDefault(); handleSend(inputText); }}
                 className="p-2.5 sm:p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 shrink-0"
               >
-                {/* Microphone Voice Button */}
+                {/* Microphone Voice Button with clear active/idle visual indicator */}
                 <button
                   type="button"
                   onClick={toggleListening}
-                  title="Speak via Microphone"
-                  className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                  title={isListening ? 'Stop Listening & Send' : 'Speak via Microphone'}
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative ${
                     isListening 
-                      ? 'bg-red-600 text-white border-red-500 animate-pulse' 
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      ? 'bg-red-600 text-white border-red-500 shadow-md ring-2 ring-red-400/50' 
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-slate-700 hover:border-blue-300'
                   }`}
                 >
                   {isListening ? (
-                    <MicOff className="w-4 h-4 text-white" />
+                    <MicOff className="w-4 h-4 text-white animate-pulse" />
                   ) : (
                     <Mic className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   )}
@@ -971,9 +1174,11 @@ export default function ChatbotModal() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder={
-                    isHindi 
-                      ? 'अपनी भाषा में पूछें (उदा. मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?)...' 
-                      : 'Ask in simple words (e.g. How to get a bike licence, no 10th marksheet)...'
+                    isListening
+                      ? (isHindi ? 'बोल रहे हैं... आवाज आ रही है...' : 'Listening... Speak now...')
+                      : (isHindi 
+                          ? 'बोलें या लिखें (उदा. मुझे बाइक चलानी है, लाइसेंस कैसे बनेगा?)...' 
+                          : 'Speak or type (e.g. How to get a bike licence, no 10th marksheet)...')
                   }
                   className="flex-1 p-2.5 text-xs border rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:border-blue-600 transition-colors"
                 />
@@ -982,7 +1187,7 @@ export default function ChatbotModal() {
                   type="submit" 
                   size="sm" 
                   disabled={!inputText.trim() || isAiLoading}
-                  className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shrink-0 disabled:opacity-40 cursor-pointer"
+                  className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shrink-0 disabled:opacity-40 cursor-pointer shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </Button>
