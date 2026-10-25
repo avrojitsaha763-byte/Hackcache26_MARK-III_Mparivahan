@@ -1,5 +1,5 @@
-// Vercel Serverless Function: /api/questions
-// Delivers official STALL (Screen Test for All Learners Licence) question bank
+// Vercel Serverless Function: /api/services
+// Consolidates STALL Questions, Road Signs, Quiz Submission, and ADTT Slot Booking
 
 const STALL_QUESTIONS = [
   {
@@ -132,10 +132,53 @@ const STALL_QUESTIONS = [
   }
 ];
 
-export default function handler(req, res) {
+const TRAFFIC_SIGNS = [
+  {
+    id: "sign-stop",
+    name: { en: "Stop", hi: "रुकिए (Stop)" },
+    description: { en: "Bring your vehicle to a complete halt before the stop line.", hi: "स्टॉप लाइन से पहले अपने वाहन को पूरी तरह रोकें।" },
+    category: "Mandatory"
+  },
+  {
+    id: "sign-give-way",
+    name: { en: "Give Way", hi: "रास्ता दीजिए (Give Way)" },
+    description: { en: "Yield right of way to traffic on the main intersecting road.", hi: "मुख्य सड़क पर आ रहे वाहनों को पहले निकलने का रास्ता दें।" },
+    category: "Mandatory"
+  },
+  {
+    id: "sign-no-entry",
+    name: { en: "No Entry", hi: "प्रवेश निषेध (No Entry)" },
+    description: { en: "Vehicles are strictly prohibited from entering this road.", hi: "इस सड़क पर वाहनों का प्रवेश पूर्णतः वर्जित है।" },
+    category: "Mandatory"
+  },
+  {
+    id: "sign-speed-50",
+    name: { en: "Speed Limit 50 km/h", hi: "अधिकतम गति 50 किमी/घंटा" },
+    description: { en: "Maximum legal speed allowed under Section 112 is 50 km/h.", hi: "धारा 112 के तहत अधिकतम कानूनी गति सीमा 50 किमी/घंटा है।" },
+    category: "Mandatory"
+  },
+  {
+    id: "sign-pedestrian-crossing",
+    name: { en: "Pedestrian Crossing Ahead", hi: "आगे पैदल पार पथ है" },
+    description: { en: "Slow down and yield to pedestrians crossing at the zebra crossing.", hi: "गति धीमी करें और ज़ेबरा क्रॉसिंग पर पैदल यात्रियों को रास्ता दें।" },
+    category: "Cautionary"
+  },
+  {
+    id: "sign-roundabout",
+    name: { en: "Roundabout Ahead", hi: "आगे गोल चक्कर है" },
+    description: { en: "Prepare to merge with circulating traffic on your right.", hi: "अपने दाईं ओर घूम रहे यातायात को रास्ता देने के लिए तैयार रहें।" },
+    category: "Cautionary"
+  }
+];
+
+const ANSWER_KEY = {
+  "1": 2, "2": 0, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 0
+};
+
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
@@ -145,22 +188,123 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { category, limit = 15 } = req.query;
-  let questions = [...STALL_QUESTIONS];
+  const url = req.url || '';
+  const service = (req.query.service || '').toLowerCase();
 
-  if (category && category !== 'ALL') {
-    questions = questions.filter(q => q.category.toLowerCase().includes(category.toLowerCase()));
+  // SERVICE 1: STALL Questions (/api/questions)
+  if (url.includes('/questions') || service === 'questions') {
+    const { category, limit = 15 } = req.query;
+    let questions = [...STALL_QUESTIONS];
+    if (category && category !== 'ALL') {
+      questions = questions.filter(q => q.category.toLowerCase().includes(category.toLowerCase()));
+    }
+    const numLimit = Math.min(50, Math.max(1, Number(limit) || 15));
+    const sliced = questions.slice(0, numLimit);
+    return res.status(200).json({
+      status: 'success',
+      count: sliced.length,
+      total_available: questions.length,
+      statutory_syllabus: 'CMVR 1989 Rule 11 Preliminary Knowledge Test',
+      pass_mark_threshold: '60%',
+      data: sliced
+    });
   }
 
-  const numLimit = Math.min(50, Math.max(1, Number(limit) || 15));
-  const sliced = questions.slice(0, numLimit);
+  // SERVICE 2: Road Signs (/api/signs)
+  if (url.includes('/signs') || service === 'signs') {
+    const { category } = req.query;
+    let signs = [...TRAFFIC_SIGNS];
+    if (category && category !== 'ALL') {
+      signs = signs.filter(s => s.category.toLowerCase() === category.toLowerCase());
+    }
+    return res.status(200).json({
+      status: 'success',
+      count: signs.length,
+      data: signs
+    });
+  }
 
-  return res.status(200).json({
-    status: 'success',
-    count: sliced.length,
-    total_available: questions.length,
-    statutory_syllabus: 'CMVR 1989 Rule 11 Preliminary Knowledge Test',
-    pass_mark_threshold: '60%',
-    data: sliced
-  });
+  // SERVICE 3: Quiz Submit (/api/quiz/submit)
+  if (url.includes('/quiz') || service === 'quiz') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    try {
+      let body = req.body;
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch { body = {}; }
+      }
+      body = body || {};
+
+      const answers = body.answers || {};
+      const total = Object.keys(answers).length;
+      let score = 0;
+
+      Object.entries(answers).forEach(([qId, chosenIdx]) => {
+        const correctIdx = ANSWER_KEY[String(qId)];
+        if (correctIdx !== undefined && correctIdx === Number(chosenIdx)) {
+          score++;
+        }
+      });
+
+      const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+      const passMark = Math.max(1, Math.ceil(total * 0.6));
+      const passed = percentage >= 60;
+
+      return res.status(200).json({
+        status: 'success',
+        score,
+        total,
+        percentage,
+        passed,
+        pass_mark: passMark,
+        statutory_threshold: '60% under CMVR 1989 Rule 11',
+        evaluation_summary: passed
+          ? `Passed STALL Knowledge Test with ${percentage}%. Candidate is qualified for Form 3 LL issuance upon officer scrutiny.`
+          : `Score (${percentage}%) is below statutory 60% requirement. Remedial study on traffic signs recommended.`
+      });
+    } catch (err) {
+      console.error('Quiz submit error:', err);
+      return res.status(500).json({ status: 'error', error: 'Internal Server Error' });
+    }
+  }
+
+  // SERVICE 4: ADTT Slot Booking (/api/slots/book)
+  if (url.includes('/slots') || service === 'slots') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    try {
+      let body = req.body;
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch { body = {}; }
+      }
+      body = body || {};
+
+      const timestamp = Date.now();
+      const slotId = `ADTT-SLOT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const bookedSlot = {
+        slot_id: slotId,
+        app_no: body.app_no || 'KA-2026-55319',
+        applicant_name: body.applicant_name || 'Sample Citizen (Sample Applicant)',
+        track_type: body.track_type || 'car',
+        ground: body.ground || 'IDTR-DELHI',
+        ground_name: body.ground_name || 'Automated Driving Test Track',
+        test_date: body.test_date || '2026-11-25',
+        slot_time: body.slot_time || '09:30 AM - 11:00 AM',
+        booked_at_timestamp: timestamp,
+        statutory_compliance: 'CMVR 1989 Rule 15 (Minimum 30-day Form 3 LL Holding Period)',
+        status: 'CONFIRMED',
+        booked_at: new Date().toISOString()
+      };
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Practical Driving Test Appointment confirmed on Automated Driving Test Track (ADTT).',
+        data: bookedSlot
+      });
+    } catch (err) {
+      console.error('Slot booking error:', err);
+      return res.status(500).json({ status: 'error', error: 'Internal Server Error' });
+    }
+  }
+
+  return res.status(404).json({ error: 'Service not found' });
 }

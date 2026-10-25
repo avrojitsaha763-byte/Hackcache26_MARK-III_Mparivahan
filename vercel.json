@@ -1,6 +1,50 @@
 {
   "rewrites": [
     {
+      "source": "/api/admin/(.*)",
+      "destination": "/api/admin?subpath=$1"
+    },
+    {
+      "source": "/api/payment/(.*)",
+      "destination": "/api/payment?subpath=$1"
+    },
+    {
+      "source": "/api/copilot/(.*)",
+      "destination": "/api/chat"
+    },
+    {
+      "source": "/api/digilocker/(.*)",
+      "destination": "/api/documents"
+    },
+    {
+      "source": "/api/upload-document",
+      "destination": "/api/documents"
+    },
+    {
+      "source": "/api/track",
+      "destination": "/api/applications?track=true"
+    },
+    {
+      "source": "/api/applications/:appNo/status",
+      "destination": "/api/applications?app_no=:appNo"
+    },
+    {
+      "source": "/api/questions",
+      "destination": "/api/services?service=questions"
+    },
+    {
+      "source": "/api/signs",
+      "destination": "/api/services?service=signs"
+    },
+    {
+      "source": "/api/quiz/(.*)",
+      "destination": "/api/services?service=quiz&subpath=$1"
+    },
+    {
+      "source": "/api/slots/(.*)",
+      "destination": "/api/services?service=slots&subpath=$1"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

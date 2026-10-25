@@ -1,5 +1,13 @@
 // Vercel Serverless Function: /api/documents
-// Real-time DigiLocker & API Setu Document Retrieval Engine
+// Consolidates DigiLocker Document Retrieval, OAuth Token Exchange, and Manual Document Upload Intake
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb'
+    }
+  }
+};
 
 function calculateAge(dobString) {
   const today = new Date();
@@ -22,13 +30,11 @@ export default async function handler(req, res) {
   );
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method Not Allowed' });
-    return;
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
@@ -43,16 +49,41 @@ export default async function handler(req, res) {
     }
     body = body || {};
 
-    const { vehicleClass, phone: bodyPhone, name: bodyName, rto: bodyRto } = body;
+    const url = req.url || '';
 
-    // Check authorization token
-    if (!authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: "Missing or unauthorized DigiLocker session bearer token." });
+    // ROUTE 1: /api/upload-document
+    if (url.includes('/upload-document') || body.docType) {
+      const docType = body.docType || 'general_document';
+      const fileName = body.fileName || `${docType}.jpg`;
+      const sizeKB = Number(body.sizeKB || 150);
+      const width = Number(body.width || 800);
+      const height = Number(body.height || 600);
+      const mimeType = body.mimeType || (fileName.endsWith('.png') ? 'image/png' : fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+
+      return res.status(200).json({
+        success: true,
+        status: 'UPLOADED_PENDING_MANUAL_REVIEW',
+        message: 'Document received and queued for manual RTO officer review.',
+        is_demo_mode: true,
+        is_simulated_demo: true,
+        docType,
+        fileName,
+        sizeKB,
+        dimensions: `${width}x${height}px`,
+        mimeType,
+        uploadedAt: new Date().toISOString()
+      });
     }
 
-    const token = authHeader.replace('Bearer ', '').trim();
-    if (!token.startsWith('DL_LIVE_') && !token.startsWith('FB_LIVE_') && token !== 'mock_oauth_token_8892') {
-      return res.status(401).json({ error: "Invalid or expired DigiLocker OAuth2 session token." });
+    // ROUTE 2: /api/documents and /api/digilocker/token
+    const { vehicleClass, phone: bodyPhone, name: bodyName, rto: bodyRto, code } = body;
+
+    let token = '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '').trim();
+    } else {
+      const cleanP = ((bodyPhone || '0000000000').toString()).replace(/\D/g, '').slice(-10);
+      token = `DL_LIVE_${cleanP}_${Date.now()}`;
     }
 
     // Extract citizen details from token or request body
@@ -60,7 +91,6 @@ export default async function handler(req, res) {
     const phoneFromToken = tokenParts.length > 2 && tokenParts[2].length === 10 ? tokenParts[2] : null;
     const cleanPhone = ((bodyPhone || phoneFromToken || '0000000000').toString()).replace(/\D/g, '').slice(-10);
 
-    // Dynamic resolution based on applicant mobile & profile (strictly mock persona)
     const applicantName = (bodyName && bodyName.trim() && !['Citizen Applicant', 'Sample Applicant'].includes(bodyName.trim()))
       ? bodyName.trim()
       : 'Demo Applicant';
@@ -70,7 +100,6 @@ export default async function handler(req, res) {
       ? "123 Mock Street, Demo City - 110001"
       : "456 Test Avenue, Sample District - 400001";
 
-    // Real-time fetched documents from DigiLocker / API Setu
     const fetchedDocs = {
       applicant_name: applicantName,
       phone: cleanPhone,
@@ -118,7 +147,6 @@ export default async function handler(req, res) {
       verified_at: new Date().toISOString()
     };
 
-    // CMVR Rule 14 & MV Act Section 4 Age & Eligibility Engine
     const age = calculateAge(fetchedDocs.dob);
     let isEligible = false;
     let rtoMessage = "";
@@ -144,6 +172,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
+      token,
+      code_used: code || 'DL-SSO-REALTIME',
       is_demo_mode: true,
       is_simulated_demo: true,
       evaluation_notice: "EVALUATION SANDBOX — Simulated DigiLocker document retrieval.",
@@ -155,7 +185,8 @@ export default async function handler(req, res) {
         statutory_act: "Motor Vehicles Act 1988 & CMVR 1989 Rule 14"
       }
     });
-  } catch {
-    return res.status(500).json({ error: "Failed to retrieve real-time documents from DigiLocker API Setu." });
+  } catch (err) {
+    console.error('Documents handler error:', err);
+    return res.status(500).json({ error: "Failed to process documents request." });
   }
 }

@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/applications
-// Handles Form 2 citizen application intake, listing, and status updates
+// Handles Form 2 citizen application intake, listing, tracking, and status updates
 
 const GLOBAL_APPS = globalThis._serverlessApplications || (globalThis._serverlessApplications = [
   {
@@ -107,16 +107,33 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // GET: List or find applications
+  const url = req.url || '';
+  const isTrack = url.includes('/track') || req.query.track === 'true';
+
+  // GET: Tracking or Listing
   if (req.method === 'GET') {
-    const { rto_code, status, app_no } = req.query;
-    if (app_no) {
-      const cleanNo = app_no.trim().toUpperCase();
-      const app = GLOBAL_APPS.find(a => (a.appNo || '').toUpperCase() === cleanNo || (a.application_number || '').toUpperCase() === cleanNo);
-      if (app) {
-        return res.status(200).json({ status: 'success', data: app });
+    const { rto_code, status, app_no, appNo } = req.query;
+    const targetNo = (app_no || appNo || '').trim().toUpperCase();
+
+    if (isTrack || targetNo) {
+      if (!targetNo) {
+        return res.status(400).json({ success: false, message: 'Application number query parameter "app_no" is required.' });
       }
-      return res.status(404).json({ status: 'error', message: 'Application not found' });
+      const app = GLOBAL_APPS.find(a => (a.appNo || '').toUpperCase() === targetNo || (a.application_number || '').toUpperCase() === targetNo);
+      if (app) {
+        return res.status(200).json({
+          success: true,
+          status: 'success',
+          data: {
+            ...app,
+            rule11_requirement: 'CMVR Rule 11 Knowledge Test (60% passing mark)',
+            rule15_earliest_dl_test_date: '30 days from Form 3 LL issuance',
+            isDemoRecord: true
+          },
+          timeline: app.timeline || []
+        });
+      }
+      return res.status(404).json({ success: false, status: 'error', message: `Application number ${targetNo} was not found in the national registry.` });
     }
 
     let filtered = [...GLOBAL_APPS];
@@ -134,11 +151,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     let body = req.body;
     if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = {};
-      }
+      try { body = JSON.parse(body); } catch { body = {}; }
     }
     body = body || {};
 
@@ -185,11 +198,7 @@ export default async function handler(req, res) {
   if (req.method === 'PUT' || req.method === 'PATCH') {
     let body = req.body;
     if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = {};
-      }
+      try { body = JSON.parse(body); } catch { body = {}; }
     }
     body = body || {};
 
