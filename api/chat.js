@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     }
     body = body || {};
 
-    const query = (body.query || '').trim();
+    const query = (body.query || body.message || body.prompt || body.text || '').trim();
     const lang = body.lang === 'hi' ? 'hi' : 'en';
     const isHindi = lang === 'hi';
 
