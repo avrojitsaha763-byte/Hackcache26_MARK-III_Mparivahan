@@ -75,8 +75,8 @@ export default function ManualDocumentUploader({ documents, onChange, isHindi = 
         height: processed.height,
         sizeKB: processed.sizeKB,
         verified: true,
-        ocrAnalysis: backendStatus?.ocrAnalysis || { status: 'VERIFIED_LEGIBLE', rule: 'CMVR 1989 Rule 14' },
-        authority: 'Canvas Processed & OCR Verified (CMVR Rule 14)',
+        status: backendStatus?.status || 'UPLOADED_PENDING_MANUAL_REVIEW',
+        authority: 'Uploaded & Pre-Screened for Scrutiny Desk (CMVR Rule 14)',
         source: 'Local Disk / File Manager'
       }
 

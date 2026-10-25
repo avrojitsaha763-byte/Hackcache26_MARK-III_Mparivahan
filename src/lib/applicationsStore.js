@@ -1,13 +1,14 @@
+// DEMO DATA ONLY - CONTAINS NO REAL PII
 // Centralized Application Store for Sarathi Parivahan
 // Shared between Citizen Apply, Track, and Official RTO Admin Scrutiny Desk
 
-const STORAGE_KEY = 'parivahan_applications_v2'
+const STORAGE_KEY = 'parivahan_applications_v4'
 
 export const INITIAL_APPLICATIONS = [
   {
     appNo: "DL-2026-98124",
-    name: "Avrojit Saha",
-    phone: "+91 98765 43210",
+    name: "Demo Applicant",
+    phone: "0000000000",
     dob: "2004-05-14",
     rto: "DL-01 (Mall Road / North Delhi)",
     rtoCode: "DL-01",
@@ -16,9 +17,10 @@ export const INITIAL_APPLICATIONS = [
     ekycStatus: "Verified (Aadhaar / DigiLocker)",
     status: "Under Scrutiny",
     submissionDate: "2026-10-22",
-    address: "Flat 402, Shivalik Enclave, Model Town, Delhi - 110009",
+    address: "123 Mock Street, Demo City",
     bloodGroup: "B+ Positive",
-    fatherOrSpouse: "Debabrata Saha",
+    fatherOrSpouse: "Demo Guardian",
+    isDemoRecord: true,
     documents: [
       {
         id: "form-1",
@@ -26,7 +28,7 @@ export const INITIAL_APPLICATIONS = [
         type: "Medical Declaration (Rule 5(2))",
         verified: true,
         authority: "Citizen e-Sign Self-Certification",
-        docNumber: "MED-DECL-2026-DL-98124",
+        docNumber: "MED-DECL-MOCK-0001",
         details: "Vision acuity 6/6 bilateral, normal color perception, no history of epilepsy or sudden fainting."
       },
       {
@@ -35,8 +37,8 @@ export const INITIAL_APPLICATIONS = [
         type: "UIDAI e-KYC (DPDP 2023 Compliant)",
         verified: true,
         authority: "UIDAI National DigiLocker Gateway",
-        docNumber: "XXXXXXXX4921",
-        details: "Demographic match 100%. Address verified with postal index 110009. Biometric facial token confirmed."
+        docNumber: "XXXXXXXX0000",
+        details: "Demographic match 100%. Address verified: 123 Mock Street, Demo City. Phone: 0000000000."
       },
       {
         id: "marksheet-10",
@@ -44,7 +46,7 @@ export const INITIAL_APPLICATIONS = [
         type: "Age & Educational Proof (Rule 4 CMVR)",
         verified: true,
         authority: "CBSE DigiLocker Board Archive",
-        docNumber: "CBSE/2020/ROLL-6129841",
+        docNumber: "CBSE/2020/ROLL-MOCK01",
         details: "Date of birth recorded: 14-May-2004. Citizen age: 22 years (Eligible for LMV & MCWG)."
       },
       {
@@ -53,8 +55,8 @@ export const INITIAL_APPLICATIONS = [
         type: "Treasury Payment Receipt (Rule 32)",
         verified: true,
         authority: "BharatKosh / Parivahan e-Pay",
-        docNumber: "CHALLAN-DL-2026-881230",
-        details: "₹150 (MCWG LL) + ₹150 (LMV LL) + ₹50 (Online STALL Test) = ₹350 Paid via UPI."
+        docNumber: "CHALLAN-DL-MOCK-0001",
+        details: "₹150 (MCWG LL) + ₹150 (LMV LL) + ₹50 (Online STALL Test) = ₹350 Simulated Challan."
       }
     ],
     timeline: [
@@ -66,8 +68,8 @@ export const INITIAL_APPLICATIONS = [
   },
   {
     appNo: "MH-2026-11492",
-    name: "Shubham Kumar",
-    phone: "+91 98112 23344",
+    name: "Test User",
+    phone: "0000000000",
     dob: "2003-11-20",
     rto: "MH-02 (Andheri / Mumbai West)",
     rtoCode: "MH-02",
@@ -76,9 +78,10 @@ export const INITIAL_APPLICATIONS = [
     ekycStatus: "Verified (DigiLocker)",
     status: "Under Scrutiny",
     submissionDate: "2026-10-23",
-    address: "B-201, Palm Beach Heights, Lokhandwala, Andheri West, Mumbai - 400053",
+    address: "123 Mock Street, Demo City",
     bloodGroup: "O+ Positive",
-    fatherOrSpouse: "R. K. Kumar",
+    fatherOrSpouse: "Demo Guardian",
+    isDemoRecord: true,
     documents: [
       {
         id: "form-1",
@@ -86,7 +89,7 @@ export const INITIAL_APPLICATIONS = [
         type: "Medical Declaration (Rule 5(2))",
         verified: true,
         authority: "Citizen e-Sign Self-Certification",
-        docNumber: "MED-DECL-2026-MH-11492",
+        docNumber: "MED-DECL-MOCK-0002",
         details: "Clear vision without glasses, no cardiac ailments, certified fit to steer motor car."
       },
       {
@@ -95,16 +98,16 @@ export const INITIAL_APPLICATIONS = [
         type: "UIDAI e-KYC",
         verified: true,
         authority: "DigiLocker Repository",
-        docNumber: "XXXXXXXX7819",
-        details: "Address verified with Mumbai Suburban Jurisdiction. Mobile OTP authenticated."
+        docNumber: "XXXXXXXX0000",
+        details: "Address verified: 123 Mock Street, Demo City. Mobile OTP authenticated."
       },
       {
         id: "birth-cert",
         title: "Municipal Corporation Birth Certificate",
         type: "Proof of Age (Section 4 MV Act)",
         verified: true,
-        authority: "Brihanmumbai Municipal Corporation (BMC)",
-        docNumber: "BMC/B-CERT/2003/99120",
+        authority: "Municipal Corporation Registrar",
+        docNumber: "MOCK/B-CERT/0002",
         details: "Date of Birth: 20-Nov-2003. Verified age 22+ years."
       },
       {
@@ -112,9 +115,9 @@ export const INITIAL_APPLICATIONS = [
         title: "Treasury Challan Receipt",
         type: "CMVR Rule 32 Statutory Fee",
         verified: true,
-        authority: "MahaKosh Maharashtra Treasury",
-        docNumber: "CHALLAN-MH-2026-449102",
-        details: "₹150 (LMV LL Fee) + ₹50 (Computer Test Fee) = ₹200 Paid."
+        authority: "State Treasury Portal",
+        docNumber: "CHALLAN-MH-MOCK-0002",
+        details: "₹150 (LMV LL Fee) + ₹50 (Computer Test Fee) = ₹200 Simulated Challan."
       }
     ],
     timeline: [
@@ -126,8 +129,8 @@ export const INITIAL_APPLICATIONS = [
   },
   {
     appNo: "KA-2026-55319",
-    name: "Aritro Roy",
-    phone: "+91 98450 12345",
+    name: "Sample Citizen",
+    phone: "0000000000",
     dob: "2002-08-09",
     rto: "KA-01 (Koramangala / Bengaluru Central)",
     rtoCode: "KA-01",
@@ -138,9 +141,10 @@ export const INITIAL_APPLICATIONS = [
     llNumber: "KA-01-LL-2026-0099418",
     submissionDate: "2026-10-20",
     approvalDate: "2026-10-21",
-    address: "12th Main, 4th Block, Koramangala, Bengaluru - 560034",
+    address: "123 Mock Street, Demo City",
     bloodGroup: "A+ Positive",
-    fatherOrSpouse: "Siddhartha Roy",
+    fatherOrSpouse: "Demo Guardian",
+    isDemoRecord: true,
     documents: [
       {
         id: "form-1",
@@ -148,7 +152,7 @@ export const INITIAL_APPLICATIONS = [
         type: "Medical Declaration (Rule 5(2))",
         verified: true,
         authority: "Citizen e-Sign Self-Certification",
-        docNumber: "MED-DECL-2026-KA-55319",
+        docNumber: "MED-DECL-MOCK-0003",
         details: "All physical fitness parameters satisfied."
       },
       {
@@ -157,25 +161,25 @@ export const INITIAL_APPLICATIONS = [
         type: "UIDAI e-KYC",
         verified: true,
         authority: "UIDAI National Gateway",
-        docNumber: "XXXXXXXX2190",
-        details: "Koramangala address verified. Linked to Mobile +91 98450 12345."
+        docNumber: "XXXXXXXX0000",
+        details: "Address verified: 123 Mock Street, Demo City. Phone: 0000000000."
       },
       {
         id: "passport",
         title: "Republic of India Passport",
         type: "Identity & Age Proof",
         verified: true,
-        authority: "Ministry of External Affairs (RPO Bengaluru)",
-        docNumber: "Z5190412",
-        details: "Passport valid till 2031. High-confidence official verification."
+        authority: "Ministry of External Affairs",
+        docNumber: "Z0000000",
+        details: "Passport valid till 2031. Sample identity document."
       },
       {
         id: "fee-challan",
-        title: "Khajane-II Karnataka State Treasury",
+        title: "State Treasury Receipt",
         type: "Statutory Fee Receipt",
         verified: true,
-        authority: "Khajane-II State Portal",
-        docNumber: "CHALLAN-KA-2026-77192",
+        authority: "State Treasury Gateway",
+        docNumber: "CHALLAN-KA-MOCK-0003",
         details: "₹200 Paid."
       }
     ],

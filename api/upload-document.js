@@ -1,5 +1,5 @@
 // Vercel Serverless Function: /api/upload-document
-// Receives client-side Canvas-processed and Cropped documents for server OCR & validation
+// Client-Side Canvas Optimization & CMVR Rule 14 Document Compliance Screener
 
 export const config = {
   api: {
@@ -32,7 +32,6 @@ export default async function handler(req, res) {
       try {
         body = JSON.parse(body);
       } catch {
-        // multipart or raw text
         body = {};
       }
     }
@@ -40,28 +39,23 @@ export default async function handler(req, res) {
 
     const docType = body.docType || 'general_document';
     const fileName = body.fileName || `${docType}.jpg`;
-    const sizeKB = body.sizeKB || 150;
-    const width = body.width || 800;
-    const height = body.height || 600;
+    const sizeKB = Number(body.sizeKB || 150);
+    const width = Number(body.width || 800);
+    const height = Number(body.height || 600);
+    const mimeType = body.mimeType || (fileName.endsWith('.png') ? 'image/png' : fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
 
-    // Server-side Vision/OCR inspection
-    const ocrConfidence = Math.floor(95 + Math.random() * 4); // 95% - 99%
-
+    // Acknowledge receipt of the uploaded file for manual scrutiny desk review
+    // Zero fake OCR confidence scores or false automated claims
     return res.status(200).json({
       success: true,
-      verified: true,
+      status: 'UPLOADED_PENDING_MANUAL_REVIEW',
+      message: 'Document received and queued for manual RTO officer review.',
       docType,
       fileName,
       sizeKB,
       dimensions: `${width}x${height}px`,
-      message: 'Document successfully pre-processed via HTML5 Canvas and verified against CMVR Rule 14.',
-      ocrAnalysis: {
-        status: 'VERIFIED_LEGIBLE',
-        confidence: `${ocrConfidence}%`,
-        tamperCheck: 'PASSED',
-        statutoryRule: 'CMVR 1989 Rule 14 & MV Act Section 4',
-        processedAt: new Date().toISOString()
-      }
+      mimeType,
+      uploadedAt: new Date().toISOString()
     });
   } catch (err) {
     console.error('Server upload error:', err);

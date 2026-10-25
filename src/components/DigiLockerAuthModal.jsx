@@ -14,7 +14,8 @@ import {
   Lock,
   ExternalLink,
   Flame,
-  Zap
+  Zap,
+  Sparkles
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { 
@@ -43,7 +44,6 @@ export default function DigiLockerAuthModal({
   const [error, setError] = useState('')
   const [timer, setTimer] = useState(30)
   const [fetchedDocs, setFetchedDocs] = useState(null)
-  const [dispatchedOtp, setDispatchedOtp] = useState('')
   const [confirmationResult, setConfirmationResult] = useState(null)
   const [isFirebaseSession, setIsFirebaseSession] = useState(false)
 
@@ -130,12 +130,6 @@ export default function DigiLockerAuthModal({
       setIsFirebaseSession(false)
       setStep('otp_sent')
       setTimer(60)
-      if (res.generatedOtp) {
-        setDispatchedOtp(res.generatedOtp)
-      }
-      if (res.gatewayNotice) {
-        setGatewayNotice(res.gatewayNotice)
-      }
     } else {
       setError(res?.error || 'Failed to dispatch real-time OTP. Please try again.')
     }
@@ -164,7 +158,7 @@ export default function DigiLockerAuthModal({
           token = res.token
         } else {
           setLoading(false)
-          setError(res?.error || (isHindi ? 'अमान्य अथवा समाप्त ओटीपी। कृपया मोबाइल पर प्राप्त कोड दर्ज करें।' : 'Invalid or expired OTP. Please enter the exact code received on your mobile.'))
+          setError(res?.error || (isHindi ? 'अमान्य अथवा समाप्त ओटीपी। कृपया मोबाइल पर प्राप्त कोड दर्ज करें (मूल्यांकन हेतु 123456)।' : 'Invalid or expired OTP. Please enter valid 6-digit code (use demo code 123456).'))
           return
         }
       }
@@ -174,7 +168,7 @@ export default function DigiLockerAuthModal({
         token = res.token
       } else {
         setLoading(false)
-        setError(res?.error || (isHindi ? 'अमान्य क्रेडेंशियल।' : 'Invalid username or 6-digit security PIN.'))
+        setError(res?.error || (isHindi ? 'अमान्य क्रेडेंशियल। डेमो यूजर: citizen_demo, पिन: 123456' : 'Invalid credentials. Demo username: citizen_demo, PIN: 123456'))
         return
       }
     }
@@ -190,10 +184,10 @@ export default function DigiLockerAuthModal({
 
       // Save verified profile to localStorage for Form 2 intake
       const profile = {
-        applicant_name: docRes.data?.applicant_name || (cleanPhone === '8910464763' ? 'Avrojit Saha' : 'Citizen Applicant'),
+        applicant_name: docRes.data?.applicant_name || 'Rahul Sharma (Sample Applicant)',
         phone: cleanPhone,
-        dob: docRes.data?.dob || '2002-08-19',
-        address: docRes.data?.address || '88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045',
+        dob: docRes.data?.dob || '2004-05-14',
+        address: docRes.data?.address || 'Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001',
         documents_found: docRes.data?.documents_found || [
           'Class X Passing Certificate & Marksheet (CBSE)',
           'UIDAI e-Aadhaar Digital Dossier',
@@ -342,7 +336,7 @@ export default function DigiLockerAuthModal({
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="8910464763"
+                        placeholder="9000000001"
                         maxLength={15}
                         className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm font-medium outline-none focus:border-blue-600"
                         autoFocus
@@ -487,28 +481,19 @@ export default function DigiLockerAuthModal({
                 </p>
               </div>
 
-              {!isFirebaseSession && dispatchedOtp && (
-                <div className="p-3.5 bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-blue-600" />
-                      Real-Time Security OTP Generated
+              {!isFirebaseSession && (
+                <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-bold block text-xs">
+                      {isHindi ? 'हैकथॉन मूल्यांकन सैंडबॉक्स मोड' : 'Hackathon Evaluation Sandbox Mode'}
                     </span>
-                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded">
-                      Active 10 Mins
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-blue-200 dark:border-blue-700 shadow-sm">
-                    <div className="font-mono font-extrabold text-lg tracking-[0.25em] text-blue-600 dark:text-blue-400">
-                      {dispatchedOtp}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setOtp(dispatchedOtp)}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
-                    >
-                      Paste OTP
-                    </button>
+                    <p className="text-[11px] text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+                      {isHindi 
+                        ? 'त्वरित मूल्यांकन एवं परीक्षण हेतु, सैंडबॉक्स सत्यापन कोड दर्ज करें: ' 
+                        : 'For instant evaluation without cellular carrier latency, enter Sandbox Verification Code: '}
+                      <strong className="font-mono bg-amber-200/80 dark:bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-950 dark:text-amber-100 font-bold tracking-wider">123456</strong>
+                    </p>
                   </div>
                 </div>
               )}

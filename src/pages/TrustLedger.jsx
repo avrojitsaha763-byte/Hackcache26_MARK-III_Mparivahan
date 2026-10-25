@@ -21,15 +21,15 @@ import { useStickyState } from '@/hooks/useStickyState'
 const VERIFIED_RECORDS = {
   'KA-01-LL-2026-0099418': {
     llNumber: 'KA-01-LL-2026-0099418',
-    applicationNumber: 'LL-2026-98124',
-    candidateName: 'Avrojit Saha',
-    fatherHusbandName: 'Pranab Saha',
-    dateOfBirth: '2003-08-14',
+    applicationNumber: 'LL-2026-TEST03',
+    candidateName: 'TEST PERSONA 03: Vikram Singh (Sample Applicant)',
+    fatherHusbandName: 'Guardian Sample',
+    dateOfBirth: '2002-08-09',
     gender: 'Male',
     bloodGroup: 'B+',
-    address: 'Indiranagar 100ft Road, Stage 1, Bengaluru East, Karnataka - 560038',
+    address: 'Demo Flat 12, Koramangala Ring Road Sector, Bengaluru - 560001',
     rtoCode: 'KA-01',
-    rtoName: 'Bengaluru Central (Koramangala), Karnataka',
+    rtoName: 'Bengaluru Central (Koramangala), Karnataka (Sandbox)',
     issueDate: '2026-10-18',
     expiryDate: '2027-04-17', // Exactly 6 months per Rule 16 CMVR 1989
     status: 'ACTIVE_VALID',

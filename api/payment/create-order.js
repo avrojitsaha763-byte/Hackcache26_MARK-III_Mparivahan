@@ -38,6 +38,7 @@ export default async function handler(req, res) {
     const orderId = `ORD-PARIVAHAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`;
     const challanNo = `GRN-${rtoCode.split('-')[0]}-2026-${Math.floor(10000000 + Math.random() * 90000000)}`;
 
+    const hasLiveRazorpay = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
     const razorpayKeyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_51GovTreasuryLL';
     const razorpayOrderId = `order_${timestamp.toString().slice(-14)}`;
 
@@ -49,11 +50,15 @@ export default async function handler(req, res) {
       razorpayOrderId,
       amount,
       currency: 'INR',
-      merchantName: 'Ministry of Road Transport and Highways (MoRTH)',
-      portalName: 'Sarathi Parivahan National Gateway',
-      statutoryRule: 'Central Motor Vehicles Rules 1989, Rule 32',
+      isLiveGateway: hasLiveRazorpay,
+      isDemoSimulator: !hasLiveRazorpay,
+      gatewayMode: hasLiveRazorpay ? 'LIVE_PROVIDER' : 'DEMO_SANDBOX_SIMULATOR',
+      merchantName: 'Ministry of Road Transport and Highways (MoRTH - Sandbox Simulator)',
+      portalName: 'Sarathi Parivahan National Gateway (Simulator)',
+      statutoryRule: 'Central Motor Vehicles Rules 1989, Rule 32 Indicative Fee Schedule',
+      disclaimer: 'Sandbox simulation of Government of India Treasury Challan generation under CMVR Rule 32. No real financial debit occurs.',
       beneficiary: {
-        accountName: 'Pay and Accounts Officer (MoRTH)',
+        accountName: 'Pay and Accounts Officer (MoRTH - Simulated)',
         rtoCode,
         vehicleClass,
         applicantName

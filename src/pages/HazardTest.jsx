@@ -543,7 +543,7 @@ export default function HazardTest() {
               <Zap className="w-4 h-4 text-red-400" />
               <span>{isHindi ? 'STALL प्रो — 60-सेकंड हैज़र्ड परसेप्शन एरेना' : 'STALL Pro — Hazard Perception & Reflex Arena'}</span>
               <span>•</span>
-              <span className="text-amber-300 font-bold">Rule 11(3) CMVR</span>
+              <span className="text-amber-300 font-bold">CMVR Rule 11 Knowledge Benchmark</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -748,7 +748,7 @@ export default function HazardTest() {
                 </div>
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                   <span>Statutory Compliance:</span>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">CMVR Rule 11(3)</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">CMVR Rule 11 Syllabus</span>
                 </div>
               </div>
             </div>

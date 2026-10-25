@@ -181,7 +181,7 @@
   "sample_applications": [
     {
       "application_number": "DL-2026-98124",
-      "applicant_name": "Avrojit Saha",
+      "applicant_name": "Rahul Sharma (Sample Applicant)",
       "dob": "2004-05-14",
       "rto_code": "DL-01 (Mall Road)",
       "vehicle_classes": ["MCWG", "LMV"],
@@ -196,7 +196,7 @@
     },
     {
       "application_number": "MH-2026-11492",
-      "applicant_name": "Shubham Kumar",
+      "applicant_name": "Sneha Patel (Sample Applicant)",
       "dob": "2003-11-20",
       "rto_code": "MH-02 (Andheri)",
       "vehicle_classes": ["LMV"],
@@ -211,7 +211,7 @@
     },
     {
       "application_number": "WB-2026-78210",
-      "applicant_name": "Aritro Roy",
+      "applicant_name": "Vikram Singh (Sample Applicant)",
       "dob": "2002-08-09",
       "rto_code": "WB-01 (Beltala)",
       "vehicle_classes": ["MCWG", "LMV"],
@@ -231,8 +231,8 @@
       "state_name": "Karnataka",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
-      "rule_11_3_description": "Rule 11(3) CMVR strictly enforced: Online LL test must be completed within 7 days of application or auto-cancelled.",
+      "cmvr_rule_11_pass_percentage": 60,
+      "cmvr_rule_11_description": "Rule 11 CMVR: Mandatory computerized knowledge test covering road signs, regulations, and driver duties (60% qualifying score).",
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Photo", "Form 1-A (if > 40 yrs)"]
     },
@@ -241,7 +241,7 @@
       "state_name": "Maharashtra",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 175, "dl": 400 },
       "required_docs": ["Aadhaar or Govt ID", "Age & Address Proof", "Photo", "Medical Form 1"]
     },
@@ -251,7 +251,7 @@
       "portal": "Sarathi / e-Sarathi TN",
       "online_ll_test": true,
       "test_languages": ["Tamil", "English"],
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Tamil/English Application", "Aadhaar e-KYC", "Age Proof", "Address Proof"]
     },
@@ -260,7 +260,7 @@
       "state_name": "Delhi",
       "portal": "Sarathi (Faceless Transport Services)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar Face Auth / OTP", "DigiLocker Marksheet", "Self-declaration Form 1"]
     },
@@ -269,7 +269,7 @@
       "state_name": "West Bengal",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Voter ID / Passport", "10th Marksheet", "Form 1"]
     },
@@ -278,7 +278,7 @@
       "state_name": "Uttar Pradesh",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Passport Photo"]
     }

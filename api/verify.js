@@ -1,31 +1,33 @@
 // Vercel Serverless Function: /api/verify
-// National Form 3 TrustLedger Cryptographic Public Verification Engine
+// National Form 3 TrustLedger Cryptographic Public Verification Engine (Evaluation Sandbox)
 
 const VERIFIED_RECORDS = {
   'KA-01-LL-2026-0099418': {
     llNumber: 'KA-01-LL-2026-0099418',
-    applicationNumber: 'LL-2026-98124',
-    candidateName: 'Avrojit Saha',
-    fatherHusbandName: 'Pranab Saha',
-    dateOfBirth: '2003-08-14',
+    applicationNumber: 'LL-2026-TEST01',
+    candidateName: 'Rahul Sharma (Sample Applicant)',
+    fatherHusbandName: 'Guardian Sample',
+    dateOfBirth: '2004-05-14',
     gender: 'Male',
     bloodGroup: 'B+',
-    address: 'Indiranagar 100ft Road, Stage 1, Bengaluru East, Karnataka - 560038',
+    address: 'Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001',
     rtoCode: 'KA-01',
-    rtoName: 'Bengaluru Central (Koramangala), Karnataka',
+    rtoName: 'Bengaluru Central (Koramangala), Karnataka (Sandbox)',
     issueDate: '2026-10-18',
-    expiryDate: '2027-04-17',
+    expiryDate: '2027-04-17', // CMVR Rule 13: 6 months validity
     status: 'ACTIVE_VALID',
+    isDemoRecord: true,
+    recordNotice: 'DEMO DATA — NOT AN OFFICIAL LICENCE RECORD',
     vehicleClasses: ['MCWG', 'LMV-NT'],
     mviOfficer: {
-      name: 'Shri Rajeshwar Sharma',
+      name: 'Shri Rajeshwar Sharma (Demo MVI)',
       badgeNumber: 'KA-MVI-0842',
       digitalSignatureId: 'DS-NIC-2026-99418-SHA256'
     },
     treasuryChallan: {
-      grn: 'KA26-EPAY-8849102-RTO',
+      grn: 'KA26-EPAY-8849102-SIM',
       amount: '₹200.00',
-      paidVia: 'Bharat e-Pay UPI Gateway (SBI Parivahan Treasury)'
+      paidVia: 'Bharat e-Pay UPI Gateway (Simulated Treasury Challan)'
     },
     medicalClearance: {
       form1Id: 'MED-NETRA-2026-KA01-8841',
@@ -36,28 +38,30 @@ const VERIFIED_RECORDS = {
   },
   'DL-04-2026-0048192': {
     llNumber: 'DL-04-2026-0048192',
-    applicationNumber: 'APP-2026-88419',
-    candidateName: 'Priya Sharma',
-    fatherHusbandName: 'Ramesh Sharma',
-    dateOfBirth: '1999-11-22',
+    applicationNumber: 'APP-2026-TEST02',
+    candidateName: 'Sneha Patel (Sample Applicant)',
+    fatherHusbandName: 'Guardian Sample',
+    dateOfBirth: '2003-11-20',
     gender: 'Female',
     bloodGroup: 'O+',
-    address: 'Block C, Janakpuri West, New Delhi - 110058',
+    address: 'Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001',
     rtoCode: 'DL-04',
-    rtoName: 'Janakpuri West RTO, National Capital Territory of Delhi',
+    rtoName: 'Janakpuri West RTO, National Capital Territory of Delhi (Sandbox)',
     issueDate: '2026-10-20',
-    expiryDate: '2027-04-19',
+    expiryDate: '2027-04-19', // CMVR Rule 13: 6 months validity
     status: 'ACTIVE_VALID',
+    isDemoRecord: true,
+    recordNotice: 'DEMO DATA — NOT AN OFFICIAL LICENCE RECORD',
     vehicleClasses: ['LMV-NT'],
     mviOfficer: {
-      name: 'Dr. Anita Mehra',
+      name: 'Dr. Anita Mehra (Demo ARTO)',
       badgeNumber: 'DL-ARTO-2104',
       digitalSignatureId: 'DS-NIC-2026-48192-SHA256'
     },
     treasuryChallan: {
-      grn: 'DL26-EPAY-4410928-RTO',
+      grn: 'DL26-EPAY-4410928-SIM',
       amount: '₹200.00',
-      paidVia: 'Bharat e-Pay Razorpay Netbanking'
+      paidVia: 'Bharat e-Pay Razorpay (Simulated Treasury Challan)'
     },
     medicalClearance: {
       form1Id: 'MED-NETRA-2026-DL04-3321',
@@ -92,6 +96,8 @@ export default function handler(req, res) {
     return res.status(200).json({
       success: true,
       verified: true,
+      isDemoSandbox: true,
+      disclaimer: 'DEMO DATA — NOT AN OFFICIAL LICENCE RECORD. Created solely for hackathon demonstration.',
       record
     });
   }

@@ -37,9 +37,9 @@ export default function AdminAuth() {
   const [successMsg, setSuccessMsg] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // Login form state
-  const [loginId, setLoginId] = useState('RTO-OFFICER-DL01')
-  const [loginPassword, setLoginPassword] = useState('AdminPassword2026!')
+  // Login form state (secure blank defaults)
+  const [loginId, setLoginId] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [loginRto, setLoginRto] = useState('DL-01')
 
   // Register form state
@@ -69,16 +69,18 @@ export default function AdminAuth() {
 
   const handleQuickDemo = async (officer) => {
     setLoginId(officer.officerId)
-    setLoginPassword(officer.password)
     setLoginRto(officer.rtoCode)
     setErrorMsg('')
+    setSuccessMsg('Authenticating with server-side scrutiny directory...')
 
-    const res = await api.loginOfficer(officer.officerId, officer.password)
+    const res = await api.loginOfficer(officer.officerId, 'AdminPassword2026!')
     if (res.success) {
       setSuccessMsg(`Demo Officer Authenticated: ${officer.name} (${officer.rto})`)
       setTimeout(() => {
         navigate(redirectTarget)
       }, 500)
+    } else {
+      setErrorMsg(res.message || 'Failed to authenticate officer')
     }
   }
 

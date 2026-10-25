@@ -14,13 +14,20 @@ import {
 import { mockQuestions } from '../data/questions'
 import { trafficSigns } from '../data/signs'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:8000')
+// Unify API Architecture: In production, routes all requests directly to the deployed FastAPI server
+// configured via import.meta.env.VITE_API_BASE_URL (or VITE_BACKEND_URL).
+const API_BASE = (
+  import.meta.env.VITE_API_BASE_URL || 
+  import.meta.env.VITE_BACKEND_URL || 
+  (typeof window !== 'undefined' && window.__API_BASE__ ? window.__API_BASE__ : '')
+).replace(/\/+$/, '')
 
 async function safeFetch(endpoint, options = {}) {
   try {
     const controller = new AbortController()
-    const id = setTimeout(() => controller.abort(), 1800)
-    const url = API_BASE ? `${API_BASE}${endpoint}` : endpoint
+    const id = setTimeout(() => controller.abort(), 6000)
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    const url = API_BASE ? `${API_BASE}${cleanEndpoint}` : cleanEndpoint
     const res = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -115,7 +122,7 @@ export const api = {
     return localCreated
   },
 
-  // Track application status & Rule 11(3) urgency
+  // Track application status & CMVR Rule 11 milestones
   async trackApplication(appNo) {
     const cleanNo = (appNo || '').trim().toUpperCase()
     const backendRes = await safeFetch(`/api/track?app_no=${encodeURIComponent(cleanNo)}`)
@@ -261,16 +268,29 @@ export const api = {
     return getRegisteredOfficers()
   },
 
-  // Saathi AI Citizen Chat
+  // Saathi AI Citizen Chat & Copilot
   async sendChatMessage(query, lang = 'en') {
     const backendRes = await safeFetch('/api/chat', {
       method: 'POST',
       body: JSON.stringify({ query, lang })
     })
-    if (backendRes && backendRes.reply) {
-      return backendRes.reply
+    return backendRes
+  },
+
+  // Saathi Driving Licence Copilot (Structured Intent, Action Engine & Source Citations)
+  async sendCopilotIntent(query, lang = 'en', context = {}) {
+    const backendRes = await safeFetch('/api/copilot/intent', {
+      method: 'POST',
+      body: JSON.stringify({ query, lang, context })
+    })
+    if (backendRes && backendRes.status === 'success') {
+      return backendRes
     }
-    return null
+    // Fallback to /api/chat
+    return await safeFetch('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ query, lang })
+    })
   },
 
   // DigiLocker / API Setu Authentication & Verification
@@ -321,11 +341,11 @@ export const api = {
 
   // Real-time OAuth 2.0 authorization code exchange for MeriPehchaan SSO
   async exchangeDigiLockerCode(code, stateData = {}) {
-    const cleanPhone = (stateData.phone || '8910464763').replace(/\D/g, '').slice(-10)
+    const cleanPhone = (stateData.phone || '9000000001').replace(/\D/g, '').slice(-10)
     const payload = {
       code,
       phone: cleanPhone,
-      name: stateData.name || (cleanPhone === '8910464763' ? 'Avrojit Saha' : 'Citizen Applicant'),
+      name: stateData.name || 'Rahul Sharma (Sample Applicant)',
       vehicleClass: stateData.vehicleClass || 'combo-bike-car',
       rto: stateData.rto || 'DL-01'
     }
@@ -341,8 +361,8 @@ export const api = {
   },
 
   async fetchDigilockerDocuments(vehicleClass = 'combo-bike-car', token = 'DL_LIVE_SESSION', citizenData = {}) {
-    const cleanPhone = (citizenData.phone || '8910464763').replace(/\D/g, '').slice(-10)
-    const applicantName = citizenData.name || (cleanPhone === '8910464763' ? 'Avrojit Saha' : 'Citizen Applicant')
+    const cleanPhone = (citizenData.phone || '9000000001').replace(/\D/g, '').slice(-10)
+    const applicantName = citizenData.name || 'Rahul Sharma (Sample Applicant)'
 
     const res = await safeFetch('/api/documents', {
       method: 'POST',
@@ -358,14 +378,14 @@ export const api = {
     })
     if (res && res.success) return res
 
-    // Authentic client fallback with real citizen profile
+    // Authentic client fallback with fictional test persona
     const fetchedDocs = {
       applicant_name: applicantName,
       phone: cleanPhone,
-      dob: "2002-08-19",
+      dob: "2004-05-14",
       address: (citizenData.rto && citizenData.rto.startsWith('DL'))
-        ? "Flat 402, Block B, Vasant Kunj, New Delhi - 110070"
-        : "88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045",
+        ? "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001"
+        : "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001",
       documents_found: [
         "Class X Passing Certificate & Marksheet (CBSE)",
         "UIDAI e-Aadhaar Digital Dossier",
@@ -478,10 +498,11 @@ export const api = {
     const mode = paymentPayload.paymentMode || 'upi'
     return {
       success: true,
-      status: 'PAID',
-      message: 'Payment verified and credited to Government Treasury Account.',
+      status: 'PAID (SIMULATED TREASURY CHALLAN)',
+      isDemoSandbox: true,
+      message: 'Payment verified and recorded in Sandbox Treasury Ledger under CMVR Rule 32.',
       receipt: {
-        txnId: `TXN-PARIVAHAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`,
+        txnId: `TXN-PARIVAHAN-SIM-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`,
         orderId: paymentPayload.orderId || `ORD-${timestamp}`,
         challanNo: paymentPayload.challanNo || `GRN-DL-2026-${Math.floor(10000000 + Math.random() * 90000000)}`,
         cin: `00024098${Math.floor(100000000 + Math.random() * 900000000)}`,
@@ -491,12 +512,13 @@ export const api = {
         amount: Number(paymentPayload.amount || 350),
         currency: 'INR',
         paidAt: new Date().toISOString(),
-        payerName: paymentPayload.payerDetails?.name || 'Citizen Applicant',
-        payerPhone: paymentPayload.payerDetails?.phone || '8910464763',
-        bankName: paymentPayload.payerDetails?.bankName || (mode === 'upi' ? 'NPCI / BHIM' : 'State Bank of India'),
-        statutoryCitation: 'Central Motor Vehicles Rules 1989, Rule 32',
+        payerName: paymentPayload.payerDetails?.name || 'Rahul Sharma (Sample Applicant)',
+        payerPhone: (paymentPayload.payerDetails?.phone || '9000000001').slice(-10),
+        bankName: paymentPayload.payerDetails?.bankName || (mode === 'upi' ? 'NPCI / BHIM Sandbox' : 'State Bank of India (Simulator)'),
+        statutoryCitation: 'Central Motor Vehicles Rules 1989, Rule 32 Indicative Fee Schedule',
         applicationNo: paymentPayload.appNo || 'DL-2026-PENDING',
-        treasuryHead: '0041-Taxes on Vehicles - 101 - Receipts under Motor Vehicles Act'
+        treasuryHead: '0041-Taxes on Vehicles - 101 - Receipts under Motor Vehicles Act (Simulated Ledger)',
+        disclaimer: 'DEMO / SANDBOX RECEIPT: Simulated Treasury Challan generated for hackathon demonstration. No real monetary transactions took place.'
       }
     }
   }

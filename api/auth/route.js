@@ -16,9 +16,7 @@ export async function POST(request) {
       }
       return NextResponse.json({ 
         success: true, 
-        message: `OTP sent to registered mobile +91 ${cleanPhone.slice(-10)}.`, 
-        txnId: `TXN-${cleanPhone.slice(-10)}-${Date.now()}`,
-        simulatedOtp: "123456"
+        message: "OTP Sent"
       });
     }
 

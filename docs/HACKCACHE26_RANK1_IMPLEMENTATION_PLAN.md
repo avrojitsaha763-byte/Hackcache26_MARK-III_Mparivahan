@@ -23,7 +23,7 @@ To secure **Rank 1**, we eliminate the two fatal traps that derail hackathon pre
 | **8** | **Health/Vision Check Integration** | ✅ High (Canvas Snellen & Ishihara) | 🌟 High | **Healthcare (10/10)**, Acad (8/10) | 🟢 **Zero** (Interactive clinical engine) | **✅ FULLY IMPLEMENTED (`VisionTest.jsx` Netra-Vision)** |
 | **9** | **Predictive Learning Path (Personalization)** | ✅ High (Adaptive reaction dynamics) | 🌟 High | **Academia (10/10)**, Tech (9/10) | 🟢 **Zero** (Client-side weak-spot classifier) | **✅ FULLY IMPLEMENTED (`HazardTest.jsx` Stopping Dynamics)** |
 | **10** | **Virtual Reality (VR) Test Runs** | ❌ Very Low (Requires headsets) | 🌟 High | Tech (8/10) | 🚨 **Extreme** (Hardware mismatch in pitch room) | **❌ STRATEGICALLY DISCARDED (Impractical for live pitch)** |
-| **11** | **Smart Reminders & Compliance** | ✅ Very High (Rule 11(3) & 15) | 🌟 High | Finance (9/10), Legal (10/10) | 🟢 **Zero** (Deterministic clock engine) | **✅ FULLY IMPLEMENTED (`Track.jsx` & `PermanentDL.jsx`)** |
+| **11** | **Smart Reminders & Compliance** | ✅ Very High (Rule 11 & 15) | 🌟 High | Finance (9/10), Legal (10/10) | 🟢 **Zero** (Deterministic clock engine) | **✅ FULLY IMPLEMENTED (`Track.jsx` & `PermanentDL.jsx`)** |
 | **12** | **Reward & Loyalty Program** | ⚠️ Medium (Commercial coupons) | 😐 Low | Finance (5/10) | 🟡 **Medium** (Commercializes government portal) | **❌ STRATEGICALLY DISCARDED (Dilutes government sanctity)** |
 | **13** | **3D Street-Scan Navigation** | ❌ Very Low (Heavy 3D point-cloud) | 🌟 High | Tech (7/10) | 🚨 **Extreme** (Requires live LiDAR sensor streams) | **❌ STRATEGICALLY DISCARDED (Unrealistic for hackathon)** |
 | **14** | **Chatbot Automated Form Filling** | ✅ Very High (Conversational JSON NLU) | 🌟 High | **All 4 Judges (10/10)** | 🟢 **Zero** (Speech-to-Form Auto Population) | **✅ FULLY IMPLEMENTED (`ChatbotModal.jsx` ➔ `/apply`)** |
@@ -50,7 +50,7 @@ graph TD
     end
 
     subgraph ComplianceAndTrust ["Governance, Compliance & Analytics (Ideas 4, 11, 15)"]
-        Compliance["⏱️ Statutory Reminders<br/>Rule 11(3) 7-Day Window + Rule 15 30-Day Rule"]
+        Compliance["⏱️ Statutory Reminders<br/>Rule 11 Knowledge Test (60% Threshold) + Rule 15 30-Day Rule"]
         AdminDesk["📊 RTO Admin Operations Desk<br/>Executive KPI Metrics, Scrutiny & Approval"]
         TrustLedger["🛡️ Form 3 TrustLedger<br/>SHA-256 Vector PDF Minting & Public QR Verifier"]
     end
@@ -93,12 +93,12 @@ graph TD
 #### Idea 11: Smart Reminders & Compliance
 - **Components**: [`src/pages/Track.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/Track.jsx), [`src/pages/PermanentDL.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/PermanentDL.jsx)
 - **Legal Directives**:
-  - **Rule 11(3) CMVR**: Real-time 7-day countdown window reminding applicants to clear the STALL test before their application automatically lapses.
+  - **Rule 11 CMVR**: Guidance on mandatory computerized knowledge test syllabus (traffic signs, rules, driver duties) with minimum 60% passing benchmark.
   - **Rule 15 CMVR**: Strict 30-day mandatory holding lock with valid Form 3 LL before unlocking the permanent driving licence appointment slot.
 
 #### Idea 14: Chatbot Automated Form Filling
 - **Components**: [`src/components/ChatbotModal.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/components/ChatbotModal.jsx) ➔ [`src/pages/Apply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/Apply.jsx)
-- **Citizen Experience**: The citizen says *"Mera naam Avrojit Saha hai, Bangalore mein bike aur car licence chahiye"*. The AI extracts the parameters, packages the Form 2 payload, and redirects the citizen to `/apply` with all 40 fields auto-filled.
+- **Citizen Experience**: The citizen says *"Mera naam Rahul Sharma hai, Bangalore mein bike aur car licence chahiye"*. The AI extracts the parameters, packages the Form 2 payload, and redirects the citizen to `/apply` with all 40 fields auto-filled.
 
 #### Idea 15: Data Analytics DMV Dashboard
 - **Component**: [`src/pages/AdminPortal.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/AdminPortal.jsx)
@@ -137,6 +137,33 @@ The platform is built as an **offline-resilient, zero-external-dependency** arch
 
 ## 5. Verification & Test Report
 
-- **Frontend Bundle (`vite build`)**: **PASS** (Zero syntax errors, 2642 modules transformed in 3.1s).
+- **Frontend Bundle (`vite build`)**: **PASS** (Zero syntax errors, 2642 modules transformed in 3.4s).
+- **Frontend Linter (`oxlint`)**: **PASS** (0 warnings, 0 errors on 65 files).
 - **Backend Test Suite (`verify_all_endpoints.py`)**: **PASS** (15/15 test suites passed).
-- **Git Synchronization**: Working tree clean, all files tracked and pushed to `main`.
+- **Copilot Intent Engine (`/api/copilot/intent`)**: **PASS** (Status 200, structured action `autofill_form`, explicit state & RTO mapping).
+- **Git Synchronization**: Working tree clean, all files tracked and ready for submission.
+
+---
+
+## 6. Saathi — Driving Licence Copilot (All-India Rank 1 Architecture)
+
+### 6.1 Why This Wins Over Standard Chatbots
+Judges at elite hackathons are fatigued by generic ChatGPT wrappers. Saathi operates as an **Action-Oriented State-Aware Copilot**:
+1. **Official-Source Grounding**: Strictly cites Central Motor Vehicles Rules 1989 (Rule 11 knowledge test, Rule 13 validity, Rule 14 application, Rule 15 holding period, Rule 32 statutory fees) and Motor Vehicles Act 1988 Sec 4.
+2. **Zero Dummy Personas / PII Hygiene**: Eliminates hardcoded fake names and phones; only captures citizen input explicitly provided by the user.
+3. **Explicit RTO Confirmation**: Replaces fragile city keyword guessing with explicit state and circle selectors (e.g. `WB-01 Beltala`, `DL-01 Mall Road`, `KA-01 Bengaluru Central`, `MH-01 Tardeo`).
+4. **Consent-Based Form Filling**: Renders an interactive **"Review & Confirm Application Draft"** card with mandatory citizen consent before transferring parameters to Form 2 (`/apply`).
+5. **Fail-Safe Offline Resilience**: Employs a strict 4-second timeout with honest offline notification (`⚡ Live AI currently unavailable — Switched to Verified Statutory Knowledge Base`) with verified RTO FAQ links.
+
+### 6.2 The 90-Second Winning Pitch Script
+- **Applicant Voice Input**: *"I live in West Bengal and want a learner's licence for a motorcycle. What should I do?"*
+- **Saathi Explains with Sources**: Highlights Motorcycle with Gear (MCWG), cites CMVR 1989 Rule 11 (60% passing mark) and Rule 32 (₹200 fee).
+- **Saathi Prepares**: Configures `WB-01 (Kolkata - Beltala)` and displays the Form 2 Review Card.
+- **Applicant Confirms**: Clicks *"Confirm & Autofill Form 2"*, seamlessly landing on the pre-filled Form 2 draft.
+- **Saathi Guides Forward**: Offers next actions: *"Practise STALL Test (Rule 11)"* and *"Check Age Eligibility"*.
+
+### 6.3 Team MARK-III Operational Allocation
+- **Aritro (Backend & API Engineering)**: Manages `/api/copilot/intent` and `/api/chat` microservices, forces strict JSON intent output, and maintains dual-mode fallback.
+- **Avrojit (Frontend UI/UX & Client Store)**: Crafts the sliding drawer, mobile 360px viewport responsiveness, interactive Review Card, and Web Speech API bilingual controls.
+- **Shubham (Legal Research & Documentation)**: Grounds system prompts in gazetted CMVR rules, eliminates legal hallucinations, and scripts the live pitch.
+

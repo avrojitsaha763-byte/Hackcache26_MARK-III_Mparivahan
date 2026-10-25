@@ -192,7 +192,7 @@ export default function Apply() {
     const statePayload = {
       returnTo: '/apply',
       phone: cleanPhone,
-      name: name || (cleanPhone === '8910464763' ? 'Avrojit Saha' : ''),
+      name: name || '',
       vehicleClass: vehicle,
       rto: stateRto,
       ts: Date.now()
@@ -357,7 +357,7 @@ export default function Apply() {
                   </label>
                   <input 
                     type="text" 
-                    placeholder={isHindi ? 'पूरा नाम दर्ज करें (उदा. Avrojit Saha)' : 'e.g. Avrojit Saha'} 
+                    placeholder={isHindi ? 'पूरा नाम दर्ज करें (उदा. Rahul Sharma)' : 'e.g. Rahul Sharma'} 
                     value={name} 
                     onChange={(e) => setName(e.target.value)}
                     className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"
@@ -745,9 +745,9 @@ export default function Apply() {
                     {uploadMode === 'manual' ? 'Manual Upload & Camera Scan' : 'DigiLocker e-KYC'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-1 text-amber-600 dark:text-amber-400 font-bold">
-                  <span>{isHindi ? 'परीक्षा समय सीमा:' : 'Online Test Deadline:'}</span>
-                  <span>Within 7 Days (Rule 11(3))</span>
+                <div className="flex justify-between items-center pt-1 text-blue-600 dark:text-blue-400 font-bold">
+                  <span>{isHindi ? 'ऑनलाइन ज्ञान परीक्षा:' : 'Knowledge Test Threshold:'}</span>
+                  <span>CMVR Rule 11 (60% Pass Mark)</span>
                 </div>
               </div>
 
@@ -769,16 +769,16 @@ export default function Apply() {
 
         {/* Right Information & Compliance Column (5 Cols on Desktop) */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Statutory 7-Day Alert */}
+          {/* Statutory CMVR Rule 11 Knowledge Test Advisory */}
           <div className="p-5 rounded-3xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 space-y-3">
             <div className="flex items-center gap-2 text-blue-900 dark:text-blue-200 font-bold text-sm">
               <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-              <span>CMVR Rule 11(3) Statutory Mandate</span>
+              <span>CMVR Rule 11 Knowledge Test Guidance</span>
             </div>
             <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
               {isHindi
-                ? 'नियम 11(3) के अनुसार, आवेदन करने के 7 दिनों के भीतर ऑनलाइन परीक्षा देना अनिवार्य है।'
-                : 'Under Rule 11(3) of the Central Motor Vehicles Rules, applicants must complete their computerised LL test within 7 calendar days of fee submission.'}
+                ? 'केंद्रीय मोटर वाहन नियम (CMVR) 1989 के नियम 11 के अनुसार, लर्नर्स लाइसेंस जारी होने से पूर्व सड़क संकेत एवं यातायात नियमों पर आधारित 60% अंकों की परीक्षा उत्तीर्ण करना अनिवार्य है। राज्यवार स्लॉट शेड्यूलिंग विंडो अलग हो सकती है।'
+                : 'Under Central Motor Vehicles Rules (CMVR) 1989 Rule 11, applicants must clear the preliminary test on traffic signs and road safety with minimum 60% passing mark before Form 3 LL issuance. State slot booking windows may vary.'}
             </p>
           </div>
 

@@ -168,21 +168,21 @@ export default function Track() {
               className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-500 text-xs font-mono transition-all flex items-center gap-1.5"
             >
               <span>DL-2026-98124</span>
-              <span className="text-[10px] text-blue-600 font-sans font-bold">(Avrojit Saha)</span>
+              <span className="text-[10px] text-blue-600 font-sans font-bold">(Demo 01: Demo Applicant)</span>
             </button>
             <button
               onClick={() => handleQuickSelect('MH-2026-11492')}
               className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-500 text-xs font-mono transition-all flex items-center gap-1.5"
             >
               <span>MH-2026-11492</span>
-              <span className="text-[10px] text-amber-600 font-sans font-bold">(Shubham Kumar)</span>
+              <span className="text-[10px] text-amber-600 font-sans font-bold">(Demo 02: Test User)</span>
             </button>
             <button
               onClick={() => handleQuickSelect('KA-2026-55319')}
               className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-500 text-xs font-mono transition-all flex items-center gap-1.5"
             >
               <span>KA-2026-55319</span>
-              <span className="text-[10px] text-emerald-600 font-sans font-bold">(Aritro Roy - Approved)</span>
+              <span className="text-[10px] text-emerald-600 font-sans font-bold">(Demo 03: Sample Citizen - Approved)</span>
             </button>
           </div>
         </div>
@@ -201,6 +201,14 @@ export default function Track() {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           {/* Header Card */}
           <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm">
+            {/* Demo Record Notice Badge */}
+            <div className="mb-3">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold">
+                <Sparkles className="w-3 h-3 text-amber-500" />
+                DEMO DATA — NOT AN OFFICIAL LICENCE RECORD
+              </span>
+            </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
@@ -247,8 +255,8 @@ export default function Track() {
                 <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">✓ Verified (DigiLocker)</strong>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">Test Deadline:</span>
-                <strong className="text-amber-600 dark:text-amber-400 font-semibold">Within 7 Days (Rule 11(3))</strong>
+                <span className="text-slate-400 block text-[10px]">{isHindi ? 'ज्ञान परीक्षा (STALL):' : 'Knowledge Test (STALL):'}</span>
+                <strong className="text-blue-600 dark:text-blue-400 font-semibold">{isHindi ? 'CMVR नियम 11 (60% पासिंग)' : 'CMVR Rule 11 (60% Pass Mark)'}</strong>
               </div>
             </div>
 

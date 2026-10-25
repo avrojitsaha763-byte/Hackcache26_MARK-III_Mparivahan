@@ -97,7 +97,7 @@ export default function PaymentGatewayModal({
   onSuccess,
   amount = 350,
   applicantName = 'Citizen Applicant',
-  phone = '8910464763',
+  phone = '9000000001',
   rtoCode = 'DL-01',
   vehicleClass = 'combo-bike-car',
   isHindi = false
@@ -282,7 +282,7 @@ export default function PaymentGatewayModal({
         image: 'https://cdn-icons-png.flaticon.com/512/330/330439.png',
         prefill: {
           name: applicantName,
-          contact: phone || '8910464763',
+          contact: phone || '9000000001',
           email: `${(phone || 'citizen').replace(/\D/g, '')}@parivahan.gov.in`
         },
         notes: {
@@ -422,7 +422,7 @@ export default function PaymentGatewayModal({
     setNetbankingOverlay({
       bankName,
       step: 'login', // 'login' -> 'review' -> 'otp'
-      userId: `AVROJIT_${phone.slice(-4) || '9821'}`,
+      userId: `CITIZEN_${phone.slice(-4) || '1001'}`,
       password: '',
       otp: '',
       generatedOtp: ''
@@ -481,7 +481,7 @@ export default function PaymentGatewayModal({
   const handleUpiVpaPay = (e) => {
     e.preventDefault()
     if (!upiId || !upiId.includes('@')) {
-      setError('Please enter a valid UPI ID (e.g. 8910464763@paytm or name@okhdfcbank).')
+      setError('Please enter a valid UPI ID (e.g. 9000000001@paytm or name@okhdfcbank).')
       return
     }
     setError('')
@@ -587,6 +587,22 @@ export default function PaymentGatewayModal({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Hackathon Evaluation Sandbox Banner */}
+        <div className="bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-800/80 px-4 py-2 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span className="font-semibold text-xs">
+              {isHindi ? 'सैंडबॉक्स परीक्षण गेटवे:' : 'Hackathon Evaluation Sandbox:'}
+            </span>
+            <span className="text-[11px] text-amber-800/90 dark:text-amber-300/80">
+              {isHindi ? 'CMVR नियम 32 सांकेतिक चालान सिमुलेशन। कोई वास्तविक शुल्क नहीं कटेगा।' : 'Simulated CMVR Rule 32 Treasury Challan workflow. No real financial debit occurs.'}
+            </span>
+          </div>
+          <span className="inline-block px-2.5 py-0.5 bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 rounded-md text-[10px] font-mono font-bold tracking-wider">
+            ⚠️ SIMULATED TRANSACTION
+          </span>
         </div>
 
         {/* Modal Main Body */}
@@ -813,7 +829,7 @@ export default function PaymentGatewayModal({
                             type="text"
                             value={upiId}
                             onChange={(e) => setUpiId(e.target.value)}
-                            placeholder="e.g. 8910464763@paytm or yourname@okaxis"
+                            placeholder="e.g. 9000000001@paytm or yourname@okaxis"
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm outline-none focus:border-blue-600 font-mono"
                           />
                         </div>
@@ -1079,12 +1095,18 @@ export default function PaymentGatewayModal({
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
+            <div className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700 rounded-full text-[11px] font-bold text-amber-800 dark:text-amber-300">
+              ⚠️ SIMULATED TRANSACTION (EVALUATION DEMO)
+            </div>
+
             <div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                Payment Received & Verified!
+                {completedReceipt.is_simulated_demo ? 'Simulated Payment Challan Verified!' : 'Payment Received & Verified!'}
               </h3>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1">
-                Credited to Government of India Consolidated Treasury (CMVR Rule 32)
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold mt-1">
+                {completedReceipt.is_simulated_demo 
+                  ? 'Simulated Treasury Challan generated for hackathon evaluation. No real money was debited.' 
+                  : 'Official Treasury receipt verified via gateway cryptographic signature.'}
               </p>
             </div>
 

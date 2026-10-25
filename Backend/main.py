@@ -609,10 +609,7 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                 status_code=200, 
                 content={
                     "success": True, 
-                    "message": f"Real-time DigiLocker OTP generated for +91 {clean_phone}.", 
-                    "txnId": f"TXN-DL-{clean_phone}-{int(time.time() * 1000)}",
-                    "generatedOtp": generated_otp,
-                    "phone": clean_phone
+                    "message": "OTP Sent"
                 }
             )
 
@@ -695,16 +692,16 @@ async def digilocker_documents(req: DigiLockerDocRequest, request: Request):
                 clean_phone = parts[2]
         
         if not clean_phone:
-            clean_phone = "8910464763"
+            clean_phone = "9000000001"
 
         # Dynamically resolve applicant identity
         applicant_name = (req.name or "").strip()
         if not applicant_name or applicant_name == "Citizen Applicant":
-            applicant_name = "Avrojit Saha" if clean_phone == "8910464763" else "Citizen Applicant"
+            applicant_name = "Rahul Sharma (Sample Applicant)"
 
         applicant_dob = "2002-08-19"
         applicant_address = (
-            "Flat 402, Block B, Vasant Kunj, New Delhi - 110070"
+            "Flat 402, Block B, Vasant Kunj, North Delhi - 110070"
             if req.rto and req.rto.startswith("DL") else
             "88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045"
         )
@@ -912,8 +909,8 @@ async def verify_payment_transaction(request: Request):
             "razorpayPaymentId": razorpay_payment_id,
             "razorpaySignature": razorpay_signature,
             "paidAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "payerName": body.get("payerDetails", {}).get("name", "Citizen Applicant"),
-            "payerPhone": body.get("payerDetails", {}).get("phone", "8910464763"),
+            "payerName": body.get("payerDetails", {}).get("name", "Demo Applicant"),
+            "payerPhone": body.get("payerDetails", {}).get("phone", "0000000000"),
             "bankName": body.get("payerDetails", {}).get("bankName", "State Bank of India" if payment_mode != "upi" else "NPCI / BHIM"),
             "statutoryCitation": "Central Motor Vehicles Rules 1989, Rule 32",
             "applicationNo": app_no,
@@ -923,17 +920,171 @@ async def verify_payment_transaction(request: Request):
         if payment_mode == "upi":
             receipt["npciUtr"] = f"UPI/UTR/{timestamp}/{random.randint(10000000, 99999999)}"
 
+        receipt["is_simulated_demo"] = True
+
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
-                "status": "PAID",
-                "message": "Payment verified and credited to Government Treasury Account.",
+                "status": "PAID (SIMULATED TREASURY CHALLAN)",
+                "message": "Payment verified in hackathon evaluation sandbox. No real funds were deducted.",
+                "is_simulated_demo": True,
+                "isDemoSandbox": True,
+                "disclaimer": "EVALUATION SANDBOX — Not an actual treasury settlement transaction.",
                 "receipt": receipt
             }
         )
     except Exception as ex:
         return JSONResponse(status_code=500, content={"success": False, "error": str(ex)})
+
+# ----------------- Saathi AI Copilot Endpoints -----------------
+COPILOT_RTO_MAP = {
+    "wb": {"state": "West Bengal", "code": "WB-01", "name": "West Bengal (Kolkata - Beltala)"},
+    "kolkata": {"state": "West Bengal", "code": "WB-01", "name": "West Bengal (Kolkata - Beltala)"},
+    "beltala": {"state": "West Bengal", "code": "WB-01", "name": "West Bengal (Kolkata - Beltala)"},
+    "dl": {"state": "Delhi", "code": "DL-01", "name": "Delhi (Mall Road - North Delhi)"},
+    "delhi": {"state": "Delhi", "code": "DL-01", "name": "Delhi (Mall Road - North Delhi)"},
+    "ka": {"state": "Karnataka", "code": "KA-01", "name": "Karnataka (Bengaluru Central - Sarathi)"},
+    "bangalore": {"state": "Karnataka", "code": "KA-01", "name": "Karnataka (Bengaluru Central - Sarathi)"},
+    "bengaluru": {"state": "Karnataka", "code": "KA-01", "name": "Karnataka (Bengaluru Central - Sarathi)"},
+    "mh": {"state": "Maharashtra", "code": "MH-01", "name": "Maharashtra (Mumbai South - Tardeo)"},
+    "mumbai": {"state": "Maharashtra", "code": "MH-01", "name": "Maharashtra (Mumbai South - Tardeo)"},
+    "pune": {"state": "Maharashtra", "code": "MH-12", "name": "Maharashtra (Pune - Shivajinagar)"},
+    "up": {"state": "Uttar Pradesh", "code": "UP-32", "name": "Uttar Pradesh (Lucknow - Transport Nagar)"},
+    "lucknow": {"state": "Uttar Pradesh", "code": "UP-32", "name": "Uttar Pradesh (Lucknow - Transport Nagar)"},
+    "tn": {"state": "Tamil Nadu", "code": "TN-01", "name": "Tamil Nadu (Chennai Central)"},
+    "chennai": {"state": "Tamil Nadu", "code": "TN-01", "name": "Tamil Nadu (Chennai Central)"}
+}
+
+@app.post("/api/chat")
+async def chat_endpoint(req: ChatRequest):
+    """
+    Powers Saathi Copilot virtual tutor with statutory CMVR knowledge and intent parsing.
+    """
+    lower = req.query.lower()
+    is_hindi = req.lang == "hi"
+
+    # 1. Vehicle category
+    vehicle = None
+    vehicle_label = None
+    fee = 200
+
+    if "combo" in lower or "both" in lower or ("bike" in lower and "car" in lower) or ("मोटर" in lower and "कार" in lower):
+        vehicle = "combo-bike-car"
+        vehicle_label = "बाइक + कार (MCWG + LMV)" if is_hindi else "Dual Motorcycle + Car (MCWG + LMV)"
+        fee = 350
+    elif "motorcycle" in lower or "bike" in lower or "mcwg" in lower or "बाइक" in lower or "दोपहिया" in lower:
+        vehicle = "motorcycle-gear"
+        vehicle_label = "गियर वाली मोटरसाइकिल (MCWG)" if is_hindi else "Motorcycle with Gear (MCWG)"
+        fee = 200
+    elif "car" in lower or "lmv" in lower or "कार" in lower or "चारपहिया" in lower:
+        vehicle = "lmv-car"
+        vehicle_label = "निजी कार (LMV)" if is_hindi else "Light Motor Vehicle / Car (LMV)"
+        fee = 200
+    elif "50cc" in lower or "moped" in lower or "मोपेड" in lower:
+        vehicle = "gearless-50cc"
+        vehicle_label = "50cc तक गियरलेस मोपेड (16+)" if is_hindi else "Gearless Moped up to 50cc (16+)"
+        fee = 200
+    elif "transport" in lower or "commercial" in lower or "ट्रांसपोर्ट" in lower:
+        vehicle = "commercial-transport"
+        vehicle_label = "वाणिज्यिक ट्रांसपोर्ट (TRANS)" if is_hindi else "Commercial Transport (TRANS)"
+        fee = 300
+
+    # 2. State & RTO lookup
+    selected_state = None
+    selected_rto = None
+    selected_rto_name = None
+
+    for key, val in COPILOT_RTO_MAP.items():
+        if key in lower:
+            selected_state = val["state"]
+            selected_rto = val["code"]
+            selected_rto_name = val["name"]
+            break
+
+    # 3. Intent & Reply
+    is_apply = any(w in lower for w in ["apply", "want a", "chahiye", "आवेदन", "banwana"]) or (selected_state and vehicle)
+    sources = [
+        {"title": "Central Motor Vehicles Rules 1989", "url": "https://parivahan.gov.in"},
+        {"title": "Ministry of Road Transport and Highways (MoRTH)", "url": "https://morth.nic.in"}
+    ]
+
+    if is_apply:
+        state_disp = selected_state or ("आपका राज्य" if is_hindi else "Your State")
+        rto_disp = selected_rto_name or ("संबंधित आरटीओ" if is_hindi else "Assigned RTO")
+        veh_disp = vehicle_label or ("मोटरसाइकिल (MCWG)" if is_hindi else "Motorcycle (MCWG)")
+        reply = (
+            f"नियम 14 CMVR के तहत, {state_disp} ({rto_disp}) में {veh_disp} के लिए फॉर्म 2 आवेदन तैयार है। सांविधिक शुल्क ₹{fee} (नियम 32) है। कृपया विवरण की पुष्टि करके आगे बढ़ें।"
+            if is_hindi else
+            f"Under CMVR 1989 Rule 14, your Form 2 draft for {veh_disp} at {rto_disp} is prepared. Statutory fee is ₹{fee} per Rule 32. Please review and confirm below to proceed with autofill."
+        )
+        sources.append({"title": "CMVR 1989 Rule 14 (Form 2 Application)", "url": "https://parivahan.gov.in"})
+        sources.append({"title": "CMVR 1989 Rule 32 (Statutory Fees)", "url": "https://morth.nic.in"})
+        intent = "apply_ll"
+        action = "autofill_form"
+    elif any(w in lower for w in ["rule 11", "knowledge", "stall", "नियम 11", "परीक्षा"]):
+        reply = (
+            "नियम 11 CMVR के अनुसार, शिक्षार्थी लाइसेंस प्राप्त करने के लिए यातायात संकेतों और नियमों पर कंप्यूटर-आधारित ज्ञान परीक्षा (STALL) में न्यूनतम 60% अंक प्राप्त करना अनिवार्य है।"
+            if is_hindi else
+            "Under CMVR 1989 Rule 11, applicants must pass a computerized preliminary knowledge test covering traffic signs, road regulations, and safe driving duties with a minimum 60% score before Form 3 LL issuance."
+        )
+        sources.append({"title": "CMVR 1989 Rule 11 (Knowledge Test Syllabus)", "url": "https://parivahan.gov.in"})
+        intent = "rule_query"
+        action = "practice_test"
+    elif any(w in lower for w in ["30", "wait", "permanent", "स्थायी", "rule 15"]):
+        reply = (
+            "नियम 15 CMVR के तहत, स्थायी ड्राइविंग टेस्ट देने से पहले आपके पास न्यूनतम 30 दिनों तक वैध शिक्षार्थी अनुज्ञप्ति (Form 3) होना अनिवार्य है। यह 180 दिनों (6 महीने) तक वैध रहता है (नियम 13)।"
+            if is_hindi else
+            "Under Rule 15 CMVR, you must hold a valid Form 3 Learner's Licence for minimum 30 days before appearing for the permanent DL driving test. Valid for 180 days across India per Rule 13."
+        )
+        sources.append({"title": "CMVR 1989 Rule 15 (Driving Test Waiting Period)", "url": "https://parivahan.gov.in"})
+        sources.append({"title": "CMVR 1989 Rule 13 (Form 3 Validity)", "url": "https://parivahan.gov.in"})
+        intent = "rule_query"
+        action = "none"
+    elif any(w in lower for w in ["fee", "cost", "फीस", "रुपये", "rule 32"]):
+        reply = (
+            "CMVR नियम 32 के अनुसार: सिंगल क्लास (केवल बाइक या केवल कार) = ₹200 (₹150 LL + ₹50 टेस्ट)। बाइक + कार कॉम्बो = ₹350 (₹150 + ₹150 + ₹50)। भारत ई-पे चालान से भुगतान होता है, कोई दलाल शुल्क नहीं।"
+            if is_hindi else
+            "Per CMVR Rule 32: Single category (Bike or Car) = ₹200 (₹150 LL + ₹50 test). Dual Bike + Car combo = ₹350. Direct treasury payment via Bharat e-Pay with zero agent surcharge."
+        )
+        sources.append({"title": "CMVR 1989 Rule 32 (Fee Schedule)", "url": "https://morth.nic.in"})
+        intent = "fee_query"
+        action = "fee_calculator"
+    else:
+        reply = (
+            "नमस्ते! मैं सारथी साथी कोपायलट हूँ। मुझसे आरटीओ नियम (नियम 11, 15, 32) पूछें या सीधे कहें 'मुझे पश्चिम बंगाल में बाइक लाइसेंस चाहिए' और मैं आपका फॉर्म 2 तैयार करूँगा।"
+            if is_hindi else
+            "Namaste! I am Saathi — Your Driving Licence Copilot. Ask me about RTO rules (CMVR 11, 15, 32), or say 'I want a motorcycle learner's licence in West Bengal' to prepare your Form 2 draft."
+        )
+        intent = "general"
+        action = "none"
+
+    return {
+        "status": "success",
+        "reply": reply,
+        "intent": intent,
+        "action": action,
+        "extracted_data": {
+            "name": None,
+            "phone": None,
+            "vehicle": vehicle or "motorcycle-gear",
+            "vehicle_label": vehicle_label or "Motorcycle with Gear (MCWG)",
+            "state": selected_state or "West Bengal",
+            "rto": selected_rto or "WB-01",
+            "rto_name": selected_rto_name or "West Bengal (Kolkata - Beltala)"
+        } if is_apply else None,
+        "fee_details": {
+            "total": fee,
+            "rule_citation": "Central Motor Vehicles Rules 1989, Rule 32"
+        },
+        "sources": sources,
+        "is_ai_live": False,
+        "source": "fastapi-statutory-copilot"
+    }
+
+@app.post("/api/copilot/intent")
+async def copilot_intent_endpoint(req: ChatRequest):
+    return await chat_endpoint(req)
 
 if __name__ == "__main__":
     import uvicorn

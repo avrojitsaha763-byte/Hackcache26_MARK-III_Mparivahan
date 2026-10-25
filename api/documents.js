@@ -58,17 +58,17 @@ export default async function handler(req, res) {
     // Extract citizen details from token or request body
     const tokenParts = token.split('_');
     const phoneFromToken = tokenParts.length > 2 && tokenParts[2].length === 10 ? tokenParts[2] : null;
-    const cleanPhone = ((bodyPhone || phoneFromToken || '8910464763').toString()).replace(/\D/g, '').slice(-10);
+    const cleanPhone = ((bodyPhone || phoneFromToken || '9000000001').toString()).replace(/\D/g, '').slice(-10);
 
     // Dynamic resolution based on applicant mobile & profile
     const applicantName = (bodyName && bodyName.trim() && bodyName !== 'Citizen Applicant')
       ? bodyName.trim()
-      : (cleanPhone === '8910464763' ? 'Avrojit Saha' : 'Citizen Applicant');
+      : 'Rahul Sharma (Sample Applicant)';
 
-    const applicantDob = "2002-08-19";
+    const applicantDob = "2004-05-14";
     const applicantAddress = (bodyRto && bodyRto.startsWith('DL'))
-      ? "Flat 402, Block B, Vasant Kunj, New Delhi - 110070"
-      : "88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045";
+      ? "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001"
+      : "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001";
 
     // Real-time fetched documents from DigiLocker / API Setu
     const fetchedDocs = {

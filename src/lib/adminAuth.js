@@ -1,10 +1,10 @@
 // Official RTO Admin Scrutiny Desk Authentication & Access Control
-// Prevents unauthorized citizen applicants from accessing scrutiny/approval routes
+// DEMO EVALUATION FIXTURES: These identities are isolated mock accounts provided for hackathon judging & evaluation.
 
 const SESSION_KEY = 'rto_official_session_v1'
 const OFFICERS_KEY = 'rto_registered_officers_v1'
 
-export const DEFAULT_OFFICERS = [
+export const DEMO_EVALUATION_OFFICERS = [
   {
     officerId: "RTO-OFFICER-DL01",
     email: "rajeshwar.sharma@parivahan.gov.in",
@@ -13,9 +13,9 @@ export const DEFAULT_OFFICERS = [
     rto: "DL-01 (Mall Road / North Delhi)",
     rtoCode: "DL-01",
     badgeNumber: "MVI-DL-8819",
-    password: "AdminPassword2026!",
     joinedDate: "2018-04-12",
-    clearanceLevel: "Level 3 (Form 3 Issuing Authority)"
+    clearanceLevel: "Level 3 (Form 3 Issuing Authority)",
+    isDemoEvaluator: true
   },
   {
     officerId: "RTO-OFFICER-MH02",
@@ -25,9 +25,9 @@ export const DEFAULT_OFFICERS = [
     rto: "MH-02 (Andheri / Mumbai West)",
     rtoCode: "MH-02",
     badgeNumber: "MVI-MH-4421",
-    password: "AdminPassword2026!",
     joinedDate: "2019-09-01",
-    clearanceLevel: "Level 3 (Form 3 Issuing Authority)"
+    clearanceLevel: "Level 3 (Form 3 Issuing Authority)",
+    isDemoEvaluator: true
   },
   {
     officerId: "RTO-OFFICER-KA01",
@@ -37,11 +37,13 @@ export const DEFAULT_OFFICERS = [
     rto: "KA-01 (Koramangala / Bengaluru Central)",
     rtoCode: "KA-01",
     badgeNumber: "ATC-KA-1109",
-    password: "AdminPassword2026!",
     joinedDate: "2016-01-15",
-    clearanceLevel: "Level 4 (Supervisory & Final Appeal Authority)"
+    clearanceLevel: "Level 4 (Supervisory & Final Appeal Authority)",
+    isDemoEvaluator: true
   }
 ]
+
+export const DEFAULT_OFFICERS = DEMO_EVALUATION_OFFICERS
 
 export function getRegisteredOfficers() {
   if (typeof window === 'undefined') return DEFAULT_OFFICERS
@@ -84,51 +86,64 @@ export function isOfficerAuthenticated() {
   return !!(session && session.officerId && session.role === 'RTO_OFFICER')
 }
 
-export function loginOfficer(identifier, password) {
+// Server-side asynchronous officer authentication
+export async function loginOfficer(identifier, password) {
   if (!identifier || !password) {
     return { success: false, message: "Please enter Officer ID/Email and Secure Password." }
   }
 
-  const cleanId = identifier.trim().toLowerCase()
-  const officers = getRegisteredOfficers()
+  try {
+    const apiBase = (
+      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) || 
+      (typeof window !== 'undefined' && window.__API_BASE__ ? window.__API_BASE__ : '')
+    ).replace(/\/+$/, '')
 
-  const matched = officers.find(o => 
-    o.officerId.toLowerCase() === cleanId || 
-    o.email.toLowerCase() === cleanId
-  )
+    const url = apiBase ? `${apiBase}/api/admin/login` : '/api/admin/login'
 
-  if (!matched) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ identifier, password })
+    })
+
+    const data = await res.json()
+
+    if (!res.ok || !data.success) {
+      return { 
+        success: false, 
+        message: data.message || data.error || "Authentication failed. Invalid officer credentials." 
+      }
+    }
+
+    const officerData = data.data || data.officer || {}
+    const sessionData = {
+      officerId: officerData.officerId || identifier,
+      name: officerData.name || 'RTO Officer',
+      email: officerData.email || identifier,
+      designation: officerData.designation || 'Motor Vehicle Inspector',
+      rto: officerData.rto || 'Transport Department',
+      rtoCode: officerData.rtoCode || 'DL-01',
+      badgeNumber: officerData.badgeNumber || 'MVI-OFFICIAL',
+      clearanceLevel: officerData.clearanceLevel || 'Level 3 (Form 3 Issuing Authority)',
+      role: 'RTO_OFFICER',
+      token: data.token,
+      loginTimestamp: new Date().toISOString()
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData))
+    }
+
+    return { success: true, officer: sessionData }
+  } catch (err) {
+    console.error("Server-side officer authentication error:", err)
     return { 
       success: false, 
-      message: "Officer credentials not recognized in Transport Department directory. Check Officer ID or Email." 
+      message: "Network error connecting to official scrutiny authentication service." 
     }
   }
-
-  if (matched.password !== password) {
-    return { 
-      success: false, 
-      message: "Incorrect password. Security attempt logged." 
-    }
-  }
-
-  const sessionData = {
-    officerId: matched.officerId,
-    name: matched.name,
-    email: matched.email,
-    designation: matched.designation,
-    rto: matched.rto,
-    rtoCode: matched.rtoCode,
-    badgeNumber: matched.badgeNumber,
-    clearanceLevel: matched.clearanceLevel,
-    role: 'RTO_OFFICER',
-    loginTimestamp: new Date().toISOString()
-  }
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData))
-  }
-
-  return { success: true, officer: sessionData }
 }
 
 export function registerOfficer(data) {

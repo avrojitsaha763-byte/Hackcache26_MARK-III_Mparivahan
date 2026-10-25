@@ -38,16 +38,16 @@ export default async function handler(req, res) {
     body = body || req.query || {};
 
     const { code, vehicleClass, phone, name, rto } = body;
-    const cleanPhone = (phone || '8910464763').toString().replace(/\D/g, '').slice(-10);
+    const cleanPhone = (phone || '9000000001').toString().replace(/\D/g, '').slice(-10);
 
     const applicantName = (name && name.trim() && name !== 'Citizen Applicant')
       ? name.trim()
-      : (cleanPhone === '8910464763' ? 'Avrojit Saha' : 'Citizen Applicant');
+      : 'Rahul Sharma (Sample Applicant)';
 
-    const applicantDob = "2002-08-19";
+    const applicantDob = "2004-05-14";
     const applicantAddress = (rto && rto.startsWith('DL'))
-      ? "Flat 402, Block B, Vasant Kunj, New Delhi - 110070"
-      : "88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045";
+      ? "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001"
+      : "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001";
 
     // Simulate API Setu handshake
     await new Promise((resolve) => setTimeout(resolve, 600));

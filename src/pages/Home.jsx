@@ -74,8 +74,8 @@ export default function Home() {
               <div className="text-blue-200/70 text-[11px]">DigiLocker e-KYC</div>
             </div>
             <div>
-              <div className="text-amber-300 font-bold text-sm">Rule 11(3)</div>
-              <div className="text-blue-200/70 text-[11px]">7-Day Test Deadline</div>
+              <div className="text-amber-300 font-bold text-sm">Rule 11 CMVR</div>
+              <div className="text-blue-200/70 text-[11px]">Knowledge Test (60%)</div>
             </div>
             <div>
               <div className="text-emerald-300 font-bold text-sm">Rule 32 CMVR</div>
@@ -252,16 +252,16 @@ export default function Home() {
 
       {/* Statutory Guidance Advisory Box */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 flex items-start gap-3.5">
-          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/60 flex items-start gap-3.5">
+          <AlertCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
           <div className="text-xs">
-            <strong className="text-amber-900 dark:text-amber-200 font-bold block mb-1">
-              {isHindi ? 'नियम 11(3) CMVR — 7 दिनों का ऑनलाइन टेस्ट नियम:' : 'Rule 11(3) CMVR — 7-Day Online STALL Test Rule:'}
+            <strong className="text-indigo-900 dark:text-indigo-200 font-bold block mb-1">
+              {isHindi ? 'नियम 11 CMVR — प्रारंभिक लर्नर्स लाइसेंस टेस्ट:' : 'Rule 11 CMVR — Preliminary Knowledge Test Syllabus:'}
             </strong>
-            <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+            <p className="text-indigo-800/90 dark:text-indigo-300/80 leading-relaxed">
               {isHindi
-                ? 'सारथी पोर्टल पर नया आवेदन जमा करने के बाद 7 दिनों के भीतर ऑनलाइन परीक्षा पूर्ण करना अनिवार्य है, अन्यथा आवेदन स्वतः निरस्त हो जाता है।'
-                : 'Applicants must appear for and complete the computerised learner licence test within 7 days of form submission, failing which the application lapses automatically.'}
+                ? 'केंद्रीय मोटर वाहन नियम (CMVR) 1989 के नियम 11 के तहत सड़क संकेत, यातायात नियम एवं दुर्घटना कर्तव्यों पर 60% उत्तीर्ण अंक प्राप्त करना अनिवार्य है। राज्यवार स्लॉट शेड्यूलिंग अवधि अलग हो सकती है।'
+                : 'Under CMVR 1989 Rule 11, applicants must satisfy the licensing authority with adequate knowledge of road signs, traffic rules, and driver duties (min 60% score). State slot booking deadlines vary.'}
             </p>
           </div>
         </div>

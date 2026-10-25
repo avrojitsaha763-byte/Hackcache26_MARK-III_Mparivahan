@@ -190,25 +190,25 @@ export async function generateForm3Pdf(appData) {
 
   // Parse fields with reliable defaults
   const appNo = (appData.appNo || appData.application_number || 'KA-2026-55319').toUpperCase()
-  const applicantName = (appData.name || appData.applicant_name || 'Aritro Roy').toUpperCase()
-  const fatherOrSpouse = (appData.fatherOrSpouse || appData.father_or_spouse || 'Siddhartha Roy').toUpperCase()
-  const dobRaw = appData.dob || '2002-08-09'
+  const applicantName = (appData.name || appData.applicant_name || 'RAHUL SHARMA (SAMPLE APPLICANT)').toUpperCase()
+  const fatherOrSpouse = (appData.fatherOrSpouse || appData.father_or_spouse || 'GUARDIAN SAMPLE').toUpperCase()
+  const dobRaw = appData.dob || '2004-05-14'
   const dobFormatted = formatDate(dobRaw)
   
   // Calculate age
-  let age = '24'
+  let age = '22'
   try {
     const birthYear = new Date(dobRaw).getFullYear()
     if (!isNaN(birthYear)) {
       age = String(new Date().getFullYear() - birthYear)
     }
   } catch {
-    age = '24'
+    age = '22'
   }
 
   const bloodGroup = appData.bloodGroup || appData.blood_group || 'A+ Positive'
-  const address = appData.address || '12th Main, 4th Block, Koramangala, Bengaluru - 560034'
-  const phone = appData.phone || appData.mobile || '+91 98450 12345'
+  const address = appData.address || 'Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001'
+  const phone = appData.phone || appData.mobile || '+91 90000 00001'
   
   // Extract state & RTO code
   const rtoStr = appData.rto || appData.rtoCode || appData.rto_code || 'KA-01'
