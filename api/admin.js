@@ -127,7 +127,7 @@ export default async function handler(req, res) {
 
   // ROUTE 2: /api/admin/officers
   if (isOfficers) {
-    const sanitized = REGISTERED_OFFICERS.map(({ password, ...rest }) => rest);
+    const sanitized = REGISTERED_OFFICERS.map(({ password: _password, ...rest }) => rest);
     return res.status(200).json({
       status: 'success',
       count: sanitized.length,
@@ -136,7 +136,8 @@ export default async function handler(req, res) {
   }
 
   // ROUTE 3: /api/admin/applications
-  const { rto_code, status } = req.query;
+  if (isApplications) {
+    const { rto_code, status } = req.query;
   const globalApps = globalThis._serverlessApplications || [
     {
       appNo: "DL-2026-98124",
@@ -207,9 +208,12 @@ export default async function handler(req, res) {
     filtered = filtered.filter(a => (a.status || '').toUpperCase().includes(status.toUpperCase()));
   }
 
-  return res.status(200).json({
-    status: 'success',
-    count: filtered.length,
-    data: filtered
-  });
+    return res.status(200).json({
+      status: 'success',
+      count: filtered.length,
+      data: filtered
+    });
+  }
+
+  return res.status(404).json({ error: 'Admin endpoint not found' });
 }

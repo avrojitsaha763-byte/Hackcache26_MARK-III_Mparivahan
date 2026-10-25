@@ -269,31 +269,6 @@ export const api = {
     return getRegisteredOfficers()
   },
 
-  // Saathi AI Citizen Chat & Copilot
-  async sendChatMessage(query, lang = 'en') {
-    const backendRes = await safeFetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ query, lang })
-    })
-    return backendRes
-  },
-
-  // Saathi Driving Licence Copilot (Structured Intent, Action Engine & Source Citations)
-  async sendCopilotIntent(query, lang = 'en', context = {}) {
-    const backendRes = await safeFetch('/api/copilot/intent', {
-      method: 'POST',
-      body: JSON.stringify({ query, lang, context })
-    })
-    if (backendRes && backendRes.status === 'success') {
-      return backendRes
-    }
-    // Fallback to /api/chat
-    return await safeFetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ query, lang })
-    })
-  },
-
   // DigiLocker / API Setu Authentication & Verification
   async requestDigilockerOtp(phone) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10)

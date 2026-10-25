@@ -269,7 +269,7 @@ export default function ChatbotModal() {
       window.speechSynthesis.cancel()
       const cleanText = text
         .replace(/\[.*?\]/g, '')
-        .replace(/[#*_•📍📋📖⏳🚗🛵💰📑📄🔍💡🔄🌍📱🎯🛡️⚠️]/g, '')
+        .replace(/[#*_•\p{Extended_Pictographic}\uFE0F]/gu, '')
         .slice(0, 320)
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = isHindi ? 'hi-IN' : 'en-IN'
