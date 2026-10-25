@@ -160,14 +160,17 @@ Rules to strictly adhere to:
 - DO NOT invent, hallucinate, or mention any fictional 7-day cancellation rule.
 - Always append legal citations (e.g. "[CMVR 1989 Rule 11]") when stating rules.`;
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3800); // Strict 3.8s timeout
 
         const geminiRes = await fetch(geminiUrl, {
           method: 'POST',
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-goog-api-key': geminiApiKey
+          },
           body: JSON.stringify({
             contents: [
               {
