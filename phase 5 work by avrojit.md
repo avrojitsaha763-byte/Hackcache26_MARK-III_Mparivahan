@@ -15,7 +15,7 @@
 
 In strict adherence to India’s **Motor Vehicles Act (1988)**, the **Central Motor Vehicles Rules (1989) (CMVR)**, and the **National Informatics Centre (NIC) Parivahan/Sarathi** framework, Phase 5 elevates **Licence Saathi (EasyDL)** to a production-grade, nationwide online driving-licence platform.
 
-The system delivers a comprehensive, accessible, bilingual, and legally compliant journey spanning from the initial **Learner’s Licence (LL, Form 2)** to the **Permanent Driving Licence (DL, Form 7)**. In Phase 5, **Avrojit Saha (Core Frontend & Cloud Architect)** completed all **12 Core Priority Features** defined in the nationwide Parivahan architecture, including an **RTO Official Scrutiny Portal (`/admin`)**, an interactive **24/7 Saathi AI Citizen Chatbot**, statutory **Rule 11(3) 7-day test cancellation safeguards**, interactive **Automated Driving Test Track (ADTT) slot scheduling**, and **DPDPA 2023 / UIDAI Aadhaar consent compliance**.
+The system delivers a comprehensive, accessible, bilingual, and legally compliant journey spanning from the initial **Learner’s Licence (LL, Form 2)** to the **Permanent Driving Licence (DL, Form 7)**. In Phase 5, **Avrojit Saha (Core Frontend & Cloud Architect)** completed all **12 Core Priority Features** defined in the nationwide Parivahan architecture, including an **RTO Official Scrutiny Portal (`/admin`)**, an interactive **24/7 Saathi AI Citizen Chatbot**, statutory **CMVR Rule 11 preliminary test guidance & SLA tracking**, interactive **Automated Driving Test Track (ADTT) slot scheduling**, and **DPDPA 2023 / UIDAI Aadhaar consent compliance**.
 
 ---
 
@@ -24,7 +24,7 @@ The system delivers a comprehensive, accessible, bilingual, and legally complian
 | Act / Rule / Standard | Legal Mandate | Frontend & UI/UX Implementation in Licence Saathi |
 | :--- | :--- | :--- |
 | **Motor Vehicles Act 1988, Sec 3–4** | No person shall drive a motor vehicle without a valid licence; age thresholds (16 for &le;50cc, 18 for LMV/MCWG, 20 for Transport). | Multi-class eligibility engine in [`CanIApply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/CanIApply.jsx) with statutory age checks and legal citations. |
-| **CMVR 1989, Rule 11(3)** | If an applicant for a learner's licence fails to appear for the prescribed test within **7 days** of application submission, the application is automatically cancelled. | Active statutory warning banner in [`Apply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Apply.jsx) and real-time urgency counter + direct mock test CTA in [`Track.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Track.jsx). |
+| **CMVR 1989, Rule 11** | Prescribed syllabus and standards for preliminary test for learner's licence (road signs, traffic signals, driver duties; 60% qualifying threshold under computer STALL mode). | Structured mock tests, sign guides, and STALL simulator in [`MockTest.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/MockTest.jsx) and real-time status tracker + direct test CTA in [`Track.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Track.jsx). |
 | **CMVR 1989, Rule 14 & Form 2** | Prescribed application form for grant of Learner's Licence with document proof requirements (Age, Address, ID, Medical Form 1-A). | Step-by-step guided Form 2 workflow in [`Apply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Apply.jsx) with state RTO jurisdiction selection (KA, MH, DL, TN, WB, UP). |
 | **CMVR 1989, Rule 15** | Minimum **30-day mandatory learning period** after LL issuance before eligible to take the permanent DL driving test (valid for 180 days). | Automated earliest date calculator (`Today + 30 Days`) and validity tracker in [`PermanentDL.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/PermanentDL.jsx). |
 | **CMVR 1989, Rule 32** | Statutory Fee Schedule: ₹150 per LL class + ₹50 online test fee; ₹200 DL fee + ₹300 driving test fee. | Dynamic client-side and backend fee engine automatically computing breakdown based on single vs. dual class (MCWG + LMV). |
@@ -51,7 +51,7 @@ Avrojit Saha engineered the frontend, UI/UX, and client-side data state across a
   - State RTO Jurisdiction Selector (Karnataka, Maharashtra, Delhi, Tamil Nadu, West Bengal, Uttar Pradesh).
   - Dynamic CMVR Rule 32 fee calculator (e.g., ₹200 for single class, ₹350 for dual bike+car).
   - DigiLocker & Aadhaar e-KYC paperless document checklist (Address, Age, ID, Photo, Form 1-A).
-  - Rule 11(3) statutory alert: *"Test must be taken within 7 days of application under CMVR 11(3) to prevent automatic cancellation."*
+  - CMVR Rule 11 preliminary test notice: *"Computer-based STALL test requires 60% passing score on road signs and traffic regulations under CMVR Rule 11."*
   - Statutory Consent Agreement under DPDPA 2023 & UIDAI guidelines.
 - **Files:** [`Apply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Apply.jsx).
 
@@ -71,11 +71,11 @@ Avrojit Saha engineered the frontend, UI/UX, and client-side data state across a
   - Instant scorecard with question-by-question explanations.
 - **Files:** [`MockTest.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/MockTest.jsx), [`questions.js`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/data/questions.js).
 
-### 6. Transparent Status Tracking & Rule 11(3) Urgency Notice
+### 6. Transparent Status Tracking & CMVR Rule 11 Test Milestone
 - **Implementation:**
   - Application query by reference number (e.g., `DL-2026-9812`) or instant demo lookup.
   - Visual 4-stage chronological milestone timeline: *Application Submitted &rarr; Scrutiny & Document Verification &rarr; Online LL Test &rarr; Licence Issuance*.
-  - Rule 11(3) 7-day test deadline alert: alerts the applicant of the countdown to prevent statutory application cancellation.
+  - CMVR Rule 11 & Citizen Charter SLA tracker: guides the applicant through RTO document scrutiny and preparation for the 60% qualifying STALL exam.
   - Recommended next steps with direct 1-click CTA buttons linking to [`/mock-test`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/MockTest.jsx) or [`/permanent-dl`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/PermanentDL.jsx).
 - **Files:** [`Track.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/updated%20by%20Aritra/Hackcache26_MARK-III_Mparivahan/src/pages/Track.jsx).
 
@@ -121,7 +121,7 @@ Avrojit Saha engineered the frontend, UI/UX, and client-side data state across a
   - Accessible floating AI assistant mounted in the universal mobile layout.
   - Pre-programmed with MoRTH, MV Act, CMVR 1989, and state RTO rules knowledge base.
   - Answers citizen questions instantly:
-    - *7-Day Rule under CMVR 11(3)*
+    - *CMVR Rule 11 preliminary test standards (60% passing criteria)*
     - *30-Day Waiting Rule under CMVR 15*
     - *Fee calculation under CMVR 32*
     - *DigiLocker document requirements & Form 1-A*
@@ -182,7 +182,7 @@ flowchart TD
   B -->|"Underage / Ineligible"| B1["View MV Act Section 4 Advice"]
   C --> D["State RTO Selection & Document Upload<br/>(DigiLocker Verified)"]
   D --> E["Payment Portal (CMVR Rule 32 Fees)"]
-  E --> F["Rule 11(3) 7-Day Window Activated"]
+  E --> F["Document Scrutiny & CMVR Rule 11 Test Scheduled"]
   F --> G["Take Online LL Test (STALL Framework)"]
   G --> H{"Passed Exam?<br/>(&ge; 60% Marks)"}
   H -->|"No"| I["Study Traffic Signs & Practice Mock Quiz"]

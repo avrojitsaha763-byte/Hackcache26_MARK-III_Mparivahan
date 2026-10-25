@@ -184,10 +184,10 @@ export default function DigiLockerAuthModal({
 
       // Save verified profile to localStorage for Form 2 intake
       const profile = {
-        applicant_name: docRes.data?.applicant_name || 'Rahul Sharma (Sample Applicant)',
+        applicant_name: docRes.data?.applicant_name || 'Demo Applicant',
         phone: cleanPhone,
         dob: docRes.data?.dob || '2004-05-14',
-        address: docRes.data?.address || 'Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001',
+        address: docRes.data?.address || '123 Mock Street, Demo City - 110001',
         documents_found: docRes.data?.documents_found || [
           'Class X Passing Certificate & Marksheet (CBSE)',
           'UIDAI e-Aadhaar Digital Dossier',

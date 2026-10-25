@@ -326,7 +326,7 @@ export default function Apply() {
                     <option value="DL-01">Delhi — Mall Road (North Delhi / Automated Track)</option>
                     <option value="MH-01">Maharashtra — Mumbai South (Tardeo)</option>
                     <option value="MH-02">Maharashtra — Mumbai West (Andheri)</option>
-                    <option value="KA-01">Karnataka — Bengaluru Central (Sarathi Online / 7-Day Rule)</option>
+                    <option value="KA-01">Karnataka — Bengaluru Central (Sarathi Online / Contactless)</option>
                     <option value="TN-01">Tamil Nadu — Chennai Central</option>
                     <option value="WB-01">West Bengal — Kolkata (Beltala)</option>
                     <option value="UP-32">Uttar Pradesh — Lucknow (Transport Nagar)</option>
@@ -357,7 +357,7 @@ export default function Apply() {
                   </label>
                   <input 
                     type="text" 
-                    placeholder={isHindi ? 'पूरा नाम दर्ज करें (उदा. Rahul Sharma)' : 'e.g. Rahul Sharma'} 
+                    placeholder={isHindi ? 'पूरा नाम दर्ज करें (उदा. Test User)' : 'e.g. Test User'} 
                     value={name} 
                     onChange={(e) => setName(e.target.value)}
                     className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"
@@ -370,7 +370,7 @@ export default function Apply() {
                   </label>
                   <input 
                     type="tel" 
-                    placeholder={isHindi ? '10 अंकों का मोबाइल नंबर' : 'e.g. 9876543210'} 
+                    placeholder={isHindi ? '10 अंकों का मोबाइल नंबर' : 'e.g. 9000000000'} 
                     value={phone} 
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full p-3 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-sm focus:border-blue-600 outline-none"

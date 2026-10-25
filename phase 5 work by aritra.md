@@ -34,7 +34,7 @@ As **Project Lead & Backend Systems Architect**, Aritro Roy engineered three cor
    - `POST /api/slots/book`: Validates the 30-day prerequisite date constraint, books test track grounds (e.g. *IDTR Loni Road Delhi*, *ADTT Andheri Mumbai*, *Sarathi Track Koramangala*), and generates verifiable appointment confirmation slips (`SLOT-2026-XXXX`).
    - `GET /api/slots/{slot_id}`: Retrieves appointment credentials for gate security validation.
 3. **Saathi AI Multilingual Assistant Service:**
-   - `POST /api/chat`: Implements a context-aware conversational agent responding to queries regarding CMVR Rule 11(3), Rule 15, Rule 32 fees, and ADTT test track maneuvers in both English and Hindi.
+   - `POST /api/chat`: Implements a context-aware conversational agent responding to queries regarding CMVR Rule 11 preliminary knowledge test syllabus, Rule 15, Rule 32 fees, and ADTT test track maneuvers in both English and Hindi.
 
 ---
 

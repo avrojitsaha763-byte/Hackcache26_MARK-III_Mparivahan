@@ -19,9 +19,9 @@ export default function handler(req, res) {
     {
       appNo: "DL-2026-98124",
       application_number: "DL-2026-98124",
-      name: "TEST PERSONA 01: Rahul Sharma (Sample Applicant)",
-      applicant_name: "TEST PERSONA 01: Rahul Sharma (Sample Applicant)",
-      phone: "+91 90000 00001",
+      name: "Demo Applicant (Sample Record)",
+      applicant_name: "Demo Applicant (Sample Record)",
+      phone: "+91 00000 00001",
       dob: "2004-05-14",
       rto: "DL-01 (Mall Road / North Delhi)",
       rtoCode: "DL-01",
@@ -29,17 +29,18 @@ export default function handler(req, res) {
       feePaid: "₹350 (CMVR Rule 32)",
       status: "Under Scrutiny",
       submissionDate: "2026-10-22",
-      address: "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001",
+      address: "123 Mock Street, Demo City - 110001",
       bloodGroup: "B+ Positive",
-      fatherOrSpouse: "Guardian Sample",
-      isDemoRecord: true
+      fatherOrSpouse: "Demo Guardian",
+      isDemoRecord: true,
+      is_demo_mode: true
     },
     {
       appNo: "MH-2026-11492",
       application_number: "MH-2026-11492",
-      name: "TEST PERSONA 02: Sneha Patel (Sample Applicant)",
-      applicant_name: "TEST PERSONA 02: Sneha Patel (Sample Applicant)",
-      phone: "+91 90000 00002",
+      name: "Test User (Sample Record)",
+      applicant_name: "Test User (Sample Record)",
+      phone: "+91 00000 00002",
       dob: "2003-11-20",
       rto: "MH-02 (Andheri / Mumbai West)",
       rtoCode: "MH-02",
@@ -47,17 +48,18 @@ export default function handler(req, res) {
       feePaid: "₹200",
       status: "Under Scrutiny",
       submissionDate: "2026-10-23",
-      address: "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001",
+      address: "456 Test Avenue, Sample District - 400001",
       bloodGroup: "O+ Positive",
-      fatherOrSpouse: "Guardian Sample",
-      isDemoRecord: true
+      fatherOrSpouse: "Demo Guardian",
+      isDemoRecord: true,
+      is_demo_mode: true
     },
     {
       appNo: "KA-2026-55319",
       application_number: "KA-2026-55319",
-      name: "TEST PERSONA 03: Vikram Singh (Sample Applicant)",
-      applicant_name: "TEST PERSONA 03: Vikram Singh (Sample Applicant)",
-      phone: "+91 90000 00003",
+      name: "Sample Citizen (Sample Record)",
+      applicant_name: "Sample Citizen (Sample Record)",
+      phone: "+91 00000 00003",
       dob: "2002-08-09",
       rto: "KA-01 (Koramangala / Bengaluru Central)",
       rtoCode: "KA-01",
@@ -67,10 +69,11 @@ export default function handler(req, res) {
       llNumber: "KA-01-LL-2026-0099418",
       submissionDate: "2026-10-20",
       approvalDate: "2026-10-21",
-      address: "Demo Flat 12, Koramangala Ring Road Sector, Bengaluru - 560001",
+      address: "789 Dummy Blvd, Mock Zone - 560001",
       bloodGroup: "A+ Positive",
-      fatherOrSpouse: "Guardian Sample",
-      isDemoRecord: true
+      fatherOrSpouse: "Demo Guardian",
+      isDemoRecord: true,
+      is_demo_mode: true
     }
   ];
 

@@ -19,7 +19,7 @@ Under the architectural leadership of **Project Lead Aritro Roy**, Shubham execu
    - **Section 3–4:** Mandatory licensing provisions and age qualifications for light motor vehicles and geared motorcycles.
    - **Section 194B & 129:** Car seatbelt and motorcycle BIS/ISI helmet mandates.
 2. **Central Motor Vehicles Rules (CMVR), 1989**:
-   - **Rule 11(3):** Automatic statutory cancellation of LL applications if the online test is not taken within **7 days** of submission.
+   - **Rule 11:** Mandatory computerized preliminary knowledge test (STALL) covering road signs, traffic regulations, and driver duties (60% qualifying score).
    - **Rule 14 & Form 2:** Application standards, state jurisdictions, and document checklist specifications.
    - **Rule 15:** 30-day statutory waiting period from Learner's Licence issuance to permanent DL driving test.
    - **Rule 32:** Master Statutory Fee Schedule across all vehicle categories.
@@ -34,7 +34,7 @@ Under the architectural leadership of **Project Lead Aritro Roy**, Shubham execu
 
 As **Data Architect & UI/UX Feature Engineer**, Shubham structured and delivered Phase 3 across six targeted phased milestones:
 
-- **Milestone 3.1:** State RTO Policy Matrix & Rule 11(3) Urgency Schema (`src/data/config.json`) covering state variations, fee differences, document lists, and statutory 7-day deadlines.
+- **Milestone 3.1:** State RTO Policy Matrix & CMVR Rule 11 Knowledge Test Schema (`src/data/config.json`) covering state variations, fee differences, document lists, and 60% test qualifying standards.
 - **Milestone 3.2:** DPDPA 2023 & UIDAI Aadhaar consent data contracts ensuring tokenized paperless verification.
 - **Milestone 3.3:** RTO Official Scrutiny Portal Data Model (`src/pages/AdminPortal.jsx`) supporting document inspection, DigiLocker verification, and digital Form 3 / Form 7 licence issuance.
 - **Milestone 3.4:** Saathi AI Citizen Chatbot Knowledge Architecture & Query Resolver (`src/components/ChatbotModal.jsx`) providing 24/7 instant statutory Q&A.
@@ -45,7 +45,7 @@ As **Data Architect & UI/UX Feature Engineer**, Shubham structured and delivered
 
 ## 📦 Phased Milestones Breakdown (Shubham)
 
-### 🔹 Milestone 3.1: State RTO Policy Matrix & Rule 11(3) Urgency Schema (`src/data/config.json`)
+### 🔹 Milestone 3.1: State RTO Policy Matrix & CMVR Rule 11 Knowledge Test Schema (`src/data/config.json`)
 
 To address state-level differences across India while preserving central Sarathi Parivahan integration, Shubham modeled the master state policy registry:
 
@@ -57,8 +57,8 @@ To address state-level differences across India while preserving central Sarathi
       "state_name": "Karnataka",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
-      "rule_11_3_description": "Rule 11(3) CMVR strictly enforced: Online LL test must be completed within 7 days of application or auto-cancelled.",
+      "cmvr_rule_11_pass_percentage": 60,
+      "cmvr_rule_11_description": "Rule 11 CMVR: Mandatory computerized knowledge test covering road signs, regulations, and driver duties (60% qualifying score).",
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Photo", "Form 1-A (if > 40 yrs)"]
     },
@@ -67,7 +67,7 @@ To address state-level differences across India while preserving central Sarathi
       "state_name": "Maharashtra",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 175, "dl": 400 },
       "required_docs": ["Aadhaar or Govt ID", "Age & Address Proof", "Photo", "Medical Form 1"]
     },
@@ -77,7 +77,7 @@ To address state-level differences across India while preserving central Sarathi
       "portal": "Sarathi / e-Sarathi TN",
       "online_ll_test": true,
       "test_languages": ["Tamil", "English"],
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Tamil/English Application", "Aadhaar e-KYC", "Age Proof", "Address Proof"]
     },
@@ -86,7 +86,7 @@ To address state-level differences across India while preserving central Sarathi
       "state_name": "Delhi",
       "portal": "Sarathi (Faceless Transport Services)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar Face Auth / OTP", "DigiLocker Marksheet", "Self-declaration Form 1"]
     },
@@ -95,7 +95,7 @@ To address state-level differences across India while preserving central Sarathi
       "state_name": "West Bengal",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Voter ID / Passport", "10th Marksheet", "Form 1"]
     },
@@ -104,7 +104,7 @@ To address state-level differences across India while preserving central Sarathi
       "state_name": "Uttar Pradesh",
       "portal": "Sarathi (NIC)",
       "online_ll_test": true,
-      "rule_11_3_deadline_days": 7,
+      "cmvr_rule_11_pass_percentage": 60,
       "fee_schedule": { "ll": 200, "dl": 500 },
       "required_docs": ["Aadhaar e-KYC", "Age Proof", "Address Proof", "Passport Photo"]
     }
@@ -168,10 +168,10 @@ Shubham structured the rule-based knowledge engine powering the floating 24/7 AI
 
 ```javascript
 const saathiKnowledgeIntentMap = {
-  "seven_day_rule": {
-    keywords: ["7 days", "rule 11", "cancel", "deadline", "सात दिन"],
-    en: "Under Rule 11(3) of Central Motor Vehicles Rules (CMVR) 1989, you must take your online Learner's Licence test within 7 days of submitting your application; otherwise, your application is automatically cancelled.",
-    hi: "केंद्रीय मोटर वाहन नियम (CMVR) 1989 के नियम 11(3) के तहत, आपको आवेदन जमा करने के 7 दिनों के भीतर ऑनलाइन टेस्ट देना होगा, अन्यथा आवेदन स्वतः रद्द हो जाता है।"
+  "rule_11_knowledge_test": {
+    keywords: ["rule 11", "stall", "pass mark", "test", "परीक्षा", "नियम 11"],
+    en: "Under CMVR 1989 Rule 11, applicants must pass a mandatory preliminary knowledge test covering road signs, driving regulations, and driver responsibilities with a minimum 60% qualifying score.",
+    hi: "केंद्रीय मोटर वाहन नियम (CMVR) 1989 के नियम 11 के तहत, सड़क संकेत, ड्राइविंग नियम और चालक कर्तव्यों पर कंप्यूटर टेस्ट देना अनिवार्य है (उत्तीर्ण अंक: 60%)।"
   },
   "thirty_day_rule": {
     keywords: ["30 days", "permanent", "when can i apply", "तीस दिन", "स्थायी"],

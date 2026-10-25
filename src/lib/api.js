@@ -341,11 +341,11 @@ export const api = {
 
   // Real-time OAuth 2.0 authorization code exchange for MeriPehchaan SSO
   async exchangeDigiLockerCode(code, stateData = {}) {
-    const cleanPhone = (stateData.phone || '9000000001').replace(/\D/g, '').slice(-10)
+    const cleanPhone = (stateData.phone || '0000000000').replace(/\D/g, '').slice(-10)
     const payload = {
       code,
       phone: cleanPhone,
-      name: stateData.name || 'Rahul Sharma (Sample Applicant)',
+      name: stateData.name || 'Demo Applicant',
       vehicleClass: stateData.vehicleClass || 'combo-bike-car',
       rto: stateData.rto || 'DL-01'
     }
@@ -361,8 +361,8 @@ export const api = {
   },
 
   async fetchDigilockerDocuments(vehicleClass = 'combo-bike-car', token = 'DL_LIVE_SESSION', citizenData = {}) {
-    const cleanPhone = (citizenData.phone || '9000000001').replace(/\D/g, '').slice(-10)
-    const applicantName = citizenData.name || 'Rahul Sharma (Sample Applicant)'
+    const cleanPhone = (citizenData.phone || '0000000000').replace(/\D/g, '').slice(-10)
+    const applicantName = citizenData.name || 'Demo Applicant'
 
     const res = await safeFetch('/api/documents', {
       method: 'POST',
@@ -512,8 +512,8 @@ export const api = {
         amount: Number(paymentPayload.amount || 350),
         currency: 'INR',
         paidAt: new Date().toISOString(),
-        payerName: paymentPayload.payerDetails?.name || 'Rahul Sharma (Sample Applicant)',
-        payerPhone: (paymentPayload.payerDetails?.phone || '9000000001').slice(-10),
+        payerName: paymentPayload.payerDetails?.name || 'Demo Applicant',
+        payerPhone: (paymentPayload.payerDetails?.phone || '0000000000').slice(-10),
         bankName: paymentPayload.payerDetails?.bankName || (mode === 'upi' ? 'NPCI / BHIM Sandbox' : 'State Bank of India (Simulator)'),
         statutoryCitation: 'Central Motor Vehicles Rules 1989, Rule 32 Indicative Fee Schedule',
         applicationNo: paymentPayload.appNo || 'DL-2026-PENDING',

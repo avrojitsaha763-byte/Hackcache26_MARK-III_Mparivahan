@@ -190,8 +190,8 @@ export async function generateForm3Pdf(appData) {
 
   // Parse fields with reliable defaults
   const appNo = (appData.appNo || appData.application_number || 'KA-2026-55319').toUpperCase()
-  const applicantName = (appData.name || appData.applicant_name || 'RAHUL SHARMA (SAMPLE APPLICANT)').toUpperCase()
-  const fatherOrSpouse = (appData.fatherOrSpouse || appData.father_or_spouse || 'GUARDIAN SAMPLE').toUpperCase()
+  const applicantName = (appData.name || appData.applicant_name || 'DEMO APPLICANT (SAMPLE RECORD)').toUpperCase()
+  const fatherOrSpouse = (appData.fatherOrSpouse || appData.father_or_spouse || 'DEMO GUARDIAN').toUpperCase()
   const dobRaw = appData.dob || '2004-05-14'
   const dobFormatted = formatDate(dobRaw)
   

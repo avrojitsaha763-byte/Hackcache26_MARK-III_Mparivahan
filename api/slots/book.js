@@ -35,7 +35,7 @@ export default function handler(req, res) {
     const bookedSlot = {
       slot_id: slotId,
       app_no: body.app_no || 'KA-2026-55319',
-      applicant_name: body.applicant_name || 'TEST PERSONA 03: Vikram Singh (Sample Applicant)',
+      applicant_name: body.applicant_name || 'Sample Citizen (Sample Applicant)',
       track_type: body.track_type || 'car',
       ground: body.ground || 'IDTR-DELHI',
       ground_name: body.ground_name || 'Automated Driving Test Track',

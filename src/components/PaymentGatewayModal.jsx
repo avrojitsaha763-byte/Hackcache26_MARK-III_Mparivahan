@@ -96,8 +96,8 @@ export default function PaymentGatewayModal({
   onClose,
   onSuccess,
   amount = 350,
-  applicantName = 'Citizen Applicant',
-  phone = '9000000001',
+  applicantName = 'Demo Applicant',
+  phone = '0000000000',
   rtoCode = 'DL-01',
   vehicleClass = 'combo-bike-car',
   isHindi = false
@@ -535,13 +535,19 @@ export default function PaymentGatewayModal({
                 🇮🇳
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-white">
                     Bharat e-Pay Treasury Gateway
                   </h3>
-                  <span className="px-2 py-0.5 text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
-                    LIVE GATEWAY
-                  </span>
+                  {order?.isLiveGateway ? (
+                    <span className="px-2 py-0.5 text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
+                      LIVE GATEWAY
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full">
+                      ⚠️ SIMULATED SANDBOX DEMO
+                    </span>
+                  )}
                 </div>
                 <p className="text-[11px] text-blue-200/80">
                   National Non-Tax Receipt Portal (NTRP) & Sarathi Parivahan
@@ -569,6 +575,17 @@ export default function PaymentGatewayModal({
               </button>
             </div>
           </div>
+
+          {/* Sandbox Notice Banner */}
+          {!order?.isLiveGateway && (
+            <div className="bg-amber-500/15 border border-amber-500/30 px-3 py-1.5 text-xs text-amber-200 flex items-center justify-between rounded-xl mt-2.5">
+              <span className="flex items-center gap-1.5 font-medium text-[11px]">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                Simulated Sandbox Environment (CMVR Rule 32 Treasury Demo — Zero Real Financial Debits)
+              </span>
+              <span className="text-[10px] uppercase font-mono tracking-wider opacity-80 shrink-0">Evaluation Mode</span>
+            </div>
+          )}
 
           {/* Amount Badge Banner */}
           <div className="mt-3.5 pt-3.5 border-t border-white/10 flex items-center justify-between">

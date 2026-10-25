@@ -31,12 +31,12 @@ def test_system():
     app_no = new_app["application_number"]
     print("Created Application:", app_no, "| Status:", new_app["status"])
 
-    print("\n--- 4. Testing Phase 3: Track Application with Rule 11(3) Window ---")
+    print("\n--- 4. Testing Phase 3: Track Application with Scrutiny Milestone Window ---")
     res = client.get(f"/api/track?app_no={app_no}")
     assert res.status_code == 200
     track_d = res.json()
     assert track_d["success"] is True
-    print("Track Success:", track_d["success"], "| Rule 11 Days Remaining:", track_d["data"]["rule11_days_remaining"])
+    print("Track Success:", track_d["success"], "| Scrutiny Days Remaining:", track_d["data"]["rule11_days_remaining"])
 
     print("\n--- 5. Testing Phase 4: Questions Bank ---")
     res = client.get("/api/questions?limit=5")
@@ -86,24 +86,27 @@ def test_system():
     print("Booked Slot ID:", slot_d["slot_id"], "| Status:", slot_d["status"])
 
     print("\n--- 11. Testing Phase 5: Saathi AI Chat ---")
-    res = client.post("/api/chat", json={"query": "What is the fee for bike and car?", "lang": "en"})
+    res = client.post("/api/chat", json={"query": "What is the qualifying pass mark for Rule 11 test?", "lang": "en"})
     assert res.status_code == 200
     reply_text = res.json()["reply"][:80].encode('ascii', 'ignore').decode('ascii')
     print("Saathi AI Response:", reply_text, "...")
 
-    print("\n--- 12. Testing Phase 6: Officer Authentication ---")
+    print("\n--- 12. Testing Phase 6: Officer Authentication (Demo Mode Flag) ---")
     res = client.post("/api/admin/login", json={
         "identifier": "RTO-OFFICER-DL01",
         "password": "AdminPassword2026!"
     })
     assert res.status_code == 200
-    officer_d = res.json()["data"]
-    print("Officer Authenticated:", officer_d["name"], "| Clearance:", officer_d["clearanceLevel"])
+    admin_payload = res.json()
+    assert admin_payload["is_demo_mode"] is True
+    officer_d = admin_payload["data"]
+    print("Officer Authenticated:", officer_d["name"], "| Clearance:", officer_d["clearanceLevel"], "| Demo Mode:", admin_payload["is_demo_mode"])
 
     print("\n--- 13. Testing DigiLocker Auth (OTP Request, Verify & Password) ---")
     # Flow A: Request OTP
     res = client.post("/api/auth", json={"loginType": "request_otp", "phone": "9876543210"})
     assert res.status_code == 200
+    assert res.json()["is_demo_mode"] is True
     print("OTP Request:", res.json()["message"])
 
     # Flow B: Verify Dynamic OTP from active backend store
@@ -113,55 +116,70 @@ def test_system():
     assert res.status_code == 200
     token = res.json()["token"]
     assert "DL_LIVE_" in token
+    assert res.json()["is_demo_mode"] is True
     print("Real-time OTP Verified Token:", token)
 
     # Flow C: Password
-    res = client.post("/api/auth", json={"loginType": "password", "username": "demo_user", "password": "123456"})
+    res = client.post("/api/auth", json={"loginType": "password", "username": "citizen_demo", "password": "123456"})
     assert res.status_code == 200
     assert "DL_LIVE_" in res.json()["token"]
+    assert res.json()["is_demo_mode"] is True
     print("Password Login Verified")
 
     print("\n--- 14. Testing API Setu Documents Fetch & Age Engine ---")
     # Test token endpoint with OAuth2 authorization code
     res_token = client.post("/api/digilocker/token", json={
         "code": "AUTH_DL_9821",
-        "phone": "9000000001",
-        "name": "Rahul Sharma (Sample Applicant)",
+        "phone": "0000000000",
+        "name": "Demo Applicant",
         "vehicleClass": "combo-bike-car"
     })
     assert res_token.status_code == 200
     token_payload = res_token.json()
     assert token_payload["success"] is True
-    assert token_payload["data"]["applicant_name"] == "Rahul Sharma (Sample Applicant)"
-    assert token_payload["data"]["phone"] == "9000000001"
+    assert token_payload["data"]["applicant_name"] == "Demo Applicant"
+    assert token_payload["data"]["phone"] == "0000000000"
+    assert token_payload["data"]["is_demo_mode"] is True
     assert len(token_payload["data"]["certificates"]) == 3
     print("DigiLocker OAuth Code Exchange Passed | Applicant:", token_payload["data"]["applicant_name"])
 
     # Authorized test with standard vehicle
     res = client.post(
         "/api/documents", 
-        json={"vehicleClass": "combo-bike-car", "phone": "9000000001", "name": "Rahul Sharma (Sample Applicant)"}, 
+        json={"vehicleClass": "combo-bike-car", "phone": "0000000000", "name": "Demo Applicant"}, 
         headers={"Authorization": f"Bearer {token}"}
     )
     assert res.status_code == 200
     doc_data = res.json()
     assert doc_data["success"] is True
-    assert doc_data["data"]["applicant_name"] == "Rahul Sharma (Sample Applicant)"
+    assert doc_data["data"]["applicant_name"] == "Demo Applicant"
     assert doc_data["verification"]["is_rto_eligible"] is True
+    assert doc_data["data"]["is_demo_mode"] is True
     print("Authentic Citizen Dossier Pulled:", doc_data["data"]["documents_found"])
     print("Documents Retrieved for:", doc_data["data"]["applicant_name"], "| Calculated Age:", doc_data["verification"]["calculated_age"], "| Remarks:", doc_data["verification"]["remarks"])
 
-    print("\n--- 15. Testing Bharat e-Pay Treasury Payment Gateway (4 Modes) ---")
+    print("\n--- 15. Testing Honest Document Upload (Zero Fake OCR Claims) ---")
+    res_upload = client.post("/api/upload-document", json={"docType": "age_proof", "fileName": "marksheet.jpg", "sizeKB": 150})
+    assert res_upload.status_code == 200
+    upload_d = res_upload.json()
+    assert upload_d["success"] is True
+    assert upload_d["status"] == "UPLOADED_PENDING_MANUAL_REVIEW"
+    assert upload_d["verified"] is False
+    assert upload_d["is_simulated_demo"] is True
+    print("Upload Endpoint Status:", upload_d["status"], "| Verified Flag:", upload_d["verified"])
+
+    print("\n--- 16. Testing Bharat e-Pay Treasury Payment Gateway (4 Modes) ---")
     # 1. Test Create Order
     res_order = client.post("/api/payment/create-order", json={
         "amount": 350,
-        "applicantName": "Rahul Sharma (Sample Applicant)",
+        "applicantName": "Demo Applicant",
         "rtoCode": "DL-01",
         "vehicleClass": "combo-bike-car"
     })
     assert res_order.status_code == 200
     order_data = res_order.json()
     assert order_data["success"] is True
+    assert order_data["is_demo_mode"] is True
     assert "ORD-PARIVAHAN" in order_data["orderId"]
     assert "GRN-" in order_data["challanNo"]
     print("Bharat e-Pay Order Created:", order_data["orderId"], "| Treasury Challan (GRN):", order_data["challanNo"])
@@ -173,14 +191,15 @@ def test_system():
         "paymentMode": "upi",
         "amount": 350,
         "payerDetails": {
-            "name": "Rahul Sharma (Sample Applicant)",
-            "phone": "9000000001",
+            "name": "Demo Applicant",
+            "phone": "0000000000",
             "bankName": "NPCI / BHIM Dynamic UPI"
         }
     })
     assert res_verify_upi.status_code == 200
     upi_receipt = res_verify_upi.json()
     assert upi_receipt["success"] is True
+    assert upi_receipt["is_demo_mode"] is True
     assert "PAID" in upi_receipt["status"]
     assert "npciUtr" in upi_receipt["receipt"]
     assert "cin" in upi_receipt["receipt"]
@@ -192,12 +211,13 @@ def test_system():
         "paymentMode": "credit_card",
         "amount": 350,
         "payerDetails": {
-            "name": "Rahul Sharma (Sample Applicant)",
+            "name": "Demo Applicant",
             "bankName": "HDFC Bank (Visa 3DS)"
         }
     })
     assert res_verify_card.status_code == 200
     assert "PAID" in res_verify_card.json()["status"]
+    assert res_verify_card.json()["is_demo_mode"] is True
     print("Credit Card (3DS) Verified | Bank Ref:", res_verify_card.json()["receipt"]["bankRef"])
 
     # 4. Test Payment Verification for Netbanking
@@ -206,15 +226,16 @@ def test_system():
         "paymentMode": "netbanking",
         "amount": 350,
         "payerDetails": {
-            "name": "Rahul Sharma (Sample Applicant)",
+            "name": "Demo Applicant",
             "bankName": "State Bank of India (INB)"
         }
     })
     assert res_verify_nb.status_code == 200
     assert "PAID" in res_verify_nb.json()["status"]
+    assert res_verify_nb.json()["is_demo_mode"] is True
     print("Netbanking (SBI INB) Verified | GRN:", res_verify_nb.json()["receipt"]["challanNo"])
 
-    print("\n[SUCCESS] ALL 15 ENDPOINTS, DIGILOCKER ROUTE HANDLERS & PAYMENT GATEWAY PASSED FLAWLESSLY!")
+    print("\n[SUCCESS] ALL ENDPOINTS, VERIFICATION HANDLERS & PAYMENT SIMULATOR PASSED FLAWLESSLY!")
 
 if __name__ == "__main__":
     test_system()

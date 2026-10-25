@@ -181,7 +181,7 @@
   "sample_applications": [
     {
       "application_number": "DL-2026-98124",
-      "applicant_name": "Rahul Sharma (Sample Applicant)",
+      "applicant_name": "Demo Applicant (Sample Record)",
       "dob": "2004-05-14",
       "rto_code": "DL-01 (Mall Road)",
       "vehicle_classes": ["MCWG", "LMV"],
@@ -196,7 +196,7 @@
     },
     {
       "application_number": "MH-2026-11492",
-      "applicant_name": "Sneha Patel (Sample Applicant)",
+      "applicant_name": "Test User (Sample Record)",
       "dob": "2003-11-20",
       "rto_code": "MH-02 (Andheri)",
       "vehicle_classes": ["LMV"],
@@ -211,7 +211,7 @@
     },
     {
       "application_number": "WB-2026-78210",
-      "applicant_name": "Vikram Singh (Sample Applicant)",
+      "applicant_name": "Sample Citizen (Sample Record)",
       "dob": "2002-08-09",
       "rto_code": "WB-01 (Beltala)",
       "vehicle_classes": ["MCWG", "LMV"],

@@ -42,14 +42,17 @@ def load_master_json(filename: str) -> Dict[str, Any]:
 MASTER_SIGNS_DATA = load_master_json("signs.json")
 MASTER_QUESTIONS_DATA = load_master_json("questions.json")
 
+# DEMO DATA ONLY - CONTAINS NO REAL PII
+# Master Mock Data & Supabase Client for Hackathon Evaluation
+
 # Fallback In-Memory Seed Applications (aligns with Phase 1-6 frontend store)
 SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
     "DL-2026-98124": {
         "application_number": "DL-2026-98124",
         "appNo": "DL-2026-98124",
-        "applicant_name": "Avrojit Saha",
-        "name": "Avrojit Saha",
-        "phone": "+91 98765 43210",
+        "applicant_name": "Demo Applicant",
+        "name": "Demo Applicant",
+        "phone": "0000000000",
         "dob": "2004-05-14",
         "rto_code": "DL-01",
         "rto": "DL-01 (Mall Road / North Delhi)",
@@ -62,9 +65,9 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
         "stage_index": 2,
         "status": "Under Scrutiny",
         "submission_date": "2026-10-22",
-        "address": "Flat 402, Shivalik Enclave, Model Town, Delhi - 110009",
+        "address": "123 Mock Street, Demo City - 110001",
         "bloodGroup": "B+ Positive",
-        "fatherOrSpouse": "Debabrata Saha",
+        "fatherOrSpouse": "Demo Guardian",
         "documents": [
             {
                 "id": "form-1",
@@ -81,8 +84,8 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
                 "type": "UIDAI e-KYC (DPDP 2023 Compliant)",
                 "verified": True,
                 "authority": "UIDAI National DigiLocker Gateway",
-                "docNumber": "XXXXXXXX4921",
-                "details": "Demographic match 100%. Postal index 110009 verified."
+                "docNumber": "XXXXXXXX0000",
+                "details": "Demographic match 100%. Postal index 110001 verified."
             },
             {
                 "id": "marksheet-10",
@@ -90,7 +93,7 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
                 "type": "Age & Educational Proof (Rule 4 CMVR)",
                 "verified": True,
                 "authority": "CBSE DigiLocker Board Archive",
-                "docNumber": "CBSE/2020/ROLL-6129841",
+                "docNumber": "CBSE/2020/ROLL-0000000",
                 "details": "Date of birth recorded: 14-May-2004."
             },
             {
@@ -113,9 +116,9 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
     "MH-2026-11492": {
         "application_number": "MH-2026-11492",
         "appNo": "MH-2026-11492",
-        "applicant_name": "Shubham Kumar",
-        "name": "Shubham Kumar",
-        "phone": "+91 98112 23344",
+        "applicant_name": "Test User",
+        "name": "Test User",
+        "phone": "0000000000",
         "dob": "2003-11-20",
         "rto_code": "MH-02",
         "rto": "MH-02 (Andheri / Mumbai West)",
@@ -128,9 +131,9 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
         "stage_index": 1,
         "status": "Under Scrutiny",
         "submission_date": "2026-10-23",
-        "address": "B-201, Palm Beach Heights, Lokhandwala, Andheri West, Mumbai - 400053",
+        "address": "123 Mock Street, Demo City - 400001",
         "bloodGroup": "O+ Positive",
-        "fatherOrSpouse": "R. K. Kumar",
+        "fatherOrSpouse": "Demo Guardian",
         "documents": [
             {
                 "id": "form-1",
@@ -147,7 +150,7 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
                 "type": "UIDAI e-KYC",
                 "verified": True,
                 "authority": "DigiLocker Repository",
-                "docNumber": "XXXXXXXX7819",
+                "docNumber": "XXXXXXXX0000",
                 "details": "Address verified with Mumbai Suburban Jurisdiction."
             }
         ],
@@ -161,9 +164,9 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
     "KA-2026-55319": {
         "application_number": "KA-2026-55319",
         "appNo": "KA-2026-55319",
-        "applicant_name": "Aritro Roy",
-        "name": "Aritro Roy",
-        "phone": "+91 98450 12345",
+        "applicant_name": "Sample Citizen",
+        "name": "Sample Citizen",
+        "phone": "0000000000",
         "dob": "2002-08-09",
         "rto_code": "KA-01",
         "rto": "KA-01 (Koramangala / Bengaluru Central)",
@@ -178,9 +181,9 @@ SAMPLE_APPLICATIONS: Dict[str, Dict[str, Any]] = {
         "llNumber": "KA-01-LL-2026-0099418",
         "submission_date": "2026-10-20",
         "approvalDate": "2026-10-21",
-        "address": "12th Main, 4th Block, Koramangala, Bengaluru - 560034",
+        "address": "123 Mock Street, Demo City - 560001",
         "bloodGroup": "A+ Positive",
-        "fatherOrSpouse": "Siddhartha Roy",
+        "fatherOrSpouse": "Demo Guardian",
         "documents": [],
         "timeline": [
             {"step": "Application Submitted & Fee Paid", "title": "Application Submitted & Fee Paid", "date": "2026-10-20", "status": "done", "completed": True},
@@ -236,7 +239,7 @@ BOOKED_APPOINTMENTS: Dict[str, Dict[str, Any]] = {
     "SLOT-2026-9812": {
         "slot_id": "SLOT-2026-9812",
         "app_no": "DL-2026-98124",
-        "applicant_name": "Avrojit Saha",
+        "applicant_name": "Demo Applicant",
         "track_type": "car",
         "ground": "IDTR-DELHI",
         "ground_name": "IDTR Automated Track (Loni Road, Delhi)",

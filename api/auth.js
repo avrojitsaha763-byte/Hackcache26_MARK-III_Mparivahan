@@ -47,7 +47,10 @@ export default async function handler(req, res) {
       // Strip any OTP digits from response object.
       return res.status(200).json({ 
         success: true, 
-        message: "OTP Sent"
+        message: "OTP Sent",
+        is_demo_mode: true,
+        is_simulated_demo: true,
+        evaluation_notice: "EVALUATION SANDBOX — Simulated SMS delivery boundary for evaluation."
       });
     }
 
@@ -92,6 +95,9 @@ export default async function handler(req, res) {
         success: true, 
         token: verifiedToken,
         phone: cleanPhone,
+        is_demo_mode: true,
+        is_simulated_demo: true,
+        evaluation_notice: "EVALUATION SANDBOX — Isolated demonstration credential boundary.",
         verifiedAt: new Date().toISOString()
       });
     }
@@ -105,7 +111,7 @@ export default async function handler(req, res) {
       const DEMO_CITIZEN_ACCOUNTS = [
         { username: 'citizen_demo', pin: '123456' },
         { username: 'demouser', pin: '123456' },
-        { username: '9000000001', pin: '123456' },
+        { username: '0000000000', pin: '123456' },
         { username: '123456789012', pin: '123456' } // Demo 12-digit Aadhaar
       ];
 
@@ -117,7 +123,10 @@ export default async function handler(req, res) {
         return res.status(200).json({ 
           success: true, 
           token: `DL_LIVE_${matched.username}_${Date.now()}`,
-          isDemoAccount: true
+          is_demo_mode: true,
+          is_simulated_demo: true,
+          isDemoAccount: true,
+          evaluation_notice: "EVALUATION SANDBOX — Demonstration persona boundary."
         });
       }
 

@@ -62,7 +62,7 @@ The project utilizes **17 dedicated endpoints and modules** distributed across 5
 | **1** | `/api/health` | `GET` | System health check, uptime & active route audit | Monitoring, DevOps |
 | **2** | `/api/eligibility` | `POST` | CMVR 1989 Rule 32 age & vehicle validation | `/eligibility` page |
 | **3** | `/api/applications` | `POST` | Form 2 Learner's Licence submission & ledgering | `/apply` workflow |
-| **4** | `/api/track` | `GET` | Live application scrutiny & Rule 11(3) countdown | `/track` page |
+| **4** | `/api/track` | `GET` | Live application scrutiny & CMVR Rule 11 milestone tracking | `/track` page |
 | **5** | `/api/questions` | `GET` | MoRTH STALL exam question bank with category filter | `/mock-test` quiz |
 | **6** | `/api/quiz/submit` | `POST` | Computerized STALL evaluator & pass/fail certification | `/mock-test` result |
 | **7** | `/api/traffic-signs` | `GET` | Official Schedule 1 road signs taxonomy | `/traffic-signs` catalog |
@@ -158,8 +158,8 @@ POST /api/applications HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "Avrojit Saha",
-  "phone": "+91 98765 43210",
+  "name": "Demo Applicant",
+  "phone": "+91 00000 00000",
   "dob": "2004-05-14",
   "rtoCode": "DL-01",
   "vehicle_classes": ["MCWG", "LMV"],
@@ -175,7 +175,7 @@ Content-Type: application/json
   "message": "Form 2 Application successfully submitted per CMVR 1989 Rule 14",
   "data": {
     "application_number": "DL-2026-98124",
-    "applicant_name": "Avrojit Saha",
+    "applicant_name": "Demo Applicant",
     "status": "Under Scrutiny",
     "stage_index": 0,
     "submission_date": "2026-10-24",
@@ -186,13 +186,13 @@ Content-Type: application/json
 
 ---
 
-### 3.3. Application Tracking & CMVR Rule 11(3) Urgency Engine (`/api/track`)
+### 3.3. Application Tracking & CMVR Rule 11 Preliminary Test Milestones (`/api/track`)
 
 #### Function & Purpose
-Fetches citizen application status, scrutiny officer notes, stage-by-stage audit trails, and dynamically calculates the **7-day statutory countdown under CMVR 1989 Rule 11(3)**. If an application is pending for $>4$ days, it flags the status as `urgent` to prevent automatic legislative cancellation.
+Fetches citizen application status, scrutiny officer notes, stage-by-stage audit trails, and tracks active scrutiny progress under **CMVR 1989 Rule 11 & Citizen Charter Service Level Agreements** (SLA target within 7 business days). If an application is pending for $>4$ days, it flags the status as `urgent` for RTO officer escalation.
 
 #### Why Chosen Over Alternatives
-- **Automated Urgency Countdown vs Static Polling**: Instead of requiring citizens to guess when their slot or application expires, this API computes live time delta from `submission_date` and warns citizens before their fee expires.
+- **Milestone SLA Tracking vs Static Polling**: Instead of requiring citizens to guess their application's scrutiny phase, this API computes live time delta from `submission_date` and provides real-time milestone visibility and direct mock test preparation CTAs.
 
 #### Request & Response Schema
 ```http
@@ -302,7 +302,7 @@ Content-Type: application/json
   "amount": 350,
   "currency": "INR",
   "appNo": "DL-2026-98124",
-  "applicantName": "Avrojit Saha",
+  "applicantName": "Demo Applicant",
   "description": "Form 2 LL Fee + Computer Test Fee (CMVR Rule 32)"
 }
 ```

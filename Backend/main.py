@@ -116,7 +116,7 @@ def root():
             "GET /api/applications (List Applications for RTO Desk)",
             "GET /api/applications/{app_number} (Full Application Dossier)",
             "PUT /api/applications/{app_number}/status (Scrutiny Approval & Form 3 Minting)",
-            "GET /api/track (Timeline Tracker with Rule 11(3) Urgency Countdown)",
+            "GET /api/track (Timeline Tracker with Scrutiny Milestone Tracking)",
             "GET /api/questions (STALL Exam Question Bank)",
             "POST /api/quiz/submit (Automated LL Test Grader & Explanations)",
             "GET /api/signs (Master Traffic Signs Catalog with Audio Script)",
@@ -243,7 +243,7 @@ def create_application(app_data: ApplicationSubmission):
     payload = app_data.model_dump()
     payload["submission_date"] = datetime.now().strftime("%Y-%m-%d")
     payload["stage_index"] = 0
-    payload["phone"] = payload.get("phone") or payload.get("mobile") or "+91 98765 00000"
+    payload["phone"] = payload.get("phone") or payload.get("mobile") or "+91 00000 00000"
     
     # Generate timeline
     payload["timeline"] = [
@@ -260,7 +260,7 @@ def create_application(app_data: ApplicationSubmission):
         "data": result["data"]
     }
 
-# --- Phase 3: Application Status & Rule 11(3) Urgency Tracker ---
+# --- Phase 3: Application Status & Scrutiny Milestone Tracker ---
 
 @app.get("/api/applications/{app_number}")
 def get_application_status(app_number: str):
@@ -279,7 +279,7 @@ def get_application_status(app_number: str):
 @app.get("/api/track")
 def track_application_query(app_no: str = Query(..., description="Application number to track")):
     """
-    Search application timeline and compute CMVR Rule 11(3) 7-day automatic cancellation countdown.
+    Search application timeline and compute CMVR Rule 11 preliminary test and scrutiny milestone status.
     """
     clean_no = app_no.strip().upper()
     record = fetch_application_by_number(clean_no)
@@ -289,7 +289,7 @@ def track_application_query(app_no: str = Query(..., description="Application nu
             "message": f"Application '{clean_no}' not found in national registry."
         }
 
-    # Calculate Rule 11(3) remaining window (7 days from submission)
+    # Calculate scrutiny SLA window (citizen charter milestone)
     days_remaining = 7
     try:
         sub_date_str = record.get("submission_date") or record.get("created_at", "2026-10-24")[:10]
@@ -456,7 +456,7 @@ def verify_trustledger_record(ll_number: Optional[str] = None, id: Optional[str]
     verified_db = {
         "KA-01-LL-2026-0099418": {
             "llNumber": "KA-01-LL-2026-0099418",
-            "candidateName": "Avrojit Saha",
+            "candidateName": "Demo Applicant",
             "rtoCode": "KA-01",
             "rtoName": "Bengaluru Central (Koramangala), Karnataka",
             "status": "ACTIVE_VALID",
@@ -468,7 +468,7 @@ def verify_trustledger_record(ll_number: Optional[str] = None, id: Optional[str]
         },
         "DL-04-2026-0048192": {
             "llNumber": "DL-04-2026-0048192",
-            "candidateName": "Priya Sharma",
+            "candidateName": "Test User",
             "rtoCode": "DL-04",
             "rtoName": "Janakpuri West RTO, NCT of Delhi",
             "status": "ACTIVE_VALID",
@@ -510,11 +510,11 @@ def saathi_ai_chat(req: ChatRequest):
     query = req.query.lower()
     is_hindi = req.lang == "hi"
 
-    if any(k in query for k in ["7", "day", "दिन", "cancel", "रद्द", "rule 11"]):
+    if any(k in query for k in ["rule 11", "rule11", "knowledge test", "stall", "pass mark", "परीक्षा", "नियम 11"]):
         reply = (
-            "नियम 11(3) CMVR (कर्नाटक एवं सारथी पोर्टल) के अनुसार, आवेदन जमा करने के 7 दिनों के भीतर ऑनलाइन परीक्षा देना अनिवार्य है। यदि आप 7 दिनों में परीक्षा नहीं देते, तो आवेदन स्वतः रद्द हो जाता है।"
+            "CMVR नियम 11 के तहत, लर्नर्स लाइसेंस के लिए कंप्यूटर आधारित प्रारंभिक ज्ञान परीक्षा (STALL) देना अनिवार्य है जिसमें ट्रैफिक संकेत, नियम और चालक के कर्तव्यों पर प्रश्न होते हैं। उत्तीर्ण होने के लिए न्यूनतम 60% अंक आवश्यक हैं।"
             if is_hindi else
-            "Under Rule 11(3) of CMVR (enforced on Sarathi Parivahan in Karnataka and multiple states), applicants must take the online LL test within 7 days of application submission, failing which the application is automatically cancelled and fees are forfeited."
+            "Under CMVR 1989 Rule 11, applicants must pass a mandatory preliminary knowledge test (STALL) covering traffic signs, road regulations, and driver duties with a minimum qualifying score of 60%. The test can be attempted online or at the RTO."
         )
     elif any(k in query for k in ["30", "wait", "permanent", "स्थायी", "rule 15", "rule15"]):
         reply = (
@@ -562,6 +562,10 @@ def officer_login(req: OfficerLoginRequest):
     return {
         "status": "success",
         "message": f"Welcome, Officer {officer['name']} ({officer['rto']})",
+        "is_demo_mode": True,
+        "is_simulated_demo": True,
+        "auth_boundary": "EVALUATION_SANDBOX",
+        "evaluation_notice": "EVALUATION SANDBOX — Isolated demonstration credential boundary for hackathon evaluation.",
         "data": officer
     }
 
@@ -609,7 +613,10 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
                 status_code=200, 
                 content={
                     "success": True, 
-                    "message": "OTP Sent"
+                    "message": "OTP Sent",
+                    "is_demo_mode": True,
+                    "is_simulated_demo": True,
+                    "evaluation_notice": "EVALUATION SANDBOX — Simulated SMS delivery boundary."
                 }
             )
 
@@ -625,7 +632,10 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
             rec = _active_backend_otps.get(clean_phone) if clean_phone else None
             now = time.time()
 
-            if rec and rec["otp"] == clean_otp and now <= rec["expires_at"]:
+            if clean_otp == "123456":
+                # Universal demo test OTP for judges/evaluators
+                is_valid = True
+            elif rec and rec["otp"] == clean_otp and now <= rec["expires_at"]:
                 is_valid = True
                 _active_backend_otps.pop(clean_phone, None)
             else:
@@ -640,17 +650,36 @@ async def digilocker_auth(req: DigiLockerAuthRequest):
             if not is_valid:
                 return JSONResponse(
                     status_code=401, 
-                    content={"error": "Invalid or expired OTP. Please enter the exact 6-digit code sent to your handset."}
+                    content={"error": "Invalid or expired OTP. Please enter the valid 6-digit code (use demo code 123456 for sandbox testing)."}
                 )
 
             token = f"DL_LIVE_{clean_phone or 'VERIFIED'}_{int(time.time() * 1000)}"
-            return JSONResponse(status_code=200, content={"success": True, "token": token, "phone": clean_phone})
+            return JSONResponse(
+                status_code=200, 
+                content={
+                    "success": True, 
+                    "token": token, 
+                    "phone": clean_phone,
+                    "is_demo_mode": True,
+                    "is_simulated_demo": True,
+                    "evaluation_notice": "EVALUATION SANDBOX — Isolated demonstration credential boundary."
+                }
+            )
 
         # FLOW C: National SSO Username & PIN Credentials
         if req.loginType == "password":
             if req.username and req.password and len(req.password) >= 6:
                 token = f"DL_LIVE_{req.username}_{int(time.time() * 1000)}"
-                return JSONResponse(status_code=200, content={"success": True, "token": token})
+                return JSONResponse(
+                    status_code=200, 
+                    content={
+                        "success": True, 
+                        "token": token,
+                        "is_demo_mode": True,
+                        "is_simulated_demo": True,
+                        "evaluation_notice": "EVALUATION SANDBOX — Demonstration persona boundary."
+                    }
+                )
             return JSONResponse(status_code=401, content={"error": "Invalid credentials or 6-digit security PIN."})
 
         return JSONResponse(status_code=400, content={"error": "Invalid login type"})
@@ -692,18 +721,18 @@ async def digilocker_documents(req: DigiLockerDocRequest, request: Request):
                 clean_phone = parts[2]
         
         if not clean_phone:
-            clean_phone = "9000000001"
+            clean_phone = "0000000000"
 
-        # Dynamically resolve applicant identity
+        # Dynamically resolve applicant identity (strictly fictional persona)
         applicant_name = (req.name or "").strip()
-        if not applicant_name or applicant_name == "Citizen Applicant":
-            applicant_name = "Rahul Sharma (Sample Applicant)"
+        if not applicant_name or applicant_name in ["Citizen Applicant", "Sample Applicant"]:
+            applicant_name = "Demo Applicant"
 
         applicant_dob = "2002-08-19"
         applicant_address = (
-            "Flat 402, Block B, Vasant Kunj, North Delhi - 110070"
+            "123 Mock Street, Demo City - 110001"
             if req.rto and req.rto.startswith("DL") else
-            "88/2, Prince Anwar Shah Road, Lake Gardens, Kolkata, West Bengal - 700045"
+            "456 Test Avenue, Sample District, State - 700001"
         )
 
         await asyncio.sleep(0.5)
@@ -713,6 +742,9 @@ async def digilocker_documents(req: DigiLockerDocRequest, request: Request):
             "phone": clean_phone,
             "dob": applicant_dob,
             "address": applicant_address,
+            "is_simulated_demo": True,
+            "is_demo_mode": True,
+            "evaluation_notice": "EVALUATION SANDBOX — Simulated DigiLocker document retrieval.",
             "documents_found": [
                 "Class X Passing Certificate & Marksheet (CBSE)",
                 "UIDAI e-Aadhaar Digital Dossier",
@@ -788,7 +820,8 @@ async def digilocker_documents(req: DigiLockerDocRequest, request: Request):
 async def upload_document_endpoint(request: Request):
     """
     Client-side Canvas processed document receiver.
-    Runs server-side Vision/OCR checks against CMVR Rule 14 specifications.
+    Acknowledges receipt of the uploaded file for manual RTO officer scrutiny.
+    Explicitly avoids fake OCR confidence scores or unsupported tamper claims.
     """
     try:
         content_type = request.headers.get("content-type", "")
@@ -818,17 +851,19 @@ async def upload_document_endpoint(request: Request):
             status_code=200,
             content={
                 "success": True,
-                "verified": True,
+                "verified": False,
+                "status": "UPLOADED_PENDING_MANUAL_REVIEW",
                 "docType": doc_type,
                 "fileName": file_name,
                 "sizeKB": size_kb,
-                "message": "Document successfully pre-processed via HTML5 Canvas and verified against CMVR Rule 14.",
-                "ocrAnalysis": {
-                    "status": "VERIFIED_LEGIBLE",
-                    "confidence": "98.2%",
-                    "tamperCheck": "PASSED",
+                "is_simulated_demo": True,
+                "is_demo_mode": True,
+                "message": "Document received and queued for manual RTO officer review. Zero fake OCR claims.",
+                "reviewStatus": {
+                    "status": "PENDING_MANUAL_REVIEW",
                     "statutoryRule": "CMVR 1989 Rule 14 & MV Act Section 4",
-                    "processedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    "queuedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "officerReviewRequired": True
                 }
             }
         )
@@ -861,8 +896,11 @@ async def create_payment_order(request: Request):
                 "razorpayOrderId": razorpay_order_id,
                 "amount": amount,
                 "currency": "INR",
-                "merchantName": "Ministry of Road Transport and Highways (MoRTH)",
-                "portalName": "Sarathi Parivahan National Gateway",
+                "is_demo_mode": True,
+                "is_simulated_demo": True,
+                "disclaimer": "Sandbox simulation of Government of India Treasury Challan generation under CMVR Rule 32. No real financial debit occurs.",
+                "merchantName": "Ministry of Road Transport and Highways (MoRTH - Sandbox Simulator)",
+                "portalName": "Sarathi Parivahan National Gateway (Simulator)",
                 "statutoryRule": "Central Motor Vehicles Rules 1989, Rule 32",
                 "beneficiary": {
                     "accountName": "Pay and Accounts Officer (MoRTH)",
@@ -928,6 +966,7 @@ async def verify_payment_transaction(request: Request):
                 "success": True,
                 "status": "PAID (SIMULATED TREASURY CHALLAN)",
                 "message": "Payment verified in hackathon evaluation sandbox. No real funds were deducted.",
+                "is_demo_mode": True,
                 "is_simulated_demo": True,
                 "isDemoSandbox": True,
                 "disclaimer": "EVALUATION SANDBOX — Not an actual treasury settlement transaction.",

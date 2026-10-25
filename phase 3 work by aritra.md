@@ -1,4 +1,4 @@
-# 📋 Phase 3 Progress Report — National Parivahan Application Tracker & Rule 11(3) Urgency Engine — Licence Saathi | EasyDL
+# 📋 Phase 3 Progress Report — National Parivahan Application Tracker & CMVR Rule 11 Milestones — Licence Saathi | EasyDL
 
 **Project Lead & Backend Systems Architect:** Aritro Roy  
 **Team Collaborators:** Avrojit Saha (Core Frontend & Cloud Architect), Shubham Malakar (Data & UI/UX Engineer)  
@@ -12,10 +12,10 @@
 
 ## 🇮🇳 Statutory Framework & Indian RTO Adherence
 
-Phase 3 focuses on addressing one of the most critical pain points for Indian citizens applying for driving licences: **lack of transparent status visibility and accidental application forfeiture**:
-1. **CMVR Rule 11(3) Automatic Cancellation Safeguard:**
-   - Under Rule 11(3) of the Central Motor Vehicles Rules (strictly enforced across Karnataka, Maharashtra, Delhi, and Sarathi portals), an applicant must complete their online LL test or document scrutiny within **7 days** of submission.
-   - Failure to do so leads to automatic cancellation and statutory fee forfeiture.
+Phase 3 focuses on addressing one of the most critical pain points for Indian citizens applying for driving licences: **lack of transparent status visibility and application progression**:
+1. **CMVR Rule 11 Preliminary Knowledge Test & Scrutiny Milestones:**
+   - Under Rule 11 of the Central Motor Vehicles Rules 1989, an applicant must pass a computerized preliminary knowledge test covering traffic signs, driving regulations, and driver responsibilities (60% qualifying score).
+   - The application tracking engine monitors the progress of document scrutiny against administrative Citizen Charter targets.
 2. **National 4-Stage Chronological Milestone Standard:**
    - *Stage 0 (Submitted):* Form 2 Submission & CMVR Rule 32 Treasury Fee Clearance.
    - *Stage 1 (Scrutiny):* DigiLocker Aadhaar e-KYC or Manual Scanned Document Examination.
@@ -28,7 +28,7 @@ Phase 3 focuses on addressing one of the most critical pain points for Indian ci
 
 As **Project Lead & Backend Systems Architect**, Aritro Roy architected the status resolution engine and real-time tracking endpoints in the FastAPI backend:
 1. Engineered `GET /api/track` and `GET /api/applications/{app_number}` with comprehensive chronological timelines.
-2. Integrated **CMVR Rule 11(3)** urgency calculations: compares application submission date against current timestamp and returns remaining days/hours before statutory forfeiture.
+2. Integrated **CMVR Rule 11** preliminary test milestones and SLA timeline tracking: computes days elapsed from application submission date against administrative targets.
 3. Implemented smart case-insensitive lookup supporting national demo reference numbers (`DL-2026-98124`, `MH-2026-11492`, `KA-2026-55319`) and newly submitted citizen applications.
 4. Seamlessly unified Supabase PostgreSQL queries with offline fallback data structures so tracking is 100% resilient during live demonstrations.
 
@@ -41,7 +41,7 @@ As **Project Lead & Backend Systems Architect**, Aritro Roy architected the stat
 │   Phase 3 Client Request             │       │   FastAPI Backend (Indian RTO Engine - Port 8000)      │
 ├──────────────────────────────────────┤       ├────────────────────────────────────────────────────────┤
 │  GET /api/track?app_no=DL-2026-98124 │ ────► │ Queries Supabase / Mock Store                          │
-│  Response with Timeline & Urgency    │ ◄──── │ Returns 4-Stage Milestone Steps + Rule 11(3) Window    │
+│  Response with Timeline & Urgency    │ ◄──── │ Returns 4-Stage Milestone Steps + Rule 11 Status       │
 └──────────────────────────────────────┘       └────────────────────────────────────────────────────────┘
 ```
 

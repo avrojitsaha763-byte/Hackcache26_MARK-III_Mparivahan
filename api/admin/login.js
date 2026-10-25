@@ -102,6 +102,7 @@ export default function handler(req, res) {
       badgeNumber: matched.badgeNumber,
       clearanceLevel: matched.clearanceLevel,
       role: 'RTO_OFFICER',
+      is_demo_mode: true,
       loginTimestamp: new Date().toISOString()
     };
 
@@ -109,6 +110,10 @@ export default function handler(req, res) {
       success: true,
       message: `Welcome, ${matched.name}. Scrutiny credentials authenticated.`,
       token: `OFFICER_TOKEN_${matched.officerId}_${Date.now()}`,
+      is_demo_mode: true,
+      is_simulated_demo: true,
+      auth_boundary: "EVALUATION_SANDBOX",
+      evaluation_notice: "EVALUATION SANDBOX — Isolated demonstration credential boundary for hackathon evaluation.",
       data: officerData
     });
   } catch (err) {

@@ -22,7 +22,7 @@ const VERIFIED_RECORDS = {
   'KA-01-LL-2026-0099418': {
     llNumber: 'KA-01-LL-2026-0099418',
     applicationNumber: 'LL-2026-TEST03',
-    candidateName: 'TEST PERSONA 03: Vikram Singh (Sample Applicant)',
+    candidateName: 'Sample Citizen (Sample Applicant)',
     fatherHusbandName: 'Guardian Sample',
     dateOfBirth: '2002-08-09',
     gender: 'Male',

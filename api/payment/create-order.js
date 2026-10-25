@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     body = body || {};
 
     const amount = Number(body.amount || 350);
-    const applicantName = body.applicantName || 'Citizen Applicant';
+    const applicantName = body.applicantName || 'Demo Applicant';
     const rtoCode = body.rtoCode || 'DL-01';
     const vehicleClass = body.vehicleClass || 'LMV';
 
@@ -52,6 +52,8 @@ export default async function handler(req, res) {
       currency: 'INR',
       isLiveGateway: hasLiveRazorpay,
       isDemoSimulator: !hasLiveRazorpay,
+      is_demo_mode: !hasLiveRazorpay,
+      is_simulated_demo: !hasLiveRazorpay,
       gatewayMode: hasLiveRazorpay ? 'LIVE_PROVIDER' : 'DEMO_SANDBOX_SIMULATOR',
       merchantName: 'Ministry of Road Transport and Highways (MoRTH - Sandbox Simulator)',
       portalName: 'Sarathi Parivahan National Gateway (Simulator)',

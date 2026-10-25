@@ -277,23 +277,37 @@ uvicorn main:app --reload
 
 ## 🔒 Security Architecture & Hackathon Evaluation Sandbox
 
-To ensure complete transparency, security rigor, and engineering integrity during hackathon evaluation, the application enforces the following verified standards:
+To ensure complete transparency, security rigor, and engineering integrity during hackathon evaluation, the application enforces the following verified boundaries:
+
+### Technical Transparency: Live Production vs. Evaluation Sandbox
+
+| Component | Integration Mode | Verification & Compliance Status |
+| :--- | :--- | :--- |
+| **Database & Persistence** | **Live Production** | Cloud PostgreSQL hosted on **Supabase** with Row-Level Security (RLS) policies, schema migrations, and real-time state synchronization. |
+| **Conversational AI** | **Live Production** | **Google Gemini 2.5 Flash** integrated via server-side API key authentication, handling bilingual MoRTH / CMVR statutory queries. |
+| **Frontend Web App** | **Live Production** | **React 19 + Vite 8** production build with bilingual localization (English / Hindi), WCAG 2.1 AA accessibility, and mobile-responsive layout. |
+| **Document Scrutiny** | **Evaluation Sandbox** | Server-side image dimension, MIME type, and size validation reporting honest `UPLOADED_PENDING_MANUAL_REVIEW` status (explicitly rejecting fake AI OCR/tamper scores). |
+| **DigiLocker Verification** | **Evaluation Sandbox** | Mock OAuth token simulation (`DL_LIVE_DEMO_TOKEN_...`) returning standardized demo identity fixtures labeled with `is_demo_mode: true`. |
+| **Treasury & Payment Gateway** | **Evaluation Sandbox** | Bharat e-Pay simulator issuing digitally marked `is_simulated_demo: true` challans (with HMAC-SHA256 signature verification enabled when live Razorpay keys are configured). |
+| **Citizen & Officer Auth** | **Evaluation Sandbox** | Isolated demo accounts (`citizen_demo` / PIN `123456`, universal evaluation OTP `123456`, `RTO-OFFICER-DL01`) returning explicit `is_demo_mode: true` flags and UI sandbox banners. |
+
+### Rigorous Security Standards Enforced:
 
 1. **Authentication & Identity Security**:
    - **Zero Client OTP Exposure**: One-Time Passwords are never returned in client HTTP response payloads or logged on server consoles.
-   - **Evaluation Sandbox Identities**: Fictional test accounts (`citizen_demo` / PIN `123456`, universal test OTP `123456`) are clearly distinguished from production identity providers.
+   - **Isolated Sandbox Boundaries**: Evaluation accounts (`citizen_demo` / PIN `123456`, evaluation OTP `123456`) are tagged with `is_demo_mode: true` and visible UI sandbox badges.
    - **Isolated Officer Fixtures**: Administrative scrutiny access is protected via server-side verification and isolated evaluation officer profiles (`RTO-OFFICER-DL01`).
 
 2. **Payment & Treasury Integrity**:
    - **Cryptographic HMAC-SHA256 Verification**: Production payment flows verify the `razorpay_signature` using HMAC-SHA256 against server-stored secrets.
-   - **Honest Sandbox Challans**: When operating in demo mode, the system explicitly labels receipts as `PAID (SIMULATED TREASURY CHALLAN)` with statutory disclaimers stating that no real bank debit or treasury settlement occurred.
+   - **Honest Sandbox Challans**: When operating without live merchant keys, the system explicitly labels receipts as `PAID (SIMULATED TREASURY CHALLAN)` with persistent notices stating that no real bank debit or treasury settlement occurred.
 
 3. **Privacy & Data Minimization (DPDPA 2023)**:
-   - **100% Fictional Personas**: Seeded and test datasets use strictly fictional personas (`Rahul Sharma`, `Sneha Patel`, `Vikram Singh`, `9000000001`, North Delhi dummy addresses) with persistent `DEMO DATA — NOT AN OFFICIAL LICENCE RECORD` notices.
+   - **100% Obvious Fictional Placeholders**: Seeded records and mock databases use strictly obvious placeholders (`Demo Applicant`, `Test User`, `Sample Citizen`, `+91 00000 00000`, `123 Mock Street, Demo City - 110001`) with persistent `DEMO DATA — NOT AN OFFICIAL LICENCE RECORD` notices. Real personal information is never seeded or stored.
    - **Zero Raw UID Storage**: Aadhaar verification is tokenized under DPDPA 2023 guidelines.
 
 4. **Honest Document Pre-Screening**:
-   - **Programmatic Pre-Screening**: Document uploads are validated for authentic file headers, CMVR file size standards (10KB – 2MB), and aspect ratio bounds. The system clearly discloses that it performs technical pre-screening rather than claiming forensic OCR or government-grade tamper detection.
+   - **Programmatic Pre-Screening**: Document uploads are validated for authentic file headers, CMVR file size standards (10KB – 2MB), and aspect ratio bounds. The system reports `UPLOADED_PENDING_MANUAL_REVIEW` and avoids simulated AI confidence percentages or unsupported tamper claims.
 
 ---
 

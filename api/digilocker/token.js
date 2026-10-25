@@ -38,16 +38,16 @@ export default async function handler(req, res) {
     body = body || req.query || {};
 
     const { code, vehicleClass, phone, name, rto } = body;
-    const cleanPhone = (phone || '9000000001').toString().replace(/\D/g, '').slice(-10);
+    const cleanPhone = (phone || '0000000000').toString().replace(/\D/g, '').slice(-10);
 
-    const applicantName = (name && name.trim() && name !== 'Citizen Applicant')
+    const applicantName = (name && name.trim() && !['Citizen Applicant', 'Sample Applicant'].includes(name.trim()))
       ? name.trim()
-      : 'Rahul Sharma (Sample Applicant)';
+      : 'Demo Applicant';
 
     const applicantDob = "2004-05-14";
     const applicantAddress = (rto && rto.startsWith('DL'))
-      ? "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001"
-      : "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001";
+      ? "123 Mock Street, Demo City - 110001"
+      : "456 Test Avenue, Sample District - 400001";
 
     // Simulate API Setu handshake
     await new Promise((resolve) => setTimeout(resolve, 600));
@@ -124,6 +124,9 @@ export default async function handler(req, res) {
       success: true,
       token,
       code_used: code || 'DL-SSO-REALTIME',
+      is_demo_mode: true,
+      is_simulated_demo: true,
+      evaluation_notice: "EVALUATION SANDBOX — Simulated DigiLocker OAuth code exchange.",
       data: fetchedDocs,
       verification: {
         calculated_age: age,

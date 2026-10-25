@@ -58,17 +58,17 @@ export default async function handler(req, res) {
     // Extract citizen details from token or request body
     const tokenParts = token.split('_');
     const phoneFromToken = tokenParts.length > 2 && tokenParts[2].length === 10 ? tokenParts[2] : null;
-    const cleanPhone = ((bodyPhone || phoneFromToken || '9000000001').toString()).replace(/\D/g, '').slice(-10);
+    const cleanPhone = ((bodyPhone || phoneFromToken || '0000000000').toString()).replace(/\D/g, '').slice(-10);
 
-    // Dynamic resolution based on applicant mobile & profile
-    const applicantName = (bodyName && bodyName.trim() && bodyName !== 'Citizen Applicant')
+    // Dynamic resolution based on applicant mobile & profile (strictly mock persona)
+    const applicantName = (bodyName && bodyName.trim() && !['Citizen Applicant', 'Sample Applicant'].includes(bodyName.trim()))
       ? bodyName.trim()
-      : 'Rahul Sharma (Sample Applicant)';
+      : 'Demo Applicant';
 
     const applicantDob = "2004-05-14";
     const applicantAddress = (bodyRto && bodyRto.startsWith('DL'))
-      ? "Demo Plot 402, Sector 14, Mall Road Zone, North Delhi - 110001"
-      : "Demo Suite B-201, Model Sector 5, Andheri West Zone, Mumbai - 400001";
+      ? "123 Mock Street, Demo City - 110001"
+      : "456 Test Avenue, Sample District - 400001";
 
     // Real-time fetched documents from DigiLocker / API Setu
     const fetchedDocs = {
@@ -76,6 +76,9 @@ export default async function handler(req, res) {
       phone: cleanPhone,
       dob: applicantDob,
       address: applicantAddress,
+      is_demo_mode: true,
+      is_simulated_demo: true,
+      evaluation_notice: "EVALUATION SANDBOX — Simulated DigiLocker document retrieval.",
       documents_found: [
         "Class X Passing Certificate & Marksheet (CBSE)",
         "UIDAI e-Aadhaar Digital Dossier",
@@ -141,6 +144,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
+      is_demo_mode: true,
+      is_simulated_demo: true,
+      evaluation_notice: "EVALUATION SANDBOX — Simulated DigiLocker document retrieval.",
       data: fetchedDocs,
       verification: {
         calculated_age: age,

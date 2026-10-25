@@ -83,6 +83,7 @@ export default async function handler(req, res) {
       status: isLiveGateway ? 'PAID' : 'PAID (SIMULATED TREASURY CHALLAN)',
       isLiveGateway,
       isDemoSandbox: !isLiveGateway,
+      is_demo_mode: !isLiveGateway,
       is_simulated_demo: !isLiveGateway,
       signatureVerified: isLiveGateway ? signatureVerified : 'SIMULATED_TEST_SIGNATURE',
       message: isLiveGateway 
@@ -90,6 +91,7 @@ export default async function handler(req, res) {
         : 'CMVR Rule 32 Treasury Challan successfully simulated for hackathon evaluation.',
       receipt: {
         txnId,
+        is_demo_mode: !isLiveGateway,
         is_simulated_demo: !isLiveGateway,
         orderId: razorpayOrderId || orderId || `ORD-${timestamp}`,
         challanNo,
@@ -102,8 +104,8 @@ export default async function handler(req, res) {
         amount: Number(amount || 350),
         currency: 'INR',
         paidAt: new Date().toISOString(),
-        payerName: payerDetails.name || 'Sample Applicant',
-        payerPhone: (payerDetails.phone || '9000000001').slice(-10),
+        payerName: payerDetails.name || 'Demo Applicant',
+        payerPhone: (payerDetails.phone || '0000000000').slice(-10),
         bankName: payerDetails.bankName || (paymentMode === 'upi' ? 'NPCI / BHIM Sandbox' : 'State Bank of India (Simulator)'),
         statutoryCitation: 'Central Motor Vehicles Rules 1989, Rule 32 Indicative Fee Schedule',
         applicationNo: appNo || 'DL-2026-PENDING',

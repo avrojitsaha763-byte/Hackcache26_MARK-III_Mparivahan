@@ -50,6 +50,8 @@ export default async function handler(req, res) {
       success: true,
       status: 'UPLOADED_PENDING_MANUAL_REVIEW',
       message: 'Document received and queued for manual RTO officer review.',
+      is_demo_mode: true,
+      is_simulated_demo: true,
       docType,
       fileName,
       sizeKB,

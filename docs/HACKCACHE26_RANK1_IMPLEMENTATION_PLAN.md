@@ -98,7 +98,7 @@ graph TD
 
 #### Idea 14: Chatbot Automated Form Filling
 - **Components**: [`src/components/ChatbotModal.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/components/ChatbotModal.jsx) ➔ [`src/pages/Apply.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/Apply.jsx)
-- **Citizen Experience**: The citizen says *"Mera naam Rahul Sharma hai, Bangalore mein bike aur car licence chahiye"*. The AI extracts the parameters, packages the Form 2 payload, and redirects the citizen to `/apply` with all 40 fields auto-filled.
+- **Citizen Experience**: The citizen says *"Mera naam Demo Applicant hai, Bangalore mein bike aur car licence chahiye"*. The AI extracts the parameters, packages the Form 2 payload, and redirects the citizen to `/apply` with all 40 fields auto-filled.
 
 #### Idea 15: Data Analytics DMV Dashboard
 - **Component**: [`src/pages/AdminPortal.jsx`](file:///c:/Users/AVROJIT/OneDrive/Desktop/Mparivahan%20Fronten%20completed%20with%20all%20json/Hackcache26_MARK-III_Mparivahan/src/pages/AdminPortal.jsx)

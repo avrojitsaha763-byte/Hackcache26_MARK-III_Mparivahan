@@ -140,8 +140,13 @@ export default function AdminAuth() {
                 <ShieldCheck className="w-4 h-4 text-amber-400" />
                 <span>{isHindi ? 'भारत सरकार • आरटीओ आधिकारिक संवीक्षा' : 'Govt of India • RTO Scrutiny Authority'}</span>
               </div>
-              <div className="text-[11px] text-blue-200/80 font-mono">
-                SEC 8 & 9 CMVR • FACILITY LEVEL 3
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono text-[10px] border border-amber-400/40">
+                  ⚠️ SIMULATED EVALUATION SANDBOX
+                </span>
+                <div className="text-[11px] text-blue-200/80 font-mono">
+                  SEC 8 & 9 CMVR • FACILITY LEVEL 3
+                </div>
               </div>
             </div>
 
@@ -159,10 +164,10 @@ export default function AdminAuth() {
           <div className="px-6 py-3 bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-900/50 flex items-start gap-2.5 text-xs text-amber-900 dark:text-amber-200">
             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <p className="leading-relaxed text-[11px] sm:text-xs">
-              <strong>{isHindi ? 'सुरक्षा सूचना:' : 'Access Notice:'}</strong>{' '}
+              <strong>{isHindi ? 'सुरक्षा सूचना (सिम्युलेटेड मूल्यांकन सैंडबॉक्स):' : 'Evaluation Sandbox Access Notice:'}</strong>{' '}
               {isHindi
-                ? 'ड्राइविंग लाइसेंस आवेदकों एवं सामान्य नागरिकों के लिए यह पोर्टल प्रतिबंधित है। अनधिकृत पहुंच कानूनन दंडनीय है।'
-                : 'Citizen licence applicants cannot access this portal or self-verify Form 2 submissions. Official RTO credentials required.'}
+                ? 'यह पोर्टल हैकाथॉन मूल्यांकन के लिए एक सिम्युलेटेड आरटीओ संवीक्षा सैंडबॉक्स है। त्वरित परीक्षण हेतु नीचे दिए गए डेमो अधिकारी क्रेडेंशियल का उपयोग करें।'
+                : 'Isolated evaluation sandbox for hackathon demonstration. Use the pre-authorized demo officer profiles below for testing official scrutiny workflows.'}
             </p>
           </div>
 

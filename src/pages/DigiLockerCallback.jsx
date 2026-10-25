@@ -47,8 +47,8 @@ export default function DigiLockerCallback() {
       }
     } catch {}
 
-    const cleanPhone = (stateData.phone || '9000000001').replace(/\D/g, '').slice(-10)
-    const applicantName = stateData.name || 'Rahul Sharma (Sample Applicant)'
+    const cleanPhone = (stateData.phone || '0000000000').replace(/\D/g, '').slice(-10)
+    const applicantName = stateData.name || 'Demo Applicant'
     const vehicleClass = stateData.vehicleClass || 'combo-bike-car'
 
     async function processDigiLockerExchange() {
