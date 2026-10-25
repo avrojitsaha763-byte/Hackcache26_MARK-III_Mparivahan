@@ -6,6 +6,7 @@ import { soundFx } from '@/lib/soundFx'
 export default function RobotMascot({ onClick, isHindi = false, isModalOpen = false }) {
   const [isWaving, setIsWaving] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [showSpeechBubble] = useState(true)
   const [speechText, setSpeechText] = useState(
     isHindi
       ? 'नमस्ते! ड्राइविंग लाइसेंस में मदद चाहिए? मुझे क्लिक करें! 👋'
