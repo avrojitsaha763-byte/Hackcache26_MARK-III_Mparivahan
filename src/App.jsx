@@ -40,10 +40,13 @@ export default function App() {
           <Route path="/verify" element={<TrustLedger />} />
           <Route path="/trust-ledger" element={<TrustLedger />} />
 
-          {/* Dedicated Official RTO Admin Authentication Routes */}
+          {/* Dedicated Official RTO Admin Authentication Routes & Common Citizen Aliases */}
           <Route path="/admin/login" element={<AdminAuth />} />
           <Route path="/admin/signup" element={<AdminAuth />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
+          <Route path="/login" element={<AdminAuth />} />
+          <Route path="/signup" element={<AdminAuth />} />
+          <Route path="/auth" element={<AdminAuth />} />
 
           {/* Protected Official RTO Admin Scrutiny Portal */}
           <Route 

@@ -145,7 +145,7 @@ export default async function handler(req, res) {
       { title: 'Ministry of Road Transport and Highways (MoRTH)', url: 'https://morth.nic.in' }
     ];
 
-    if (
+    const wantsToApply =
       (lower.includes('want to apply') ||
         lower.includes('apply for') ||
         lower.includes('want a licence') ||
@@ -157,8 +157,11 @@ export default async function handler(req, res) {
         (selectedState && vehicle && (lower.includes('apply') || lower.includes('want')))) &&
       !lower.includes('how to') &&
       !lower.includes('what is') &&
-      !lower.includes('can i')
-    ) {
+      !lower.includes('can i');
+
+    const hasApplicantDetails = !!(applicantName || (applicantPhone && (vehicle || selectedState)));
+
+    if (wantsToApply && hasApplicantDetails) {
       intent = 'apply_ll';
       action = 'autofill_form';
 
@@ -167,11 +170,34 @@ export default async function handler(req, res) {
       const vehDisplay = vehicleLabel || (isHindi ? 'मोटरसाइकिल (MCWG)' : 'Motorcycle (MCWG)');
 
       reply = isHindi
-        ? `नियम 14 CMVR के तहत, ${stateDisplay} (${rtoDisplay}) में ${vehDisplay} के लिए लर्नर्स लाइसेंस का आवेदन तैयार किया गया है। आवश्यक दस्तावेज: आयु प्रमाण (आधार/10वीं मार्कशीट), पता प्रमाण और फॉर्म 1 स्व-घोषणा। सांविधिक शुल्क ₹${fee} (नियम 32) है। कृपया नीचे दिए गए विवरण की पुष्टि करें:`
-        : `Under CMVR 1989 Rule 14, I have prepared your Form 2 Learner's Licence application for ${vehDisplay} at ${rtoDisplay}. Statutory fee is ₹${fee} per Rule 32. Required documents: Age proof (Aadhaar/10th certificate), Address proof, and Form 1 self-declaration. Please review and confirm the details below to autofill Form 2:`;
+        ? `धन्यवाद ${applicantName || 'आवेदक'} जी! आपके दिए गए विवरण के आधार पर ${stateDisplay} (${rtoDisplay}) में ${vehDisplay} के लिए फॉर्म 2 आवेदन तैयार है। सांविधिक शुल्क ₹${fee} (CMVR नियम 32) है। कृपया विवरण की पुष्टि करें:`
+        : `Thank you ${applicantName || 'Applicant'}! Based on your details, your Form 2 Learner's Licence application for ${vehDisplay} at ${rtoDisplay} is prepared. Statutory fee is ₹${fee} per Rule 32. Please review your details below to open Form 2:`;
 
       sources.push({ title: 'CMVR 1989 Rule 14 (Form 2 Application)', url: 'https://parivahan.gov.in' });
       sources.push({ title: 'CMVR 1989 Rule 32 (Statutory Fees)', url: 'https://morth.nic.in' });
+    } else if (wantsToApply) {
+      intent = 'collect_details';
+      action = 'request_details';
+      reply = isHindi
+        ? `मैं आपका ड्राइविंग लाइसेंस (फॉर्म 2) आवेदन भरने में पूरी मदद करूँगा! 
+
+कृपया मुझे अपने ये 4 विवरण बताएं:
+1. **आपका पूरा नाम** (जैसा आधार कार्ड पर है)
+2. **10 अंकों का मोबाइल नंबर**
+3. **आपका राज्य और शहर / आरटीओ** (उदा. दिल्ली, लखनऊ, बेंगलुरु, कोलकाता, मुंबई...)
+4. **वाहन का प्रकार** (बाइक, स्कूटी, कार, या दोनों?)
+
+आप ये सभी विवरण एक साथ लिख सकते हैं या एक-एक करके बता सकते हैं!`
+        : `I will gladly help you apply for your Learner's Licence (Form 2) step by step!
+
+Please share these 4 quick details with me:
+1. **Your Full Name** (as printed on your Aadhaar card)
+2. **Your 10-digit Mobile Number**
+3. **Your State and City / RTO** (e.g., Delhi, Lucknow, Bengaluru, Kolkata, Mumbai...)
+4. **Vehicle Type** (Bike with Gear, Scooter/Moped, Car, or Both?)
+
+You can type all of them together right now, or send them one by one!`;
+      sources.push({ title: 'CMVR 1989 Rule 14 (Application Procedure)', url: 'https://parivahan.gov.in' });
     } else if (lower.includes('rule 11') || lower.includes('knowledge') || lower.includes('stall') || lower.includes('pass') || lower.includes('नियम 11')) {
       intent = 'rule_query';
       action = 'practice_test';

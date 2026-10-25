@@ -537,7 +537,10 @@ export const api = {
         body: JSON.stringify({ query, lang, history })
       })
       if (backendRes && backendRes.status === 'success' && backendRes.reply) {
-        return backendRes
+        // If backend ran live AI or matched a specific intent, return it directly
+        if (backendRes.is_ai_live || (backendRes.intent && backendRes.intent !== 'general')) {
+          return backendRes
+        }
       }
     } catch {
       // Backend unavailable, fallback to client AI engine

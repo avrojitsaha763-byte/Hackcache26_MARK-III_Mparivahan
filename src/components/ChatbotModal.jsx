@@ -246,6 +246,17 @@ export default function ChatbotModal() {
 
   const [messages, setMessages] = useState([initialBotMessage])
 
+  // Persistent applicant draft state gathered conversationally across chat turns
+  const [applicantDraft, setApplicantDraft] = useState({
+    name: '',
+    phone: '',
+    vehicle: 'motorcycle-gear',
+    vehicleLabel: 'Motorcycle with Gear (MCWG)',
+    rtoCode: 'DL-01',
+    rtoName: 'Delhi (Mall Road - North Delhi)',
+    fee: 200
+  })
+
   // Scroll to bottom of message thread
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -281,6 +292,45 @@ export default function ChatbotModal() {
     setLiveTranscript('')
     setIsAiLoading(true)
 
+    // Extract citizen details from the latest query and accumulate in draft state
+    const parsed = parseCitizenQuery(query, isHindi)
+    const lowerQ = query.toLowerCase()
+
+    let updatedDraft = { ...applicantDraft }
+    if (parsed.name) updatedDraft.name = parsed.name
+    if (parsed.phone) updatedDraft.phone = parsed.phone
+    if (
+      lowerQ.includes('bike') || 
+      lowerQ.includes('motorcycle') || 
+      lowerQ.includes('car') || 
+      lowerQ.includes('scooter') || 
+      lowerQ.includes('moped') || 
+      lowerQ.includes('combo') || 
+      lowerQ.includes('दोनों')
+    ) {
+      updatedDraft.vehicle = parsed.vehicle
+      updatedDraft.vehicleLabel = parsed.vehicleLabel
+      updatedDraft.fee = parsed.fee
+    }
+    if (
+      lowerQ.includes('delhi') || 
+      lowerQ.includes('kolkata') || 
+      lowerQ.includes('mumbai') || 
+      lowerQ.includes('bengaluru') || 
+      lowerQ.includes('bangalore') || 
+      lowerQ.includes('lucknow') || 
+      lowerQ.includes('chennai') || 
+      lowerQ.includes('pune') || 
+      lowerQ.includes('west bengal') || 
+      lowerQ.includes('uttar pradesh') || 
+      lowerQ.includes('maharashtra') || 
+      lowerQ.includes('karnataka')
+    ) {
+      updatedDraft.rtoCode = parsed.rtoCode
+      updatedDraft.rtoName = parsed.rtoName
+    }
+    setApplicantDraft(updatedDraft)
+
     try {
       // Invoke Centralized API with Gemini 2.5 Flash + CMVR Statutory Engine
       const res = await api.sendChatMessage(query, lang, newMsgs)
@@ -289,7 +339,9 @@ export default function ChatbotModal() {
 
       if (res && res.status === 'success' && res.reply) {
         setAiUnavailable(!res.isAiLive)
-        const isApplyIntent = res.isApplyIntent === true
+        // ONLY show autoFillCard if the citizen has provided their name!
+        const hasProvidedName = !!(updatedDraft.name || res.extractedData?.name)
+        const isApplyIntent = (res.isApplyIntent === true || res.action === 'autofill_form') && hasProvidedName
 
         const botMsg = {
           sender: 'bot',
@@ -303,13 +355,13 @@ export default function ChatbotModal() {
           nextActions: res.nextActions || (isApplyIntent ? ['apply', 'quiz', 'fee'] : ['apply', 'quiz', 'eligibility', 'track']),
           followUpChips: res.followUpChips || [],
           autoFillCard: isApplyIntent ? {
-            name: res.extractedData?.name || '',
-            phone: res.extractedData?.phone || '',
-            vehicle: res.extractedData?.vehicle || 'motorcycle-gear',
-            vehicleLabel: res.extractedData?.vehicleLabel || 'Motorcycle with Gear (MCWG)',
-            rtoCode: res.extractedData?.rtoCode || 'WB-01',
-            rtoName: res.extractedData?.rtoName || 'West Bengal (Kolkata - Beltala)',
-            fee: res.extractedData?.fee || 200
+            name: updatedDraft.name || res.extractedData?.name || '',
+            phone: updatedDraft.phone || res.extractedData?.phone || '',
+            vehicle: updatedDraft.vehicle || res.extractedData?.vehicle || 'motorcycle-gear',
+            vehicleLabel: updatedDraft.vehicleLabel || res.extractedData?.vehicleLabel || 'Motorcycle with Gear (MCWG)',
+            rtoCode: updatedDraft.rtoCode || res.extractedData?.rtoCode || 'DL-01',
+            rtoName: updatedDraft.rtoName || res.extractedData?.rtoName || 'Delhi (Mall Road - North Delhi)',
+            fee: updatedDraft.fee || res.extractedData?.fee || 200
           } : null
         }
 
@@ -320,7 +372,9 @@ export default function ChatbotModal() {
       } else {
         // High-Precision Statutory Offline Engine Fallback
         const fallback = getStatutoryResponse(query, lang)
-        const parsed = parseCitizenQuery(query, isHindi)
+        const hasProvidedName = !!(updatedDraft.name || parsed.name)
+        const isApplyIntent = (fallback.isApplyIntent || parsed.isApply) && hasProvidedName
+
         const botMsg = {
           sender: 'bot',
           text: fallback.text,
@@ -328,14 +382,14 @@ export default function ChatbotModal() {
           sources: fallback.sources,
           nextActions: fallback.nextActions,
           followUpChips: fallback.followUpChips,
-          autoFillCard: fallback.isApplyIntent ? {
-            name: parsed.name || '',
-            phone: parsed.phone || '',
-            vehicle: parsed.vehicle,
-            vehicleLabel: parsed.vehicleLabel,
-            rtoCode: parsed.rtoCode,
-            rtoName: parsed.rtoName,
-            fee: parsed.fee
+          autoFillCard: isApplyIntent ? {
+            name: updatedDraft.name || parsed.name || '',
+            phone: updatedDraft.phone || parsed.phone || '',
+            vehicle: updatedDraft.vehicle || parsed.vehicle,
+            vehicleLabel: updatedDraft.vehicleLabel || parsed.vehicleLabel,
+            rtoCode: updatedDraft.rtoCode || parsed.rtoCode,
+            rtoName: updatedDraft.rtoName || parsed.rtoName,
+            fee: updatedDraft.fee || parsed.fee
           } : null
         }
         setMessages((prev) => [...prev, botMsg])
@@ -346,7 +400,9 @@ export default function ChatbotModal() {
     } catch {
       setIsAiLoading(false)
       const fallback = getStatutoryResponse(query, lang)
-      const parsed = parseCitizenQuery(query, isHindi)
+      const hasProvidedName = !!(updatedDraft.name || parsed.name)
+      const isApplyIntent = (fallback.isApplyIntent || parsed.isApply) && hasProvidedName
+
       const botMsg = {
         sender: 'bot',
         text: fallback.text,
@@ -354,14 +410,14 @@ export default function ChatbotModal() {
         sources: fallback.sources,
         nextActions: fallback.nextActions,
         followUpChips: fallback.followUpChips,
-        autoFillCard: fallback.isApplyIntent ? {
-          name: parsed.name || '',
-          phone: parsed.phone || '',
-          vehicle: parsed.vehicle,
-          vehicleLabel: parsed.vehicleLabel,
-          rtoCode: parsed.rtoCode,
-          rtoName: parsed.rtoName,
-          fee: parsed.fee
+        autoFillCard: isApplyIntent ? {
+          name: updatedDraft.name || parsed.name || '',
+          phone: updatedDraft.phone || parsed.phone || '',
+          vehicle: updatedDraft.vehicle || parsed.vehicle,
+          vehicleLabel: updatedDraft.vehicleLabel || parsed.vehicleLabel,
+          rtoCode: updatedDraft.rtoCode || parsed.rtoCode,
+          rtoName: updatedDraft.rtoName || parsed.rtoName,
+          fee: updatedDraft.fee || parsed.fee
         } : null
       }
       setMessages((prev) => [...prev, botMsg])
