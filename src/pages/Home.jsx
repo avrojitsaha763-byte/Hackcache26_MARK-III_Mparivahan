@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   ChevronRight, 
@@ -13,14 +14,68 @@ import {
   Eye,
   Zap,
   QrCode,
-  Sparkles
+  Sparkles,
+  Calculator,
+  Bot,
+  CheckCircle2,
+  AlertTriangle,
+  Coins,
+  Cpu
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useStickyState } from '@/hooks/useStickyState'
+import { soundFx } from '@/lib/soundFx'
 
 export default function Home() {
   const [lang] = useStickyState('en', 'app-lang')
   const isHindi = lang === 'hi'
+  const [selectedVehicle, setSelectedVehicle] = useState('MCWG')
+  const [applicantAge, setApplicantAge] = useState(19)
+
+  const VEHICLE_CONFIGS = {
+    MCWOG: {
+      nameEn: 'Motor Cycle Without Gear (≤50cc)',
+      nameHi: 'बिना गियर वाला दोपहिया (≤50cc)',
+      minAge: 16,
+      ruleText: 'Section 4(1) MV Act (Requires Parental Consent Form)',
+      appFee: 150,
+      testFee: 50,
+      toutCost: 1500
+    },
+    MCWG: {
+      nameEn: 'Motor Cycle With Gear (2-Wheeler)',
+      nameHi: 'गियर वाला दोपहिया (MCWG)',
+      minAge: 18,
+      ruleText: 'Section 4(1) MV Act (Adult General Licence)',
+      appFee: 150,
+      testFee: 50,
+      toutCost: 1600
+    },
+    LMV: {
+      nameEn: 'Light Motor Vehicle (Car / Jeep)',
+      nameHi: 'हल्का मोटर वाहन - कार/जीप (LMV)',
+      minAge: 18,
+      ruleText: 'Section 4(1) MV Act (Private Passenger Car)',
+      appFee: 150,
+      testFee: 50,
+      toutCost: 2200
+    },
+    TRANS: {
+      nameEn: 'Transport / Commercial Vehicle',
+      nameHi: 'वाणिज्यिक / भारी वाहन (Transport)',
+      minAge: 20,
+      ruleText: 'Section 4(2) & 7(1) MV Act (Min 1 Year LMV Licence Required)',
+      appFee: 200,
+      testFee: 100,
+      toutCost: 3500
+    }
+  }
+
+  const currentVeh = VEHICLE_CONFIGS[selectedVehicle] || VEHICLE_CONFIGS.MCWG
+  const isEligible = applicantAge >= currentVeh.minAge
+  const needsForm1A = applicantAge >= 40 || selectedVehicle === 'TRANS'
+  const officialFee = currentVeh.appFee + currentVeh.testFee
+  const toutSavings = currentVeh.toutCost - officialFee
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -277,6 +332,252 @@ export default function Home() {
                 ? 'फॉर्म 3 लर्नर्स लाइसेंस जारी होने की तिथि से न्यूनतम 30 दिन पूर्ण होने के उपरांत ही स्थायी ड्राइविंग लाइसेंस (फॉर्म 4) परीक्षा हेतु स्लॉट बुक किया जा सकता है।'
                 : 'Permanent driving test (Form 4) can only be taken after holding a valid Form 3 Learner Licence for at least 30 continuous days.'}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* INTERACTIVE STATUTORY RULE 32 CMVR FEE & ELIGIBILITY CALCULATOR */}
+      <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
+              <Calculator className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[11px] font-bold border border-blue-200 dark:border-blue-800 mb-0.5">
+                <Coins className="w-3 h-3 text-amber-500" />
+                <span>{isHindi ? 'नियम 32 CMVR सरकारी शुल्क कैलकुलेटर' : 'Rule 32 CMVR Real-Time Statutory Fee & Age Engine'}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                {isHindi ? 'त्वरित पात्रता एवं आधिकारिक शुल्क कैलकुलेटर' : 'Instant Eligibility & Official Fee Calculator'}
+              </h2>
+            </div>
+          </div>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 self-start sm:self-auto">
+            {isHindi ? 'शून्य दलाल कमीशन' : '100% Anti-Tout Compliant'}
+          </span>
+        </div>
+
+        {/* Vehicle Category Selector */}
+        <div>
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-2">
+            {isHindi ? 'वाहन श्रेणी चुनें (Select Vehicle Class):' : 'Select Vehicle Category:'}
+          </label>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {Object.entries(VEHICLE_CONFIGS).map(([key, cfg]) => {
+              const active = selectedVehicle === key
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    soundFx.tap()
+                    setSelectedVehicle(key)
+                  }}
+                  className={`p-3 rounded-xl border text-left text-xs transition-all ${
+                    active
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 shadow-sm font-bold ring-2 ring-blue-500/30'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="font-semibold text-xs mb-0.5">{isHindi ? cfg.nameHi : cfg.nameEn}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">Min Age: {cfg.minAge} Yrs</div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Age Slider Selector */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {isHindi ? 'आवेदक की आयु (Applicant Age):' : 'Applicant Age:'}
+            </span>
+            <span className="px-3 py-0.5 rounded-full bg-blue-600 text-white font-mono font-bold text-sm shadow">
+              {applicantAge} {isHindi ? 'वर्ष' : 'Years'}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="15"
+            max="70"
+            value={applicantAge}
+            onChange={(e) => {
+              setApplicantAge(parseInt(e.target.value, 10))
+            }}
+            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+            <span>15 yrs (Minor)</span>
+            <span>18 yrs (Adult)</span>
+            <span>40 yrs (Form 1A Threshold)</span>
+            <span>70 yrs</span>
+          </div>
+        </div>
+
+        {/* Dynamic Calculation Result Card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Legal Eligibility Status */}
+          <div className={`p-4 rounded-2xl border text-xs flex flex-col justify-between ${
+            isEligible 
+              ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100'
+              : 'bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-950 dark:text-rose-100'
+          }`}>
+            <div>
+              <div className="flex items-center gap-2 mb-2 font-bold text-sm">
+                {isEligible ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>{isHindi ? 'आवेदन हेतु पात्र' : 'Statutorily Eligible to Apply'}</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                    <span>{isHindi ? 'वर्तमान आयु में अपात्र' : 'Underage / Ineligible for Class'}</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs leading-relaxed opacity-90 mb-3">
+                {isEligible
+                  ? `Qualified under ${currentVeh.ruleText}. You meet statutory age requirements to apply for Form 2 Learner Licence.`
+                  : `Section 4 of Motor Vehicles Act 1988 mandates a minimum age of ${currentVeh.minAge} years for ${currentVeh.nameEn}. You cannot legally submit Form 2 yet.`}
+              </p>
+
+              {/* Form 1A Medical Notice */}
+              {needsForm1A && isEligible && (
+                <div className="p-2.5 rounded-xl bg-amber-100/80 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-[11px] leading-tight flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                  <span>
+                    <strong>Rule 5(3) CMVR:</strong> Age is 40+ or commercial class. Medical Certificate (Form 1A) with registered doctor signoff and eye test token is required.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 mt-3 border-t border-current/10 flex items-center justify-between">
+              <span className="text-[11px] font-semibold opacity-75">Statutory Standard: CMVR 1989</span>
+              {isEligible && (
+                <Link to="/apply" className="font-bold underline text-xs flex items-center gap-1">
+                  <span>Start Form 2</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Official Rule 32 Fee Breakdown & Anti-Tout Savings */}
+          <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs text-slate-800 dark:text-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-sm text-blue-950 dark:text-blue-100">
+                  {isHindi ? 'सरकारी शुल्क विवरण (Rule 32):' : 'Official CMVR Rule 32 Treasury Fees:'}
+                </span>
+                <span className="font-mono text-base font-extrabold text-blue-700 dark:text-blue-300">
+                  ₹{officialFee}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex justify-between py-1 border-b border-blue-100 dark:border-blue-900/40">
+                  <span>Form 2 Learner Licence Issue (Rule 32 item 1):</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">₹{currentVeh.appFee}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-blue-100 dark:border-blue-900/40">
+                  <span>STALL Preliminary Knowledge Test Fee:</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">₹{currentVeh.testFee}</span>
+                </div>
+                <div className="flex justify-between py-1 text-slate-500">
+                  <span>RTO Agent / Tout Demand (Extortion):</span>
+                  <span className="font-mono line-through text-rose-500">₹{currentVeh.toutCost}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 mt-3 border-t border-blue-200 dark:border-blue-800/80 flex items-center justify-between">
+              <div className="text-emerald-700 dark:text-emerald-400 font-bold text-xs">
+                🎉 Direct Citizen Savings: ₹{toutSavings}
+              </div>
+              <Link to="/can-i-apply">
+                <button 
+                  type="button" 
+                  onClick={() => soundFx.tap()}
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition-all"
+                >
+                  Full Eligibility Check
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MULTI-MODEL AI COPILOT INTERACTIVE SHOWCASE */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white border border-indigo-800/50 relative overflow-hidden shadow-2xl">
+        <div className="absolute -right-12 -top-12 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded-full text-cyan-300 text-xs font-semibold">
+              <Bot className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <span>{isHindi ? 'सार्थी एआई मल्टी-मॉडल सहायक' : 'Saathi AI Multi-Model Legal Assistant'}</span>
+              <span>•</span>
+              <span className="text-amber-300">6 AI Engines</span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight">
+              {isHindi ? (
+                <>स्क्रीन पर घूमते रोबोट मैस्कॉट पर <span className="text-cyan-400">क्लिक करें और नमस्ते कहें!</span></>
+              ) : (
+                <>Meet Your Walking Mascot & <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">Multi-Model Assistant</span></>
+              )}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {isHindi
+                ? 'हमारा इंटरैक्टिव रोबोट स्क्रीन के निचले हिस्से में टहलता है। उस पर क्लिक या होवर करने पर वह हाथ हिलाकर अभिवादन करता है और मिथुन, डीपसीक आर1 (तार्किक रीज़निंग), क्लॉड एवं चैटजीपीटी मॉडलों द्वारा कानूनी सलाह प्रदान करता है।'
+                : 'Watch our rigged robotic companion patrol the bottom of your screen! Click or hover over the mascot to make it wave "Hi", play synthesizer chimes, and switch between Gemini 2.5 Flash, DeepSeek R1 (Chain of Thought), Claude 3.5, and GPT-4o for CMVR legal advisory.'}
+            </p>
+
+            {/* AI Engine Model Badges */}
+            <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
+              <span className="px-2.5 py-1 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-200 font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+                Gemini 2.5 Flash
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-semibold flex items-center gap-1.5">
+                <Cpu className="w-3.5 h-3.5 text-indigo-300" />
+                DeepSeek R1 (CoT Trace)
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 border border-purple-400/40 text-purple-200 font-semibold flex items-center gap-1.5">
+                <Bot className="w-3.5 h-3.5 text-purple-300" />
+                Claude 3.5 Sonnet
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-semibold flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
+                GPT-4o & Offline Base
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                soundFx.waveChime()
+                window.dispatchEvent(new CustomEvent('open-saathi-chat', {
+                  detail: { prompt: 'Namaste Saathi! Explain the step-by-step Form 2 Learner Licence application process under CMVR 1989.' }
+                }))
+              }}
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-cyan-500/25 transition-all group"
+            >
+              <Bot className="w-4 h-4 text-slate-950 group-hover:rotate-12 transition-transform" />
+              <span>{isHindi ? 'रोबोट सहायक से बात करें' : 'Talk with Saathi Robot'}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <div className="text-[11px] text-cyan-200/80 text-center flex items-center justify-center gap-1">
+              <span>👉</span>
+              <span>{isHindi ? 'या नीचे टहलते रोबोट पर क्लिक करें' : 'Or tap the walking mascot at bottom right!'}</span>
+            </div>
           </div>
         </div>
       </div>

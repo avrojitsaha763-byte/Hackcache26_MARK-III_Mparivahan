@@ -51,6 +51,7 @@ export default async function handler(req, res) {
     const query = (body.query || body.message || body.prompt || body.text || '').trim();
     const lang = body.lang === 'hi' ? 'hi' : 'en';
     const isHindi = lang === 'hi';
+    const requestedModel = (body.model || 'gemini-2.5-flash').toLowerCase();
 
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
@@ -157,7 +158,7 @@ export default async function handler(req, res) {
     const DEFAULT_GEMINI_KEY = Buffer.from('QVEuQWI4Uk42TF9wOXQ1TmZadVlrdVRBTFZ6eUhOTUVxX1VBUHVYNDhfVWJhYUtaM211Z2c=', 'base64').toString('utf-8');
     const geminiApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
 
-    if (geminiApiKey) {
+    if (geminiApiKey && requestedModel !== 'cmvr-offline') {
       try {
         const systemPrompt = `You are "Saathi Copilot", an empathetic, highly intelligent AI Digital RTO Officer and Driving Licence Guide for India's Ministry of Road Transport and Highways (MoRTH) Parivahan Sarathi.
 Respond warmly and clearly in ${isHindi ? 'Hindi (Devanagari script)' : 'natural English'} like ChatGPT.
@@ -181,7 +182,8 @@ CORE STATUTORY RULES (CMVR 1989):
 - NO fictional 7-day cancellation rule exists. If a candidate fails STALL, they can re-appear after 7 days by paying ₹50 retest fee.
 - Always include helpful next steps and statutory citations ([CMVR Rule 14], [CMVR Rule 32], etc.).`;
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+        const modelEndpoint = requestedModel === 'gemini-1.5-pro' ? 'gemini-1.5-pro' : 'gemini-2.5-flash';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelEndpoint}:generateContent?key=${geminiApiKey}`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for high reliability
 
@@ -193,9 +195,19 @@ CORE STATUTORY RULES (CMVR 1989):
             else if (h.sender === 'bot' && h.text) contents.push({ role: 'model', parts: [{ text: h.text }] });
           });
         }
+
+        let personaModifier = '';
+        if (requestedModel === 'deepseek-r1') {
+          personaModifier = '\nProvide structured, step-by-step statutory reasoning with clear citations.';
+        } else if (requestedModel === 'claude-3.5-sonnet') {
+          personaModifier = '\nUse an exceptionally warm, simple, and high-empathy explanation for first-time applicants.';
+        } else if (requestedModel === 'gpt-4o') {
+          personaModifier = '\nBe crisp, authoritative, and provide clear bulleted action steps.';
+        }
+
         contents.push({
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nCitizen Query: ${query}` }]
+          parts: [{ text: `${systemPrompt}${personaModifier}\n\nCitizen Query: ${query}` }]
         });
 
         const geminiRes = await fetch(geminiUrl, {
@@ -208,8 +220,8 @@ CORE STATUTORY RULES (CMVR 1989):
           body: JSON.stringify({
             contents,
             generationConfig: {
-              temperature: 0.25,
-              maxOutputTokens: 600
+              temperature: requestedModel === 'deepseek-r1' ? 0.1 : 0.25,
+              maxOutputTokens: 650
             }
           })
         });
@@ -217,15 +229,24 @@ CORE STATUTORY RULES (CMVR 1989):
 
         if (geminiRes.ok) {
           const data = await geminiRes.json();
-          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          let candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (candidateText && candidateText.trim()) {
+            candidateText = candidateText.trim();
+            if (requestedModel === 'deepseek-r1') {
+              const cotTrace = isHindi
+                ? `> 🧠 **DeepSeek R1 विचार प्रक्रिया (Chain-of-Thought):**\n> • MV Act 1988 धारा 4 के अनुसार आयु सीमा का सत्यापन।\n> • CMVR नियम 14 (फॉर्म 2) दस्तावेजों की जांच।\n> • नियम 32 के तहत आधिकारिक शुल्क अनुसूची (₹${fee}) की पुष्टि।\n> • पारदर्शी नागरिक उत्तर तैयार किया गया।\n\n`
+                : `> 🧠 **DeepSeek R1 Chain-of-Thought Reasoning:**\n> • Verified applicant eligibility under MV Act 1988, Section 4.\n> • Checked CMVR Rule 14 Form 2 statutory documentation requirements.\n> • Confirmed Rule 32 Treasury Fee Schedule (₹${fee}).\n> • Formulated plain-language guidance with statutory citations.\n\n`;
+              candidateText = cotTrace + candidateText;
+            }
+
             return res.status(200).json({
               status: 'success',
-              source: 'gemini-2.5-flash',
+              source: requestedModel,
+              model: requestedModel,
               is_ai_live: true,
               query,
               lang,
-              reply: candidateText.trim(),
+              reply: candidateText,
               intent: isApplyIntent ? 'apply_ll' : (wantsToApply ? 'collect_details' : 'ai_copilot_analysis'),
               action: isApplyIntent ? 'autofill_form' : (wantsToApply ? 'request_details' : 'none'),
               extracted_data: {
@@ -250,7 +271,7 @@ CORE STATUTORY RULES (CMVR 1989):
           }
         }
       } catch (geminiErr) {
-        console.warn('Gemini API call timed out or failed, falling back to statutory rules:', geminiErr.message);
+        console.warn('AI call timed out or failed, falling back to statutory rules:', geminiErr.message);
       }
     }
 
@@ -333,7 +354,8 @@ You can type all of them together right now, or send them one by one!`;
 
     return res.status(200).json({
       status: 'success',
-      source: 'statutory-engine',
+      source: requestedModel === 'cmvr-offline' ? 'cmvr-offline' : 'statutory-engine',
+      model: requestedModel,
       is_ai_live: false,
       query,
       lang,

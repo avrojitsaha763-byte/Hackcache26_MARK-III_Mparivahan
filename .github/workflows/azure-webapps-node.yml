@@ -37,19 +37,38 @@ jobs:
   deploy:
     name: Deploy to Azure WebApp (Optional)
     needs: build-and-audit
-    if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE != '' && env.AZURE_WEBAPP_NAME != 'your-app-name' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Verify Deployment Configuration
+      id: check-config
+      env:
+        PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      run: |
+        if [ -n "$PUBLISH_PROFILE" ] && [ "${{ env.AZURE_WEBAPP_NAME }}" != "your-app-name" ]; then
+          echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          echo "Azure Publish Profile not configured or app-name is placeholder. Deployment gracefully bypassed."
+        fi
+
+    - name: Checkout Code
+      if: steps.check-config.outputs.should_deploy == 'true'
+      uses: actions/checkout@v4
+
     - name: Set up Node.js
+      if: steps.check-config.outputs.should_deploy == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-    - name: Build Application
+
+    - name: Build Application Bundle
+      if: steps.check-config.outputs.should_deploy == 'true'
       run: |
         npm install
         npm run build
+
     - name: Deploy to Azure WebApp
+      if: steps.check-config.outputs.should_deploy == 'true'
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}

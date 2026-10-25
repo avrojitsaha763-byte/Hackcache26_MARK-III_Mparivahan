@@ -23,15 +23,20 @@ import {
   Search,
   Compass,
   Eye,
-  Radio
+  Radio,
+  Zap,
+  QrCode
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { useStickyState } from '@/hooks/useStickyState'
+import RobotMascot from '@/components/RobotMascot'
+import { soundFx } from '@/lib/soundFx'
 import { 
   OFFICIAL_RTOS, 
   VEHICLE_OPTIONS, 
+  AI_MODELS,
   parseCitizenQuery, 
   getStatutoryResponse 
 } from '@/lib/aiChatService'
@@ -153,6 +158,7 @@ export default function ChatbotModal() {
   const isHindi = lang === 'hi'
 
   const [inputText, setInputText] = useState('')
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash')
   const [isListening, setIsListening] = useState(false)
   const [liveTranscript, setLiveTranscript] = useState('')
   const [micErrorMessage, setMicErrorMessage] = useState('')
@@ -332,8 +338,8 @@ export default function ChatbotModal() {
     setApplicantDraft(updatedDraft)
 
     try {
-      // Invoke Centralized API with Gemini 2.5 Flash + CMVR Statutory Engine
-      const res = await api.sendChatMessage(query, lang, newMsgs)
+      // Invoke Centralized API with Selected AI Model + CMVR Statutory Engine
+      const res = await api.sendChatMessage(query, lang, newMsgs, selectedModel)
 
       setIsAiLoading(false)
 
@@ -347,7 +353,8 @@ export default function ChatbotModal() {
           sender: 'bot',
           text: res.reply,
           isAiLive: res.isAiLive,
-          sourceTag: res.source,
+          sourceTag: res.source || selectedModel,
+          model: res.model || selectedModel,
           sources: res.sources || [
             { title: 'Central Motor Vehicles Rules 1989', url: 'https://parivahan.gov.in' },
             { title: 'MoRTH Statutory Gazette', url: 'https://morth.nic.in' }
@@ -665,25 +672,12 @@ export default function ChatbotModal() {
 
   return (
     <>
-      {/* Floating Trigger Button with Copilot Pulse Accent */}
-      <button
+      {/* Interactive Robot Mascot (Walks towards user, waves hi upon click) */}
+      <RobotMascot
         onClick={() => setIsOpen(true)}
-        aria-label="Open Saathi Driving Licence Copilot"
-        className="fixed bottom-16 sm:bottom-6 left-4 sm:left-6 p-3 sm:px-4 sm:py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-full shadow-2xl z-50 hover:from-blue-500 hover:to-indigo-500 active:scale-95 transition-all flex items-center gap-2.5 border-2 border-white/20 group backdrop-blur-md cursor-pointer"
-      >
-        <div className="relative">
-          <Bot className="w-5 h-5 text-white" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-blue-600 animate-pulse" />
-        </div>
-        <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-bold leading-tight flex items-center gap-1">
-            <span>Saathi Copilot</span>
-            <Sparkles className="w-3 h-3 text-amber-300" />
-          </span>
-          <span className="text-[10px] text-blue-100 font-mono">Ask • Voice • Guide</span>
-        </div>
-        <Mic className="w-3.5 h-3.5 text-blue-200 hidden sm:inline" />
-      </button>
+        isHindi={isHindi}
+        isModalOpen={isOpen}
+      />
 
       {/* Copilot Sliding Modal / Mobile Bottom Sheet */}
       <AnimatePresence>
@@ -704,15 +698,23 @@ export default function ChatbotModal() {
               {/* Header with Bilingual Voice Controls & Live AI status */}
               <div className="p-3.5 sm:p-4 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 text-white flex items-center justify-between shrink-0 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                    <Bot className="w-5 h-5 text-amber-300" />
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 p-1">
+                    {/* Animated Holographic Robot Head in Header */}
+                    <svg viewBox="0 0 40 40" className="w-8 h-8 drop-shadow">
+                      <rect x="6" y="10" width="28" height="22" rx="8" fill="#1e3a8a" stroke="#60a5fa" strokeWidth="1.2" />
+                      <rect x="10" y="14" width="20" height="13" rx="5" fill="#030712" stroke="#38bdf8" strokeWidth="1" />
+                      <circle cx="16" cy="20" r="2.5" fill="#38bdf8" />
+                      <circle cx="24" cy="20" r="2.5" fill="#38bdf8" />
+                      <line x1="20" y1="10" x2="20" y2="4" stroke="#64748b" strokeWidth="1.5" />
+                      <circle cx="20" cy="3" r="2" fill="#facc15" className="animate-pulse" />
+                    </svg>
                   </div>
                   <div>
                     <h3 className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
                       <span>Saathi — AI Digital RTO Copilot</span>
                       <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 font-mono tracking-wide flex items-center gap-1 border border-emerald-400/30">
                         <Sparkles className="w-2.5 h-2.5 text-emerald-300" />
-                        <span>Gemini 2.5 Flash</span>
+                        <span>{AI_MODELS.find(m => m.id === selectedModel)?.name || 'Gemini 2.5'}</span>
                       </span>
                     </h3>
                     <p className="text-[10px] text-blue-200 flex items-center gap-1">
@@ -746,6 +748,39 @@ export default function ChatbotModal() {
                 </div>
               </div>
 
+              {/* Multi-Model AI Engine Selector Bar */}
+              <div className="px-3 py-1.5 bg-slate-900 border-b border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 shadow-inner">
+                <span className="text-[10px] text-slate-400 font-semibold shrink-0 uppercase tracking-wider flex items-center gap-1 pl-0.5">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span className="hidden sm:inline">Active Model:</span>
+                </span>
+                {AI_MODELS.map((m) => {
+                  const isSelected = selectedModel === m.id
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedModel(m.id)
+                        soundFx.tap()
+                      }}
+                      className={`px-2.5 py-1 rounded-xl text-[10.5px] font-semibold shrink-0 transition-all flex items-center gap-1.5 border cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600 text-white border-blue-400 shadow-sm shadow-blue-500/30 ring-1 ring-blue-300/40'
+                          : 'bg-slate-800/80 text-slate-300 border-slate-700/60 hover:bg-slate-800 hover:text-white'
+                      }`}
+                      title={`${m.provider}: ${m.description} (${m.latency})`}
+                    >
+                      <span>{m.icon}</span>
+                      <span>{m.name}</span>
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-black/40 font-mono opacity-80">
+                        {m.latency}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
               {/* Graceful Fallback Notice Bar (If Live AI is disconnected/offline) */}
               {aiUnavailable && (
                 <div className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 border-b border-amber-200 dark:border-amber-900/60 flex items-center justify-between text-[11px] text-amber-800 dark:text-amber-200 shrink-0">
@@ -776,9 +811,15 @@ export default function ChatbotModal() {
                       {/* Bot Message Header: AI Live indicator + Listen Speaker Button */}
                       {m.sender === 'bot' && (
                         <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-300 flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-300 flex items-center gap-1.5">
                             <Bot className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             <span>Saathi Assistant</span>
+                            {m.model && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-mono font-medium border border-blue-200 dark:border-blue-700 flex items-center gap-0.5">
+                                <span>{AI_MODELS.find(x => x.id === m.model)?.icon || '⚡'}</span>
+                                <span>{AI_MODELS.find(x => x.id === m.model)?.name || m.model}</span>
+                              </span>
+                            )}
                           </span>
 
                           <div className="flex items-center gap-1.5">
@@ -1188,6 +1229,43 @@ export default function ChatbotModal() {
                   </div>
                 </div>
               )}
+
+              {/* Strategic Pillar Quick Launch Hub */}
+              <div className="px-2.5 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[10.5px]">
+                <span className="text-slate-400 font-semibold shrink-0">Fast Tools:</span>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); navigate('/vision-test'); }}
+                  className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-blue-600 dark:text-blue-300 hover:border-blue-400 font-medium shrink-0 flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                >
+                  <Eye className="w-3 h-3 text-blue-500" />
+                  <span>Eye Screener</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); navigate('/hazard-test'); }}
+                  className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-amber-600 dark:text-amber-300 hover:border-amber-400 font-medium shrink-0 flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                >
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  <span>Hazard Arena</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); navigate('/apply'); }}
+                  className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-emerald-600 dark:text-emerald-300 hover:border-emerald-400 font-medium shrink-0 flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                >
+                  <FileText className="w-3 h-3 text-emerald-500" />
+                  <span>Form 2 Apply</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); navigate('/verify'); }}
+                  className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-purple-600 dark:text-purple-300 hover:border-purple-400 font-medium shrink-0 flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                >
+                  <QrCode className="w-3 h-3 text-purple-500" />
+                  <span>TrustLedger</span>
+                </button>
+              </div>
 
               {/* 1-Click Guided Chips for Instant Common Village Questions */}
               <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 overflow-x-auto flex gap-1.5 whitespace-nowrap no-scrollbar shrink-0">

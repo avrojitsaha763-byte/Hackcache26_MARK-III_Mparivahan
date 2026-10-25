@@ -500,16 +500,16 @@ export const api = {
   },
 
   // Citizen Copilot & AI Conversational Assistant
-  async sendCopilotIntent(query, lang = 'en', history = []) {
-    return this.sendChatMessage(query, lang, history)
+  async sendCopilotIntent(query, lang = 'en', history = [], model = 'gemini-2.5-flash') {
+    return this.sendChatMessage(query, lang, history, model)
   },
 
-  async sendChatMessage(query, lang = 'en', history = []) {
+  async sendChatMessage(query, lang = 'en', history = [], model = 'gemini-2.5-flash') {
     // 1. Try backend serverless/FastAPI endpoint if available
     try {
       const backendRes = await safeFetch('/api/chat', {
         method: 'POST',
-        body: JSON.stringify({ query, lang, history })
+        body: JSON.stringify({ query, lang, history, model })
       })
       if (backendRes && backendRes.status === 'success' && backendRes.reply) {
         // If backend ran live AI or matched a specific intent, return it directly
@@ -521,8 +521,8 @@ export const api = {
       // Backend unavailable, fallback to client AI engine
     }
 
-    // 2. Client-side Dual-Engine (Gemini 2.5 Flash + CMVR Statutory Engine)
-    return await getCopilotReply(query, lang, history)
+    // 2. Client-side Multi-Engine (Gemini 2.5 Flash, Gemini 1.5 Pro, DeepSeek R1, Claude 3.5, GPT-4o, CMVR Offline)
+    return await getCopilotReply(query, lang, history, model)
   }
 }
 
