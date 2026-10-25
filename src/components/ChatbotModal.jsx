@@ -158,7 +158,7 @@ export default function ChatbotModal() {
   const isHindi = lang === 'hi'
 
   const [inputText, setInputText] = useState('')
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash')
+  const [selectedModel, setSelectedModel] = useState('gemini-3.8-flash')
   const [isListening, setIsListening] = useState(false)
   const [liveTranscript, setLiveTranscript] = useState('')
   const [micErrorMessage, setMicErrorMessage] = useState('')

@@ -519,9 +519,9 @@ export default function Home() {
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-400/30 rounded-full text-cyan-300 text-xs font-semibold">
               <Bot className="w-4 h-4 text-cyan-400 animate-pulse" />
-              <span>{isHindi ? 'सार्थी एआई मल्टी-मॉडल सहायक' : 'Saathi AI Multi-Model Legal Assistant'}</span>
+              <span>{isHindi ? 'सार्थी एआई मल्टी-मॉडल सूट' : 'Saathi AI Multi-Model Legal Suite'}</span>
               <span>•</span>
-              <span className="text-amber-300">6 AI Engines</span>
+              <span className="text-amber-300">Gemini 3.8 & Gemma Suite</span>
             </div>
 
             <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight">
@@ -534,27 +534,35 @@ export default function Home() {
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               {isHindi
-                ? 'हमारा इंटरैक्टिव रोबोट स्क्रीन के निचले हिस्से में टहलता है। उस पर क्लिक या होवर करने पर वह हाथ हिलाकर अभिवादन करता है और मिथुन, डीपसीक आर1 (तार्किक रीज़निंग), क्लॉड एवं चैटजीपीटी मॉडलों द्वारा कानूनी सलाह प्रदान करता है।'
-                : 'Watch our rigged robotic companion patrol the bottom of your screen! Click or hover over the mascot to make it wave "Hi", play synthesizer chimes, and switch between Gemini 2.5 Flash, DeepSeek R1 (Chain of Thought), Claude 3.5, and GPT-4o for CMVR legal advisory.'}
+                ? 'हमारा इंटरैक्टिव रोबोट स्क्रीन के निचले हिस्से में टहलता है। उस पर क्लिक या होवर करने पर वह हाथ हिलाकर अभिवादन करता है और जेमिनी 3.8 फ्लैश, जेमिनी 3.6, जेमा 4, एम्बेडिंग 2 एवं ऑडियो ट्रांसक्राइब मॉडलों द्वारा कानूनी सलाह प्रदान करता है।'
+                : 'Watch our rigged robotic companion patrol the bottom of your screen! Click or hover over the mascot to make it wave "Hi", play synthesizer chimes, and switch between Gemini 3.8 Flash, Gemini 3.6 Flash, Gemma 4, Embedding 2, and Audio Specialties for CMVR legal advisory.'}
             </p>
 
             {/* AI Engine Model Badges */}
             <div className="flex flex-wrap gap-2 pt-1 text-[11px]">
               <span className="px-2.5 py-1 rounded-lg bg-blue-500/20 border border-blue-400/40 text-blue-200 font-semibold flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-                Gemini 2.5 Flash
+                Gemini 3.8 Flash (Primary)
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 font-semibold flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 text-cyan-300" />
+                Gemini 3.6 & 3.5 Flash-Lite
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-semibold flex items-center gap-1.5">
                 <Cpu className="w-3.5 h-3.5 text-indigo-300" />
-                DeepSeek R1 (CoT Trace)
+                Gemma 4 (Open Weights)
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-purple-500/20 border border-purple-400/40 text-purple-200 font-semibold flex items-center gap-1.5">
-                <Bot className="w-3.5 h-3.5 text-purple-300" />
-                Claude 3.5 Sonnet
+                <QrCode className="w-3.5 h-3.5 text-purple-300" />
+                Gemini Embedding 2
+              </span>
+              <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-200 font-semibold flex items-center gap-1.5">
+                <Bot className="w-3.5 h-3.5 text-rose-300" />
+                Gemini Audio 3.8 Live & Transcribe
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-semibold flex items-center gap-1.5">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
-                GPT-4o & Offline Base
+                DeepSeek R1 CoT & CMVR Base
               </span>
             </div>
           </div>

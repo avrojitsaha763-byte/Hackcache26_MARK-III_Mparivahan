@@ -34,12 +34,7 @@ jobs:
     - name: Run Production Vite Build
       run: npm run build
 
-  deploy:
-    name: Deploy to Azure WebApp (Optional)
-    needs: build-and-audit
-    runs-on: ubuntu-latest
-    steps:
-    - name: Verify Deployment Configuration
+    - name: Check Deployment Configuration
       id: check-config
       env:
         PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
@@ -51,26 +46,11 @@ jobs:
           echo "Azure Publish Profile not configured or app-name is placeholder. Deployment gracefully bypassed."
         fi
 
-    - name: Checkout Code
-      if: steps.check-config.outputs.should_deploy == 'true'
-      uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      if: steps.check-config.outputs.should_deploy == 'true'
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-
-    - name: Build Application Bundle
-      if: steps.check-config.outputs.should_deploy == 'true'
-      run: |
-        npm install
-        npm run build
-
-    - name: Deploy to Azure WebApp
+    - name: Deploy to Azure WebApp (Conditional)
       if: steps.check-config.outputs.should_deploy == 'true'
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: './dist'
+
